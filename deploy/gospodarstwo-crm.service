@@ -1,0 +1,15 @@
+[Unit]
+Description=Kabanek CRM - Gospodarstwo
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/crm-gospodarstwo/gospodarstwo-crm
+ExecStart=/opt/crm-gospodarstwo/venv/bin/python app.py
+Restart=always
+RestartSec=5
+Environment=SECRET_KEY=ZMIEN-NA-LOSOWY-KLUCZ-GOSPODARSTWO
+
+[Install]
+WantedBy=multi-user.target

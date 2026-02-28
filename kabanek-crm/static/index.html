@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kabanek CRM — System Zarządzania Tuczem</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--green:#1B7A2B;--green-dark:#145A1F;--green-light:#2D9A3D;--green-pale:#E8F5E9;--green-muted:#A5D6A7;--gold:#C4A035;--gold-light:#E8D48B;--gold-pale:#FDF6E3;--red:#C62828;--red-pale:#FFEBEE;--blue:#42A5F5;--bg:#F7F8F5;--card:#FFFFFF;--text:#1A2E1A;--text-muted:#5A6F5A;--border:#D4DFD4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
+
+/* LOGIN OVERLAY */
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0a1f0a 0%,#1B7A2B 50%,#145A1F 100%);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .5s}
+.login-overlay.hidden{opacity:0;pointer-events:none}
+.login-box{background:#fff;border-radius:24px;padding:48px 40px;width:400px;max-width:90vw;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo-icon{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,var(--green),var(--green-light));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:28px;margin-bottom:12px}
+.login-logo h1{font-size:24px;color:var(--green);font-weight:800}
+.login-logo p{font-size:13px;color:var(--text-muted);margin-top:4px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+.login-field input{width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:12px;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--green)}
+.login-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green-light));color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;transition:filter .2s}
+.login-btn:hover{filter:brightness(1.1)}
+.login-btn:disabled{opacity:.6;cursor:not-allowed}
+.login-error{color:var(--red);font-size:13px;text-align:center;margin-top:12px;min-height:20px}
+.login-hint{margin-top:20px;padding:14px;background:var(--green-pale);border-radius:10px;font-size:12px;color:var(--text-muted);line-height:1.6}
+.login-hint strong{color:var(--green)}
+
+/* ROLE BADGE */
+.role-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.role-badge.admin{background:rgba(198,40,40,.1);color:var(--red)}
+.role-badge.manager{background:rgba(66,165,245,.12);color:var(--blue)}
+.role-badge.pracownik{background:rgba(196,160,53,.12);color:var(--gold)}
+
+/* TOAST */
+.toast{position:fixed;top:20px;right:20px;padding:14px 24px;border-radius:12px;color:#fff;font-size:14px;font-weight:600;z-index:10000;transform:translateX(120%);transition:transform .3s ease;max-width:400px}
+.toast.show{transform:translateX(0)}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+.toast.info{background:var(--blue)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:5000;display:none;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:20px;padding:32px;width:500px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:20px}
+.modal-field{margin-bottom:14px}
+.modal-field label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.modal-field input,.modal-field select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none}
+.modal-field input:focus,.modal-field select:focus{border-color:var(--green)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.modal-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:none}
+.modal-btn.primary{background:var(--green);color:#fff}
+.modal-btn.secondary{background:var(--bg);color:var(--text-muted);border:1px solid var(--border)}
+.modal-btn.danger{background:var(--red);color:#fff}
+
+/* APP LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:250px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 14px;flex-shrink:0;overflow-y:auto}
+.sidebar-logo{display:flex;align-items:center;gap:12px;padding:8px 10px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sidebar-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;flex-shrink:0}
+.sidebar-logo-text{font-weight:800;font-size:17px;color:var(--green)}
+.sidebar-logo-sub{font-size:10.5px;color:var(--text-muted);letter-spacing:1px;margin-top:2px}
+.sidebar-section{font-size:10px;font-weight:600;color:var(--text-muted);padding:12px 16px 6px;letter-spacing:1.2px;text-transform:uppercase}
+.sidebar-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:10px;cursor:pointer;font-weight:500;font-size:14px;color:var(--text-muted);transition:all .2s;border:none;background:none;width:100%;text-align:left;position:relative;font-family:inherit}
+.sidebar-item:hover{background:var(--green-pale);color:var(--green)}
+.sidebar-item.active{background:rgba(27,122,43,.1);color:var(--green);font-weight:600}
+.sidebar-item.active::after{content:'';position:absolute;right:14px;width:5px;height:5px;border-radius:50%;background:var(--green)}
+.sidebar-item svg{flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding:16px 10px 0;border-top:1px solid var(--border)}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:8px 6px}
+.sidebar-avatar{width:34px;height:34px;border-radius:8px;background:rgba(196,160,53,.15);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--gold)}
+.logout-btn{width:100%;margin-top:8px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.logout-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-pale)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:16px 28px;background:var(--card);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.topbar h2{font-size:21px;font-weight:800}
+.topbar p{font-size:13px;color:var(--text-muted);margin-top:3px}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-primary{padding:9px 18px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--green-light));color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit}
+.btn-primary:hover{filter:brightness(1.08)}
+.content{flex:1;overflow:auto;padding:24px}
+.page{display:none;flex-direction:column;gap:22px}.page.active{display:flex}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:14px}
+.stat-card{background:var(--card);border-radius:16px;padding:20px 22px;border:1px solid var(--border);position:relative;overflow:hidden}
+.stat-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-icon.green{background:rgba(27,122,43,.1);color:var(--green)}.stat-icon.gold{background:rgba(196,160,53,.12);color:var(--gold)}.stat-icon.red{background:rgba(198,40,40,.08);color:var(--red)}
+.stat-label{font-size:13px;color:var(--text-muted);font-weight:500}
+.stat-value{font-size:26px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px}
+.stat-trend{display:flex;align-items:center;gap:4px;font-size:12.5px}.stat-trend.up{color:var(--green)}.stat-trend.down{color:var(--red)}
+.card{background:var(--card);border-radius:16px;padding:24px;border:1px solid var(--border)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.card-title{font-size:16px;font-weight:700}.card-subtitle{font-size:12.5px;color:var(--text-muted);margin-top:3px}
+.badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:11.5px;font-weight:600}
+.badge.green{background:rgba(27,122,43,.1);color:var(--green)}.badge.gold{background:rgba(196,160,53,.12);color:var(--gold)}.badge.blue{background:rgba(66,165,245,.12);color:var(--blue)}.badge.red{background:rgba(198,40,40,.08);color:var(--red)}
+.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.grid-2-equal{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+table thead tr{border-bottom:2px solid var(--border)}table thead th{text-align:left;padding:10px 13px;color:var(--text-muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}table tbody tr:hover{background:var(--green-pale)}
+table td{padding:11px 13px}td.profit-pos{font-weight:700;color:var(--green)}td.profit-neg{font-weight:700;color:var(--red)}td.bold{font-weight:500}td.muted{color:var(--text-muted)}
+.search-box{flex:1;min-width:200px;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 14px}
+.search-box:focus-within{border-color:var(--green)}
+.search-box input{border:none;outline:none;background:transparent;font-size:14px;color:var(--text);width:100%;font-family:inherit}
+.client-list{display:grid;gap:10px}
+.client-row{background:var(--card);border-radius:14px;padding:16px 20px;border:1px solid var(--border);display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr 1fr;align-items:center;gap:10px;transition:all .2s}
+.client-row:hover{border-color:var(--green-muted);box-shadow:0 4px 16px rgba(0,0,0,.04)}
+.client-name{font-weight:600;font-size:14px}
+.client-metric{text-align:center}.client-metric-val{font-size:15px;font-weight:700}.client-metric-label{font-size:11px;color:var(--text-muted)}
+.no-data{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.preset-btn{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.preset-btn:hover{border-color:var(--green);color:var(--green)}
+.preset-btn.active{border-color:var(--green);background:var(--green);color:#fff}
+
+/* USER MANAGEMENT */
+.user-grid{display:grid;gap:12px}
+.user-card{background:var(--card);border-radius:14px;padding:18px 22px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.user-info{display:flex;align-items:center;gap:14px}
+.user-avatar{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
+.user-avatar.admin-av{background:rgba(198,40,40,.1);color:var(--red)}
+.user-avatar.manager-av{background:rgba(66,165,245,.1);color:var(--blue)}
+.user-avatar.pracownik-av{background:rgba(196,160,53,.1);color:var(--gold)}
+.user-actions{display:flex;gap:8px}
+.user-action-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.user-action-btn:hover{border-color:var(--green);color:var(--green)}
+.user-action-btn.danger:hover{border-color:var(--red);color:var(--red)}
+
+.hidden-by-role{display:none!important}
+.chart-container{position:relative;width:100%}
+.table-wrap{overflow-x:auto}
+table.full thead tr{background:var(--green-pale);border-bottom:none}table.full thead th{color:var(--green-dark);padding:13px 14px}table.full tbody tr:nth-child(even){background:var(--bg)}
+.link-btn{background:rgba(27,122,43,.08);border:none;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--green);cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit}
+@media(max-width:900px){.sidebar{display:none}.grid-2,.grid-2-equal{grid-template-columns:1fr}.client-row{grid-template-columns:1fr 1fr;gap:12px}.stats-grid{grid-template-columns:repeat(2,1fr)}.login-box{padding:32px 24px}}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-overlay" id="loginOverlay">
+<div class="login-box">
+<div class="login-logo">
+<div class="login-logo-icon">K</div>
+<h1>KABANEK CRM</h1>
+<p>System Zarządzania Tuczem v2.0</p>
+</div>
+<div class="login-field"><label>Login</label><input type="text" id="loginUser" placeholder="Nazwa użytkownika" autofocus></div>
+<div class="login-field"><label>Hasło</label><input type="password" id="loginPass" placeholder="Hasło"></div>
+<button class="login-btn" id="loginBtn" onclick="doLogin()">Zaloguj się</button>
+<div class="login-error" id="loginError"></div>
+<div class="login-hint">
+<strong>Konta domyślne:</strong><br>
+admin / admin123 — Administrator<br>
+manager / manager123 — Manager<br>
+pracownik / prac123 — Pracownik
+</div>
+</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal" id="modalContent"></div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appContainer" style="display:none">
+<div class="sidebar">
+<div class="sidebar-logo"><div class="sidebar-logo-icon">K</div><div><div class="sidebar-logo-text">KABANEK</div><div class="sidebar-logo-sub">SYSTEM CRM v2</div></div></div>
+<div class="sidebar-section">Menu</div>
+<button class="sidebar-item active" onclick="switchTab('dashboard')"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard</button>
+<button class="sidebar-item" onclick="switchTab('clients')"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Klienci</button>
+<button class="sidebar-item" onclick="switchTab('cycles')"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Cykle tuczu</button>
+<button class="sidebar-item" onclick="switchTab('finance')"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Finanse</button>
+<button class="sidebar-item admin-only" onclick="switchTab('users')"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Użytkownicy</button>
+<button class="sidebar-item admin-only" onclick="switchTab('logs')"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Logi aktywności</button>
+<div class="sidebar-footer">
+<div class="sidebar-user">
+<div class="sidebar-avatar" id="sidebarAvatar">A</div>
+<div>
+<div style="font-size:13px;font-weight:600" id="sidebarName">Admin</div>
+<div style="font-size:11px;color:var(--text-muted)" id="sidebarRole">Administrator</div>
+</div>
+</div>
+<button class="logout-btn" onclick="doLogout()">⏻ Wyloguj się</button>
+</div>
+</div>
+
+<div class="main">
+<div class="topbar">
+<div><h2 id="page-title">Dashboard</h2><p id="page-subtitle">Przegląd wyników i statystyk</p></div>
+<div class="topbar-actions">
+<div id="roleIndicator"></div>
+<button class="btn-primary write-only" onclick="showNewCycleModal()">+ Nowy tucz</button>
+</div>
+</div>
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+<div class="stats-grid" id="dashStats"></div>
+<div class="grid-2">
+<div class="card"><div class="card-header"><div><div class="card-title">Zysk roczny</div><div class="card-subtitle">Dynamika zysku 2022–2026</div></div><span class="badge gold">PLN</span></div><div class="chart-container"><canvas id="profitChart" height="220"></canvas></div></div>
+<div class="card"><div class="card-header"><div><div class="card-title">Skala produkcji</div></div><span class="badge green">Rocznie</span></div><div class="chart-container"><canvas id="productionChart" height="220"></canvas></div></div>
+</div>
+<div class="card"><div class="card-header"><div><div class="card-title">Ostatnie cykle tuczu</div></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Miesiąc</th><th>Klient</th><th>Pasza</th><th>Start</th><th>Sprzedaż</th><th>Zysk</th><th>Upadki %</th></tr></thead><tbody id="dashTable"></tbody></table></div></div>
+</div>
+
+<!-- CLIENTS -->
+<div class="page" id="page-clients">
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+<div class="search-box"><input type="text" placeholder="Szukaj klienta..." id="clientSearch" oninput="loadClients()"></div>
+<div class="search-box" style="flex:0.7;min-width:180px"><input type="text" placeholder="Nr kolczyka..." id="kolczykSearch" oninput="loadClients()"></div>
+</div>
+<div class="preset-row" id="presetRow">
+<button class="preset-btn active" onclick="setPreset('all',this)">Wszyscy</button>
+<button class="preset-btn" onclick="setPreset('topProfit',this)">💰 Najbardziej dochodowi</button>
+<button class="preset-btn" onclick="setPreset('botProfit',this)">📉 Najmniej dochodowi</button>
+<button class="preset-btn" onclick="setPreset('bestFcr',this)">⚡ Najlepsze FCR</button>
+<button class="preset-btn" onclick="setPreset('worstFcr',this)">🐌 Najsłabsze FCR</button>
+</div>
+<div id="clientCount" style="font-size:12.5px;color:var(--text-muted)"></div>
+<div class="client-list" id="clientList"></div>
+</div>
+
+<!-- CYCLES -->
+<div class="page" id="page-cycles">
+<div class="card" style="padding:0;overflow:hidden"><div style="padding:20px 24px;border-bottom:1px solid var(--border)"><div class="card-title">Wszystkie cykle tuczu</div></div>
+<div class="table-wrap"><table class="full"><thead><tr><th>#</th><th>Miesiąc</th><th>Klient</th><th>Pasza</th><th>Start</th><th>Sprzedaż</th><th>Zysk</th><th>Upadki</th><th>Status</th></tr></thead><tbody id="cyclesTable"></tbody></table></div></div>
+</div>
+
+<!-- FINANCE -->
+<div class="page" id="page-finance">
+<div id="finSummary" class="stats-grid"></div>
+<div class="grid-2-equal">
+<div class="card"><div class="card-header"><div class="card-title">💰 TOP 10 Zyskownych</div></div><div class="chart-container"><canvas id="finTopChart" height="280"></canvas></div></div>
+<div class="card"><div class="card-header"><div class="card-title">📉 TOP 10 Stratnych</div></div><div class="chart-container"><canvas id="finBotChart" height="280"></canvas></div></div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<div style="padding:16px 24px;border-bottom:1px solid var(--border)"><div class="card-title">Rozliczenie klientów</div></div>
+<div class="table-wrap"><table class="full"><thead><tr><th></th><th>Klient</th><th>Cykle</th><th>Sztuk</th><th>Sprzedanych</th><th>Zysk</th><th>Zysk/szt</th><th>FCR</th><th>Upadki %</th></tr></thead><tbody id="finTable"></tbody></table></div></div>
+</div>
+
+<!-- USERS (admin) -->
+<div class="page" id="page-users">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<div class="card-title">Zarządzanie użytkownikami</div>
+<button class="btn-primary" onclick="showAddUserModal()">+ Nowy użytkownik</button>
+</div>
+<div class="user-grid" id="userList"></div>
+</div>
+
+<!-- LOGS (admin) -->
+<div class="page" id="page-logs">
+<div class="card" style="padding:0;overflow:hidden">
+<div style="padding:20px 24px;border-bottom:1px solid var(--border)"><div class="card-title">Historia aktywności</div></div>
+<div class="table-wrap"><table class="full"><thead><tr><th>Data</th><th>Użytkownik</th><th>Akcja</th><th>Zasób</th><th>Szczegóły</th></tr></thead><tbody id="logsTable"></tbody></table></div></div>
+</div>
+
+</div></div></div>
+
+<script>
+// ═══ STATE ═══
+let TOKEN = localStorage.getItem('kabanek_token');
+let USER = JSON.parse(localStorage.getItem('kabanek_user') || 'null');
+let currentPreset = 'all';
+let profitChart, prodChart, finTopChart, finBotChart;
+
+const fmt = n => { if(n==null) return '—'; const a=Math.abs(n); if(a>=1e6) return (n/1e6).toFixed(2)+' mln'; if(a>=1e3) return (n/1e3).toFixed(0)+' tys'; return n.toFixed(0) };
+const fmtPLN = n => { if(n==null) return '—'; return n.toLocaleString('pl-PL',{style:'currency',currency:'PLN',maximumFractionDigits:0}) };
+const rolePL = r => ({admin:'Administrator',manager:'Manager',pracownik:'Pracownik'}[r]||r);
+
+// ═══ API HELPER ═══
+async function api(path, opts={}) {
+    const headers = {'Content-Type':'application/json'};
+    if(TOKEN) headers['Authorization'] = 'Bearer '+TOKEN;
+    const res = await fetch(path, {...opts, headers});
+    if(res.status === 401) { doLogout(); throw new Error('Sesja wygasła'); }
+    if(!res.ok) {
+        const err = await res.json().catch(()=>({detail:'Błąd serwera'}));
+        throw new Error(err.detail || 'Błąd');
+    }
+    return res.json();
+}
+
+// ═══ TOAST ═══
+function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast '+type+' show';
+    setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ═══ MODAL ═══
+function showModal(html) { document.getElementById('modalContent').innerHTML=html; document.getElementById('modalOverlay').classList.add('active'); }
+function hideModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) hideModal(); });
+
+// ═══ AUTH ═══
+async function doLogin() {
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    if(!username||!password) { errEl.textContent='Podaj login i hasło'; return; }
+    try {
+        document.getElementById('loginBtn').disabled = true;
+        const data = await api('/api/auth/login', {method:'POST', body:JSON.stringify({username,password})});
+        TOKEN = data.access_token;
+        USER = data.user;
+        localStorage.setItem('kabanek_token', TOKEN);
+        localStorage.setItem('kabanek_user', JSON.stringify(USER));
+        errEl.textContent = '';
+        initApp();
+    } catch(e) {
+        errEl.textContent = e.message;
+    } finally {
+        document.getElementById('loginBtn').disabled = false;
+    }
+}
+
+function doLogout() {
+    TOKEN = null; USER = null;
+    localStorage.removeItem('kabanek_token');
+    localStorage.removeItem('kabanek_user');
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('appContainer').style.display = 'none';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+
+// ═══ INIT ═══
+function initApp() {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('appContainer').style.display = 'flex';
+
+    // Set user info
+    document.getElementById('sidebarAvatar').textContent = USER.full_name[0];
+    document.getElementById('sidebarName').textContent = USER.full_name;
+    document.getElementById('sidebarRole').textContent = rolePL(USER.role);
+    document.getElementById('roleIndicator').innerHTML = '<span class="role-badge '+USER.role+'">'+rolePL(USER.role)+'</span>';
+
+    // Role-based visibility
+    const isAdmin = USER.role === 'admin';
+    const canWrite = USER.role !== 'pracownik';
+    document.querySelectorAll('.admin-only').forEach(el => {
+        if(!isAdmin) el.classList.add('hidden-by-role');
+        else el.classList.remove('hidden-by-role');
+    });
+    document.querySelectorAll('.write-only').forEach(el => {
+        if(!canWrite) el.classList.add('hidden-by-role');
+        else el.classList.remove('hidden-by-role');
+    });
+
+    // Load data
+    loadDashboard();
+    switchTab('dashboard');
+}
+
+// ═══ TABS ═══
+const titles = {dashboard:'Dashboard',clients:'Klienci',cycles:'Cykle tuczu',finance:'Finanse',users:'Użytkownicy',logs:'Logi aktywności'};
+const subtitles = {dashboard:'Przegląd wyników i statystyk',clients:'Wyszukiwanie klientów i rankingi',cycles:'Historia i bieżące tucze',finance:'Rozliczenia finansowe klientów',users:'Zarządzanie kontami i uprawnieniami',logs:'Historia działań w systemie'};
+
+function switchTab(t) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+t).classList.add('active');
+    document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+    const idx = {dashboard:0,clients:1,cycles:2,finance:3,users:4,logs:5}[t];
+    const items = document.querySelectorAll('.sidebar-item:not(.hidden-by-role)');
+    if(items[idx]) items[idx].classList.add('active');
+    document.getElementById('page-title').textContent = titles[t];
+    document.getElementById('page-subtitle').textContent = subtitles[t];
+
+    // Lazy load
+    if(t==='clients') loadClients();
+    if(t==='cycles') loadCycles();
+    if(t==='finance') loadFinance();
+    if(t==='users') loadUsers();
+    if(t==='logs') loadLogs();
+}
+
+// ═══ DASHBOARD ═══
+async function loadDashboard() {
+    try {
+        const data = await api('/api/dashboard');
+        const s = data.stats;
+        document.getElementById('dashStats').innerHTML = `
+            <div class="stat-card"><div class="stat-header"><div class="stat-icon green"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div><span class="stat-label">Cykle tuczu</span></div><div class="stat-value">${s.totalCycles}</div></div>
+            <div class="stat-card"><div class="stat-header"><div class="stat-icon green"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><span class="stat-label">Aktywni klienci</span></div><div class="stat-value">${s.totalClients}</div></div>
+            <div class="stat-card"><div class="stat-header"><div class="stat-icon green"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div><span class="stat-label">Łączny zysk</span></div><div class="stat-value">${fmt(s.totalProfit)} zł</div></div>
+            <div class="stat-card"><div class="stat-header"><div class="stat-icon gold"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span class="stat-label">Średni FCR</span></div><div class="stat-value">${s.avgFcr}</div></div>
+            <div class="stat-card"><div class="stat-header"><div class="stat-icon red"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><span class="stat-label">Śr. upadki</span></div><div class="stat-value">${s.avgMortality}%</div></div>
+        `;
+        // Charts
+        Chart.defaults.font.family = "'DM Sans',sans-serif";
+        Chart.defaults.color = '#5A6F5A';
+        const yd = data.yearlyData;
+        if(profitChart) profitChart.destroy();
+        profitChart = new Chart(document.getElementById('profitChart'),{type:'bar',data:{labels:yd.map(d=>d.year),datasets:[{label:'Zysk',data:yd.map(d=>d.profit),backgroundColor:yd.map(d=>d.profit>=0?'rgba(27,122,43,.75)':'rgba(198,40,40,.75)'),borderRadius:6,barThickness:42}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtPLN(c.raw)}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#E8EDE8'},ticks:{callback:v=>fmt(v)}}}}});
+        if(prodChart) prodChart.destroy();
+        prodChart = new Chart(document.getElementById('productionChart'),{type:'line',data:{labels:yd.map(d=>d.year),datasets:[{label:'Sztuk',data:yd.map(d=>d.pigs),fill:true,backgroundColor:'rgba(27,122,43,.08)',borderColor:'#1B7A2B',borderWidth:2.5,pointBackgroundColor:'#1B7A2B',pointRadius:5,tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#E8EDE8'},ticks:{callback:v=>fmt(v)}}}}});
+
+        // Recent cycles table
+        document.getElementById('dashTable').innerHTML = data.recentCycles.map(c=>`<tr>
+            <td style="font-weight:700;color:var(--green)">${c.cycle_number||c.id}</td>
+            <td>${c.month}</td><td style="font-weight:500">${c.client}</td><td style="color:var(--text-muted)">${c.feed}</td>
+            <td>${(c.startQty||0).toLocaleString()}</td><td>${(c.soldQty||0).toLocaleString()}</td>
+            <td class="${c.profit==null?'muted':c.profit>=0?'profit-pos':'profit-neg'}">${fmtPLN(c.profit)}</td>
+            <td style="color:${c.mortality>3?'var(--red)':'var(--text-muted)'}">${(c.mortality||0).toFixed(2)}%</td>
+        </tr>`).join('');
+    } catch(e) { showToast('Błąd ładowania dashboardu: '+e.message, 'error'); }
+}
+
+// ═══ CLIENTS ═══
+async function loadClients() {
+    const search = document.getElementById('clientSearch').value;
+    const kolczyk = document.getElementById('kolczykSearch').value;
+    const params = new URLSearchParams();
+    if(search) params.set('search', search);
+    if(kolczyk) params.set('kolczyk', kolczyk);
+    if(currentPreset!=='all') params.set('preset', currentPreset);
+    params.set('limit','100');
+    try {
+        const clients = await api('/api/clients?'+params.toString());
+        document.getElementById('clientCount').textContent = `Wyświetlono ${clients.length} klientów`;
+        if(!clients.length) {
+            document.getElementById('clientList').innerHTML = '<div class="no-data">Brak wyników</div>';
+            return;
+        }
+        document.getElementById('clientList').innerHTML = clients.map(c => `
+            <div class="client-row">
+                <div><div class="client-name">${c.name}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${c.cycles} cykli · ${c.feeds}</div></div>
+                <div class="client-metric"><div class="client-metric-val">${c.pigs.toLocaleString()}</div><div class="client-metric-label">sztuk</div></div>
+                <div class="client-metric"><div class="client-metric-val" style="color:${c.profit>=0?'var(--green)':'var(--red)'}">${fmt(c.profit)} zł</div><div class="client-metric-label">zysk · ${c.profit_per_pig>0?'+':''}${c.profit_per_pig.toFixed(0)}/szt</div></div>
+                <div class="client-metric"><div class="client-metric-val">${c.fcr>0?c.fcr.toFixed(2):'—'}</div><div class="client-metric-label">FCR</div></div>
+                <div class="client-metric"><div class="client-metric-val" style="color:${c.mortality>3?'var(--red)':'var(--text)'}">${c.mortality.toFixed(2)}%</div><div class="client-metric-label">${c.deaths} szt.</div></div>
+            </div>`).join('');
+    } catch(e) { showToast('Błąd: '+e.message, 'error'); }
+}
+
+function setPreset(p, btn) {
+    currentPreset = p;
+    document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadClients();
+}
+
+// ═══ CYCLES ═══
+async function loadCycles() {
+    try {
+        const data = await api('/api/cycles?limit=100');
+        document.getElementById('cyclesTable').innerHTML = data.cycles.map(c=>`<tr>
+            <td style="font-weight:700;color:var(--green)">${c.cycle_number||c.id}</td>
+            <td>${c.month}</td><td style="font-weight:500">${c.client_name}</td>
+            <td style="color:var(--text-muted)">${c.feed}</td>
+            <td>${(c.start_qty||0).toLocaleString()}</td><td>${(c.sold_qty||0).toLocaleString()}</td>
+            <td class="${c.profit==null?'muted':c.profit>=0?'profit-pos':'profit-neg'}">${fmtPLN(c.profit)}</td>
+            <td style="color:${c.mortality>3?'var(--red)':'var(--text-muted)'}">${(c.mortality||0).toFixed(2)}%</td>
+            <td><span class="badge ${c.status==='settled'?'green':c.status==='preliminary'?'gold':'blue'}">${c.status==='settled'?'Rozliczony':c.status==='preliminary'?'Wstępny':'W toku'}</span></td>
+        </tr>`).join('');
+    } catch(e) { showToast('Błąd: '+e.message, 'error'); }
+}
+
+// ═══ FINANCE ═══
+async function loadFinance() {
+    try {
+        const data = await api('/api/finance');
+        const s = data.summary;
+        document.getElementById('finSummary').innerHTML = `
+            <div class="stat-card"><div class="stat-value">${s.clientCount}</div><div class="stat-label">Klientów</div></div>
+            <div class="stat-card"><div class="stat-value">${s.totalCycles}</div><div class="stat-label">Cykli</div></div>
+            <div class="stat-card"><div class="stat-value">${s.totalPigs.toLocaleString()}</div><div class="stat-label">Sztuk</div></div>
+            <div class="stat-card"><div class="stat-value" style="color:var(--green)">${fmt(s.profitSum)} zł</div><div class="stat-label">Suma zysków</div></div>
+            <div class="stat-card"><div class="stat-value" style="color:var(--red)">${fmt(s.lossSum)} zł</div><div class="stat-label">Suma strat</div></div>
+            <div class="stat-card"><div class="stat-value" style="color:${s.totalProfit>=0?'var(--green)':'var(--red)'}"><strong>${fmt(s.totalProfit)} zł</strong></div><div class="stat-label">Bilans</div></div>
+        `;
+        // Charts
+        const top10 = data.clients.filter(c=>c.totalProfit>0).slice(0,10);
+        const bot10 = [...data.clients].sort((a,b)=>a.totalProfit-b.totalProfit).filter(c=>c.totalProfit<0).slice(0,10);
+
+        if(finTopChart) finTopChart.destroy();
+        if(top10.length) {
+            finTopChart = new Chart(document.getElementById('finTopChart'),{type:'bar',data:{labels:top10.map(c=>c.name.length>22?c.name.slice(0,20)+'…':c.name),datasets:[{data:top10.map(c=>c.totalProfit),backgroundColor:'rgba(27,122,43,.75)',borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>fmtPLN(t.raw)}}},scales:{x:{ticks:{callback:v=>fmt(v)}},y:{ticks:{font:{size:11,weight:600}}}}}});
+        }
+        if(finBotChart) finBotChart.destroy();
+        if(bot10.length) {
+            finBotChart = new Chart(document.getElementById('finBotChart'),{type:'bar',data:{labels:bot10.map(c=>c.name.length>22?c.name.slice(0,20)+'…':c.name),datasets:[{data:bot10.map(c=>c.totalProfit),backgroundColor:'rgba(198,40,40,.75)',borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>fmtPLN(t.raw)}}},scales:{x:{ticks:{callback:v=>fmt(v)}},y:{ticks:{font:{size:11,weight:600}}}}}});
+        }
+        // Table
+        document.getElementById('finTable').innerHTML = data.clients.map((c,i)=>`<tr>
+            <td style="font-weight:700;color:var(--text-muted)">${i+1}</td>
+            <td style="font-weight:500">${c.name}</td>
+            <td>${c.settledCycles+c.prelimCycles}${c.inProgress>0?' <span style="color:var(--gold)">+'+c.inProgress+'</span>':''}</td>
+            <td>${c.pigs.toLocaleString()}</td><td>${c.sold.toLocaleString()}</td>
+            <td class="${c.totalProfit>0?'profit-pos':c.totalProfit<0?'profit-neg':'muted'}">${fmtPLN(c.totalProfit)}</td>
+            <td style="color:${c.profitPerPig>=0?'var(--green)':'var(--red)'}">${c.sold>0?c.profitPerPig.toFixed(1):'—'}</td>
+            <td>${c.fcr>0?c.fcr.toFixed(2):'—'}</td>
+            <td style="color:${c.mortality>3?'var(--red)':'var(--text-muted)'}">${c.mortality.toFixed(2)}%</td>
+        </tr>`).join('');
+    } catch(e) { showToast('Błąd: '+e.message, 'error'); }
+}
+
+// ═══ USERS (admin) ═══
+async function loadUsers() {
+    try {
+        const users = await api('/api/auth/users');
+        document.getElementById('userList').innerHTML = users.map(u => `
+            <div class="user-card">
+                <div class="user-info">
+                    <div class="user-avatar ${u.role}-av">${u.full_name[0]}</div>
+                    <div>
+                        <div style="font-weight:600">${u.full_name}</div>
+                        <div style="font-size:12px;color:var(--text-muted)">@${u.username} · <span class="role-badge ${u.role}">${rolePL(u.role)}</span>${!u.is_active?' · <span style="color:var(--red)">Nieaktywny</span>':''}</div>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <button class="user-action-btn" onclick="showEditUserModal(${u.id},'${u.username}','${u.full_name}','${u.role}',${u.is_active})">Edytuj</button>
+                    ${u.id !== USER.id ? '<button class="user-action-btn danger" onclick="toggleUserActive('+u.id+','+u.is_active+')">'+(u.is_active?'Dezaktywuj':'Aktywuj')+'</button>' : ''}
+                </div>
+            </div>`).join('');
+    } catch(e) { showToast('Błąd: '+e.message, 'error'); }
+}
+
+function showAddUserModal() {
+    showModal(`
+        <h3>Nowy użytkownik</h3>
+        <div class="modal-field"><label>Nazwa użytkownika</label><input id="nu_username"></div>
+        <div class="modal-field"><label>Imię i nazwisko</label><input id="nu_name"></div>
+        <div class="modal-field"><label>Hasło</label><input type="password" id="nu_pass"></div>
+        <div class="modal-field"><label>Rola</label><select id="nu_role">
+            <option value="pracownik">Pracownik</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Administrator</option>
+        </select></div>
+        <div class="modal-actions">
+            <button class="modal-btn secondary" onclick="hideModal()">Anuluj</button>
+            <button class="modal-btn primary" onclick="createUser()">Utwórz</button>
+        </div>`);
+}
+
+async function createUser() {
+    try {
+        await api('/api/auth/users', {method:'POST', body:JSON.stringify({
+            username: document.getElementById('nu_username').value,
+            full_name: document.getElementById('nu_name').value,
+            password: document.getElementById('nu_pass').value,
+            role: document.getElementById('nu_role').value,
+        })});
+        hideModal(); showToast('Użytkownik utworzony','success'); loadUsers();
+    } catch(e) { showToast(e.message,'error'); }
+}
+
+function showEditUserModal(id, username, name, role, active) {
+    showModal(`
+        <h3>Edytuj: ${name}</h3>
+        <div class="modal-field"><label>Imię i nazwisko</label><input id="eu_name" value="${name}"></div>
+        <div class="modal-field"><label>Rola</label><select id="eu_role">
+            <option value="pracownik" ${role==='pracownik'?'selected':''}>Pracownik</option>
+            <option value="manager" ${role==='manager'?'selected':''}>Manager</option>
+            <option value="admin" ${role==='admin'?'selected':''}>Administrator</option>
+        </select></div>
+        <div class="modal-field"><label>Nowe hasło (puste = bez zmian)</label><input type="password" id="eu_pass"></div>
+        <div class="modal-actions">
+            <button class="modal-btn secondary" onclick="hideModal()">Anuluj</button>
+            <button class="modal-btn primary" onclick="updateUser(${id})">Zapisz</button>
+        </div>`);
+}
+
+async function updateUser(id) {
+    const body = { full_name: document.getElementById('eu_name').value, role: document.getElementById('eu_role').value };
+    const pass = document.getElementById('eu_pass').value;
+    if(pass) body.password = pass;
+    try {
+        await api('/api/auth/users/'+id, {method:'PUT', body:JSON.stringify(body)});
+        hideModal(); showToast('Użytkownik zaktualizowany','success'); loadUsers();
+    } catch(e) { showToast(e.message,'error'); }
+}
+
+async function toggleUserActive(id, isActive) {
+    if(!confirm(isActive ? 'Dezaktywować konto?' : 'Aktywować konto?')) return;
+    try {
+        if(isActive) {
+            await api('/api/auth/users/'+id, {method:'DELETE'});
+        } else {
+            await api('/api/auth/users/'+id, {method:'PUT', body:JSON.stringify({is_active:true})});
+        }
+        showToast('Status zmieniony','success'); loadUsers();
+    } catch(e) { showToast(e.message,'error'); }
+}
+
+// ═══ LOGS ═══
+async function loadLogs() {
+    try {
+        const logs = await api('/api/activity?limit=100');
+        document.getElementById('logsTable').innerHTML = logs.map(l=>`<tr>
+            <td style="color:var(--text-muted);font-size:12px">${l.created_at||'—'}</td>
+            <td style="font-weight:500">${l.user}</td>
+            <td><span class="badge ${l.action==='delete'?'red':l.action==='create'?'green':'gold'}">${l.action}</span></td>
+            <td>${l.resource}</td>
+            <td style="color:var(--text-muted);font-size:12px">${l.details||''}</td>
+        </tr>`).join('');
+    } catch(e) { showToast('Błąd: '+e.message, 'error'); }
+}
+
+// ═══ NEW CYCLE MODAL ═══
+function showNewCycleModal() {
+    showModal(`
+        <h3>Nowy cykl tuczu</h3>
+        <div class="modal-field"><label>Klient (ID)</label><input id="nc_client" type="number" placeholder="ID klienta"></div>
+        <div class="modal-field"><label>Miesiąc</label><input id="nc_month" placeholder="np. sty 2026"></div>
+        <div class="modal-field"><label>Pasza</label><input id="nc_feed" placeholder="Dostawca paszy"></div>
+        <div class="modal-field"><label>Sztuk (start)</label><input id="nc_start" type="number"></div>
+        <div class="modal-field"><label>Typ</label><select id="nc_type">
+            <option value="Kabanek">Kabanek</option>
+            <option value="Natural PIG">Natural PIG</option>
+        </select></div>
+        <div class="modal-actions">
+            <button class="modal-btn secondary" onclick="hideModal()">Anuluj</button>
+            <button class="modal-btn primary" onclick="createCycle()">Dodaj</button>
+        </div>`);
+}
+
+async function createCycle() {
+    try {
+        await api('/api/cycles', {method:'POST', body:JSON.stringify({
+            client_id: parseInt(document.getElementById('nc_client').value),
+            month: document.getElementById('nc_month').value,
+            feed: document.getElementById('nc_feed').value,
+            start_qty: parseInt(document.getElementById('nc_start').value)||0,
+            cycle_type: document.getElementById('nc_type').value,
+        })});
+        hideModal(); showToast('Cykl dodany','success');
+        loadCycles(); loadDashboard();
+    } catch(e) { showToast(e.message,'error'); }
+}
+
+// ═══ STARTUP ═══
+if(TOKEN && USER) { initApp(); }
+</script>
+</body>
+</html>

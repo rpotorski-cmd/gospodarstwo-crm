@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KABANEK – CRM Receptury | Kombajn Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-dark: #0d5e2f;
+  --green-mid: #1a7a3e;
+  --green-light: #2e9e53;
+  --green-bright: #4caf50;
+  --green-pale: #e8f5e9;
+  --gold: #c4a265;
+  --gold-dark: #9e7e3f;
+  --gold-light: #d4b87a;
+  --gold-pale: #faf3e3;
+  --bg: #fafbf8;
+  --bg-card: #ffffff;
+  --bg-dark: #0d1f14;
+  --text: #1a2e1f;
+  --text-light: #5a6e5f;
+  --text-muted: #8a9a8e;
+  --border: #d5e0d8;
+  --border-light: #e8ede9;
+  --red: #d32f2f;
+  --red-bg: #fde8e8;
+  --ok-bg: #e8f5e9;
+  --shadow: 0 2px 12px rgba(13,94,47,0.08);
+  --shadow-hover: 0 4px 24px rgba(13,94,47,0.14);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Montserrat',sans-serif; background:var(--bg); color:var(--text); font-size:13px; min-height:100vh; }
+
+/* ─── HEADER ─── */
+.header { background:linear-gradient(135deg, var(--bg-dark) 0%, #142e1c 60%, #1a3d24 100%); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 20px rgba(0,0,0,0.3); }
+.logo-wrap { display:flex; align-items:center; gap:14px; }
+.logo-img { width:54px; height:48px; border-radius:8px; border:2px solid var(--gold); object-fit:contain; background:#fff; padding:2px; }
+.logo-text { font-size:22px; font-weight:900; color:var(--gold); letter-spacing:4px; text-transform:uppercase; }
+.logo-sub { font-size:10px; color:var(--gold-light); letter-spacing:3px; opacity:0.7; margin-top:2px; }
+
+/* ─── NAV ─── */
+.nav { display:flex; gap:2px; background:rgba(255,255,255,0.05); border-radius:8px; padding:3px; }
+.nav-btn { padding:9px 18px; border-radius:6px; border:none; cursor:pointer; font-size:12px; font-weight:600; font-family:inherit; letter-spacing:0.5px; transition:all 0.25s; background:transparent; color:rgba(255,255,255,0.4); }
+.nav-btn:hover { color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.05); }
+.nav-btn.active { background:var(--green-mid); color:#fff; box-shadow:0 2px 8px rgba(26,122,62,0.4); }
+.nav-icon { margin-right:6px; font-size:14px; }
+
+.header-info { font-size:10px; color:var(--gold-light); text-align:right; letter-spacing:1px; opacity:0.6; }
+
+/* ─── MAIN ─── */
+.main { padding:24px 28px; max-width:1440px; margin:0 auto; }
+.tab-content { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* ─── CARDS ─── */
+.card { background:var(--bg-card); border:1px solid var(--border-light); border-radius:12px; padding:22px; margin-bottom:18px; box-shadow:var(--shadow); transition:box-shadow 0.3s; }
+.card:hover { box-shadow:var(--shadow-hover); }
+.card-title { font-size:12px; font-weight:700; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.card-accent { border-top:3px solid var(--green-mid); }
+.card-accent-gold { border-top:3px solid var(--gold); }
+.card-accent-starter { border-top:3px solid var(--gold); }
+.card-accent-grower { border-top:3px solid var(--green-bright); }
+.card-accent-finiszer { border-top:3px solid var(--green-dark); }
+
+/* ─── GRID ─── */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; }
+
+/* ─── METRICS ─── */
+.metric-box { background:var(--bg); border:1px solid var(--border-light); border-radius:10px; padding:18px; position:relative; overflow:hidden; }
+.metric-box::before { content:''; position:absolute; top:0; right:0; width:80px; height:80px; border-radius:50%; opacity:0.06; }
+.metric-box.green::before { background:var(--green-bright); }
+.metric-box.gold::before { background:var(--gold); }
+.metric-val { font-size:28px; font-weight:800; line-height:1; font-family:'JetBrains Mono',monospace; }
+.metric-val.green { color:var(--green-dark); }
+.metric-val.gold { color:var(--gold-dark); }
+.metric-val.red { color:var(--red); }
+.metric-label { font-size:10px; color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:6px; font-weight:600; }
+
+/* ─── TABLE ─── */
+table { width:100%; border-collapse:separate; border-spacing:0; }
+th { text-align:left; padding:10px 12px; font-size:10px; font-weight:700; letter-spacing:1.5px; color:var(--text-muted); text-transform:uppercase; border-bottom:2px solid var(--border); background:var(--bg); position:sticky; top:0; cursor:pointer; }
+th:hover { color:var(--green-dark); }
+td { padding:8px 12px; border-bottom:1px solid var(--border-light); font-size:12px; }
+tr:hover td { background:var(--green-pale); }
+.text-right { text-align:right; }
+.text-center { text-align:center; }
+.font-mono { font-family:'JetBrains Mono',monospace; }
+.fw-600 { font-weight:600; }
+.fw-700 { font-weight:700; }
+.fw-800 { font-weight:800; }
+.c-green { color:var(--green-dark); }
+.c-gold { color:var(--gold-dark); }
+.c-red { color:var(--red); }
+.c-muted { color:var(--text-muted); }
+.c-light { color:var(--text-light); }
+
+/* ─── BADGES ─── */
+.badge { display:inline-block; padding:2px 10px; border-radius:4px; font-size:10px; font-weight:700; letter-spacing:1px; }
+.badge-ok { background:var(--ok-bg); color:var(--green-dark); border:1px solid #a5d6a7; }
+.badge-fail { background:var(--red-bg); color:var(--red); border:1px solid #ef9a9a; }
+
+/* ─── BARS ─── */
+.mini-bar { width:100%; height:6px; background:var(--border-light); border-radius:3px; overflow:hidden; }
+.mini-bar-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+.mini-bar-fill.green { background:linear-gradient(90deg, var(--green-light), var(--green-bright)); }
+.mini-bar-fill.red { background:linear-gradient(90deg, #e57373, var(--red)); }
+.mini-bar-fill.gold { background:linear-gradient(90deg, var(--gold-light), var(--gold)); }
+
+/* ─── GLOW DOT ─── */
+.glow { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+.glow-starter { background:var(--gold); box-shadow:0 0 6px var(--gold); }
+.glow-grower { background:var(--green-bright); box-shadow:0 0 6px var(--green-bright); }
+.glow-finiszer { background:var(--green-dark); box-shadow:0 0 6px var(--green-dark); }
+
+/* ─── PHASE TABS ─── */
+.phase-tabs { display:flex; gap:2px; margin-bottom:18px; }
+.phase-tab { padding:10px 24px; border-radius:8px 8px 0 0; border:none; cursor:pointer; font-size:12px; font-weight:700; font-family:inherit; letter-spacing:1px; transition:all 0.25s; background:var(--bg); color:var(--text-muted); border-bottom:2px solid transparent; }
+.phase-tab:hover { color:var(--text); }
+.phase-tab.active-starter { background:var(--gold-pale); color:var(--gold-dark); border-bottom-color:var(--gold); }
+.phase-tab.active-grower { background:var(--green-pale); color:var(--green-dark); border-bottom-color:var(--green-bright); }
+.phase-tab.active-finiszer { background:#e8ece9; color:var(--green-dark); border-bottom-color:var(--green-dark); }
+
+/* ─── INPUT ─── */
+.num-input { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text); font-size:12px; font-family:'JetBrains Mono',monospace; width:70px; text-align:right; outline:none; transition:border-color 0.2s; }
+.num-input:focus { border-color:var(--green-mid); box-shadow:0 0 0 3px rgba(26,122,62,0.1); }
+.search-input { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 16px; color:var(--text); font-size:13px; font-family:inherit; width:280px; outline:none; transition:border-color 0.2s; }
+.search-input:focus { border-color:var(--green-mid); box-shadow:0 0 0 3px rgba(26,122,62,0.1); }
+
+/* ─── COST BAR ─── */
+.cost-bar { display:flex; height:36px; border-radius:8px; overflow:hidden; }
+.cost-bar-seg { display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; transition:width 0.5s; }
+.cost-bar-starter { background:linear-gradient(135deg, var(--gold-dark), var(--gold)); }
+.cost-bar-grower { background:linear-gradient(135deg, var(--green-light), var(--green-bright)); }
+.cost-bar-finiszer { background:linear-gradient(135deg, var(--green-dark), var(--green-mid)); }
+
+/* ─── RANGE ─── */
+input[type=range] { -webkit-appearance:none; width:100%; height:6px; border-radius:3px; background:var(--border); outline:none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--green-mid); cursor:pointer; border:3px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
+
+/* ─── INACTIVE CHIPS ─── */
+.chip { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:5px 12px; font-size:11px; color:var(--text-muted); display:inline-flex; align-items:center; gap:6px; margin:3px; }
+.chip-add { background:var(--green-pale); border:none; border-radius:4px; color:var(--green-dark); font-size:10px; cursor:pointer; padding:2px 8px; font-family:inherit; font-weight:600; }
+.chip-add:hover { background:var(--green-bright); color:#fff; }
+
+/* ─── FOOTER ─── */
+.footer { border-top:1px solid var(--border); padding:14px 28px; text-align:center; font-size:10px; color:var(--text-muted); letter-spacing:1px; background:var(--bg); }
+.footer-line { width:60px; height:2px; background:linear-gradient(90deg, var(--gold), var(--green-mid)); margin:0 auto 8px; border-radius:1px; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width:900px) {
+  .grid-3, .grid-4 { grid-template-columns:1fr 1fr; }
+  .nav { flex-wrap:wrap; }
+  .header { flex-direction:column; gap:12px; }
+}
+@media (max-width:600px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns:1fr; }
+  .main { padding:14px; }
+}
+
+/* ─── LOGIN OVERLAY ─── */
+.login-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:linear-gradient(135deg, #0d1f14 0%, #142e1c 60%, #1a3d24 100%); z-index:9999; display:flex; align-items:center; justify-content:center; }
+.login-box { background:#fff; border-radius:16px; padding:40px; width:380px; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
+.login-box h2 { font-size:20px; font-weight:800; color:var(--green-dark); margin-bottom:4px; }
+.login-box .sub { font-size:11px; color:var(--text-muted); letter-spacing:1px; margin-bottom:24px; }
+.login-box input { width:100%; padding:12px 16px; border:2px solid var(--border); border-radius:8px; font-size:13px; font-family:inherit; outline:none; margin-bottom:12px; transition:border-color 0.2s; }
+.login-box input:focus { border-color:var(--green-mid); }
+.login-box button { width:100%; padding:14px; background:var(--green-mid); color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; letter-spacing:1px; }
+.login-box button:hover { background:var(--green-dark); }
+.login-box .err { color:var(--red); font-size:11px; margin-top:8px; text-align:center; }
+
+/* ─── ADMIN PANEL ─── */
+.admin-panel { background:var(--bg-card); border:1px solid var(--border-light); border-radius:12px; padding:22px; margin-bottom:18px; box-shadow:var(--shadow); }
+.admin-panel h3 { font-size:12px; font-weight:700; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; margin-bottom:16px; }
+.admin-panel table td, .admin-panel table th { padding:8px 12px; }
+.admin-panel .btn-sm { padding:6px 12px; border:none; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; }
+.toast-msg { position:fixed; bottom:20px; right:20px; background:var(--green-dark); color:#fff; padding:12px 24px; border-radius:8px; font-size:12px; font-weight:600; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.3); animation:fadeIn 0.3s; }
+
+</style>
+</head>
+<body>
+
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:28px;font-weight:900;color:var(--gold);letter-spacing:4px">KABANEK</div>
+      <div class="sub">CRM RECEPTURY • KOMBAJN PRO</div>
+    </div>
+    <h2>Logowanie</h2>
+    <div class="sub">Wprowadź dane dostępowe</div>
+    <input type="text" id="loginEmail" placeholder="Email" autocomplete="email">
+    <input type="password" id="loginPass" placeholder="Hasło" autocomplete="current-password">
+    <button onclick="doLogin()">ZALOGUJ</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<header class="header" id="mainHeader" style="display:none">
+  <div class="logo-wrap">
+    <img class="logo-img" src="data:image/png;base64,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" alt="KABANEK">
+    <div>
+      <div class="logo-text">KABANEK</div>
+      <div class="logo-sub">CRM Receptury • Kombajn Pro</div>
+    </div>
+  </div>
+  <nav class="nav" id="mainNav"></nav>
+  <div class="header-info"><span id="headerUser"></span><br><button onclick="doLogout()" style="background:none;border:1px solid var(--gold);color:var(--gold);border-radius:4px;padding:3px 10px;font-size:9px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:1px;margin-top:4px">WYLOGUJ</button></div>
+</header>
+
+<main class="main" style="display:none" id="mainContent"></main>
+
+<footer class="footer" id="mainFooter" style="display:none">
+  <div class="footer-line"></div>
+  KABANEK – Z Nami Się Opłaca • CRM Receptury Kombajn Pro • Normy Duńskie 30–130 kg
+</footer>
+
+<script>
+
+// ═══ API CLIENT ═══════════════════════════════════════════════════════════════
+const API_BASE = window.location.origin + '/api';
+let _token = sessionStorage.getItem('rcrmToken') || '';
+let _user = null;
+let _canWrite = (mod) => _user && (_user.role === 'admin' || (_user.role === 'user' && ['materials','recipes'].includes(mod)));
+let _isAdmin = () => _user && _user.role === 'admin';
+
+const api = {
+  setToken(t) { _token = t; sessionStorage.setItem('rcrmToken', t); },
+  clearToken() { _token = ''; sessionStorage.removeItem('rcrmToken'); },
+  async req(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (_token) opts.headers['Authorization'] = 'Bearer ' + _token;
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API_BASE + path, opts);
+    if (r.status === 401) { api.clearToken(); showLogin(); throw new Error('Sesja wygasła'); }
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || 'Błąd'); }
+    return r.json();
+  },
+  get: (p) => api.req('GET', p),
+  post: (p, b) => api.req('POST', p, b),
+  put: (p, b) => api.req('PUT', p, b),
+  del: (p) => api.req('DELETE', p),
+};
+
+function showToast(msg) {
+  const c = document.getElementById('toastContainer');
+  c.innerHTML = '<div class="toast-msg">' + msg + '</div>';
+  setTimeout(() => { c.innerHTML = ''; }, 2500);
+}
+
+function showLogin() {
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('mainHeader').style.display = 'none';
+  document.querySelector('.main').style.display = 'none';
+  document.getElementById('mainFooter').style.display = 'none';
+}
+
+function showApp() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('mainHeader').style.display = 'flex';
+  document.querySelector('.main').style.display = 'block';
+  document.getElementById('mainFooter').style.display = 'block';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  err.textContent = '';
+  try {
+    const res = await api.post('/auth/login', { email, password: pass });
+    api.setToken(res.access_token);
+    _user = res.user;
+    await loadState();
+    showApp();
+    render();
+  } catch (e) {
+    err.textContent = 'Nieprawidłowy email lub hasło';
+  }
+}
+
+async function tryRestore() {
+  if (!_token) return;
+  try {
+    const state = await api.get('/state');
+    _user = state.user;
+    applyState(state);
+    showApp();
+    render();
+  } catch (e) {
+    api.clearToken();
+  }
+}
+
+async function loadState() {
+  const state = await api.get('/state');
+  applyState(state);
+}
+
+function applyState(st) {
+  // Materials
+  RM = st.materials.map(m => ({
+    id: m.id, n: m.n, c: m.c, b: m.b, NE: m.NE,
+    Ly: m.Ly, Me: m.Me, Th: m.Th, Tr: m.Tr,
+    W: m.W, Ca: m.Ca, P: m.P
+  }));
+  // Recipes
+  recipes = st.recipes;
+  // Norms
+  Object.keys(st.norms).forEach(phase => {
+    const n = st.norms[phase];
+    NORMS[phase] = { b: n.b, NE: n.NE, Ly: n.Ly, Me: n.Me, Th: n.Th, Tr: n.Tr, W: n.W, Ca: n.Ca, P: n.P };
+  });
+  // Production
+  Object.keys(st.production).forEach(phase => {
+    PROD[phase] = st.production[phase];
+  });
+}
+
+function doLogout() {
+  api.clearToken();
+  _user = null;
+  showLogin();
+}
+
+// ═══ AUTO-SAVE HELPERS ═══════════════════════════════════════════════════════
+let _saveTimeout = null;
+function debounce(fn, ms) {
+  return (...args) => { clearTimeout(_saveTimeout); _saveTimeout = setTimeout(() => fn(...args), ms); };
+}
+
+const savePrice = debounce(async (matId, val) => {
+  try { await api.put('/materials/' + matId, { c: val }); } catch (e) { showToast('Błąd zapisu ceny!'); }
+}, 500);
+
+const saveShare = debounce(async (phase, shares) => {
+  try { await api.put('/recipes', { phase, shares }); } catch (e) { showToast('Błąd zapisu receptury!'); }
+}, 500);
+
+const saveMaterialField = debounce(async (matId, field, val) => {
+  const body = {};
+  body[field] = val;
+  try { await api.put('/materials/' + matId, body); } catch (e) { showToast('Błąd zapisu!'); }
+}, 500);
+
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+let RM=[
+{n:"Kukurydza",c:780,b:8.5,NE:10.2,Ly:.23,Me:.17,Th:.26,Tr:.06,W:2.2,Ca:8.5,P:.08},
+{n:"Pszenica",c:830,b:11.5,NE:9.8,Ly:.27,Me:.18,Th:.3,Tr:.09,W:2.5,Ca:9,P:.1},
+{n:"Jęczmień",c:770,b:10.5,NE:8.7,Ly:.25,Me:.16,Th:.28,Tr:.08,W:4.5,Ca:18,P:.11},
+{n:"Śruta sojowa 46%",c:1550,b:46,NE:9.0,Ly:2.65,Me:.6,Th:1.7,Tr:.58,W:3.3,Ca:11.5,P:.65},
+{n:"Śruta rzepakowa",c:975,b:34,NE:7.5,Ly:1.7,Me:.55,Th:1.25,Tr:.38,W:11.5,Ca:30,P:.45},
+{n:"DDGS",c:1100,b:30,NE:8.2,Ly:.8,Me:.5,Th:.9,Tr:.22,W:8,Ca:28,P:.3},
+{n:"Mączka mięsno-kostna",c:1250,b:48,NE:7.2,Ly:2.8,Me:.85,Th:1.6,Tr:.4,W:0,Ca:0,P:3.5},
+{n:"Suszona krew",c:2350,b:85,NE:8.0,Ly:7.5,Me:1.2,Th:3.8,Tr:1.1,W:0,Ca:0,P:.25},
+{n:"Wysłodki suche",c:960,b:10,NE:7.0,Ly:.45,Me:.15,Th:.4,Tr:.08,W:18,Ca:45,P:.1},
+{n:"Olej sojowy",c:4900,b:0,NE:26.0,Ly:0,Me:0,Th:0,Tr:0,W:0,Ca:0,P:0},
+{n:"Lizyna HCL",c:8000,b:0,NE:0,Ly:78,Me:0,Th:0,Tr:0,W:0,Ca:0,P:0},
+{n:"DL-Metionina",c:12000,b:0,NE:0,Ly:0,Me:99,Th:0,Tr:0,W:0,Ca:0,P:0},
+{n:"L-Treonina",c:9000,b:0,NE:0,Ly:0,Me:0,Th:98,Tr:0,W:0,Ca:0,P:0},
+{n:"L-Tryptofan",c:15000,b:0,NE:0,Ly:0,Me:0,Th:0,Tr:98,W:0,Ca:0,P:0},
+{n:"Kreda",c:400,b:0,NE:0,Ly:0,Me:0,Th:0,Tr:0,W:0,Ca:38,P:0},
+{n:"Fosforan MCP",c:3000,b:0,NE:0,Ly:0,Me:0,Th:0,Tr:0,W:0,Ca:16,P:22},
+{n:"Sól",c:1000,b:0,NE:0,Ly:0,Me:0,Th:0,Tr:0,W:0,Ca:0,P:0},
+{n:"Premiks 2.5%",c:2500,b:0,NE:0,Ly:0,Me:0,Th:0,Tr:0,W:0,Ca:20,P:5},
+{n:"Pszenżyto",c:700,b:10.5,NE:9.5,Ly:.3,Me:.2,Th:.33,Tr:.09,W:2.8,Ca:10.5,P:.12},
+{n:"Łuska sojowa",c:800,b:12,NE:6.0,Ly:.6,Me:.2,Th:.5,Tr:.1,W:35,Ca:60,P:.15},
+{n:"Otręba jaglana",c:590,b:12,NE:7.5,Ly:.45,Me:.18,Th:.55,Tr:.12,W:19,Ca:25,P:.3},
+{n:"Zakwaszacz",c:7500,b:0,NE:0,Ly:0,Me:0,Th:0,Tr:0,W:0,Ca:0,P:0},
+{n:"Premiks MPUM 3%",c:4000,b:0,NE:0,Ly:12.5,Me:4.6,Th:5.5,Tr:1.3,W:0,Ca:10,P:1},
+{n:"Żyto",c:650,b:7.5,NE:8.8,Ly:.22,Me:.16,Th:.25,Tr:.07,W:2.5,Ca:13,P:.11},
+{n:"Sorgo",c:890,b:10.5,NE:9.5,Ly:.24,Me:.18,Th:.27,Tr:.08,W:2,Ca:9,P:.1},
+{n:"ImmunoWall",c:11000,b:0,NE:0,Ly:0,Me:0,Th:0,Tr:0,W:0,Ca:0,P:0},
+{n:"Mycofix® 5",c:15000,b:0,NE:0,Ly:0,Me:0,Th:0,Tr:0,W:0,Ca:0,P:0},
+];
+
+let NORMS={Starter:{b:16.7,NE:9.8,Ly:1.05,Me:.60,Th:.68,Tr:.21,W:4.5,Ca:.70,P:.36},Grower:{b:15.5,NE:10.0,Ly:.88,Me:.52,Th:.60,Tr:.19,W:5.0,Ca:.65,P:.32},Finiszer:{b:14.4,NE:10.2,Ly:.72,Me:.45,Th:.52,Tr:.17,W:6.0,Ca:.60,P:.28}};
+let PROD={Starter:3000,Grower:6000,Finiszer:6000};
+const PL={b:"Białko",NE:"NE (MJ)",Ly:"SID Lizyna",Me:"SID Met+Cys",Th:"SID Treonina",Tr:"SID Tryptofan",W:"Włókno",Ca:"Wapń (Ca)",P:"Fosfor (P)"};
+const DIR={b:">=",NE:">=",Ly:">=",Me:">=",Th:">=",Tr:">=",W:"<=",Ca:">=",P:">="};
+const PK=Object.keys(PL);
+
+let recipes={
+  Starter:[2.9,29.57,12,3.5,0,0,6,2.5,3,1,0,0,0,0,0,0,.1,0,32.03,0,4,.1,3,0,0,.1,.2],
+  Grower:[5.5,15,11.5,2.5,0,0,7.7,1.5,3.5,.9,0,0,0,0,0,0,.1,0,26.8,0,7,.1,3,14.65,0,.1,.15],
+  Finiszer:[7,9,11.5,2,0,0,7.5,.5,3.5,.6,0,0,0,0,0,0,.1,0,28.2,0,9,.1,3,17.75,0,.1,.15]
+};
+
+let state={tab:"dashboard",phase:"Starter",scenShift:0,search:"",sortCol:"c",sortDir:-1};
+
+const fmt=(v,d=2)=>typeof v==="number"?v.toFixed(d):"–";
+const fPLN=v=>typeof v==="number"?v.toLocaleString("pl-PL",{minimumFractionDigits:0,maximumFractionDigits:0}):"–";
+
+function bal(ph){const r={};PK.forEach(k=>{let s=0;recipes[ph].forEach((v,i)=>{s+=(v/100)*(RM[i]?.[k]||0)});r[k]=s});return r;}
+function cost(ph){let s=0;recipes[ph].forEach((v,i)=>{s+=(v/100)*(RM[i]?.c||0)});return s;}
+function totS(ph){return recipes[ph].reduce((a,b)=>a+b,0);}
+function normalize(ph){const ts=totS(ph);if(ts<=0)return;const f=100/ts;recipes[ph]=recipes[ph].map(v=>Math.round(v*f*100)/100);const diff=100-totS(ph);if(Math.abs(diff)>0.001){const maxI=recipes[ph].indexOf(Math.max(...recipes[ph]));recipes[ph][maxI]=Math.round((recipes[ph][maxI]+diff)*100)/100;}saveShare(ph,recipes[ph]);render();}
+function isOk(v,n,d){return d===">="?v>=n*.97:v<=n*1.03;}
+
+const PC={Starter:"gold",Grower:"green-bright",Finiszer:"green-dark"};
+const GC={Starter:"glow-starter",Grower:"glow-grower",Finiszer:"glow-finiszer"};
+const ACC={Starter:"card-accent-starter",Grower:"card-accent-grower",Finiszer:"card-accent-finiszer"};
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function getTabs() {
+  const base = [
+    {id:"dashboard",label:"Dashboard",icon:"◈"},
+    {id:"recipe",label:"Receptury",icon:"⚙"},
+    {id:"balance",label:"Bilans",icon:"⚖"},
+    {id:"materials",label:"Surowce",icon:"▤"},
+    {id:"purchase",label:"Zakupy",icon:"◉"},
+    {id:"scenarios",label:"Scenariusze",icon:"△"},
+  ];
+  if (_isAdmin()) base.push({id:"admin",label:"Admin",icon:"⊞"});
+  return base;
+}
+const tabs = getTabs();
+
+function renderNav(){
+  const nav=document.getElementById("mainNav");
+  const hu=document.getElementById('headerUser');if(hu&&_user)hu.innerHTML=_user.name+' • <span style="opacity:0.6">'+_user.role+'</span>';
+  nav.innerHTML=getTabs().map(t=>`<button class="nav-btn ${state.tab===t.id?"active":""}" onclick="setTab('${t.id}')"><span class="nav-icon">${t.icon}</span>${t.label}</button>`).join("");
+}
+
+function setTab(t){state.tab=t;render();}
+function setPhase(p){state.phase=p;render();}
+
+function render(){
+  renderNav();
+  const mc=document.getElementById("mainContent");
+  const renderers={dashboard:renderDash,recipe:renderRecipe,balance:renderBalance,materials:renderMaterials,purchase:renderPurchase,scenarios:renderScenarios,admin:renderAdmin};mc.innerHTML=`<div class="tab-content">${(renderers[state.tab]||renderDash)()}</div>`;
+  attachEvents();
+}
+
+function attachEvents(){
+  document.querySelectorAll(".price-input").forEach(el=>{
+    el.addEventListener("change",e=>{
+      const idx=+e.target.dataset.idx;
+      const val=parseFloat(e.target.value)||0;
+      RM[idx].c=val;
+      if(RM[idx].id) savePrice(RM[idx].id, val);
+      render();
+    });
+  });
+  document.querySelectorAll(".share-input").forEach(el=>{
+    el.addEventListener("change",e=>{
+      const ph=e.target.dataset.phase;const idx=+e.target.dataset.idx;
+      recipes[ph][idx]=parseFloat(e.target.value)||0;
+      saveShare(ph, recipes[ph]);
+      render();
+    });
+  });
+  const slider=document.getElementById("scenSlider");
+  if(slider)slider.addEventListener("input",e=>{state.scenShift=+e.target.value;render();});
+  const si=document.getElementById("matSearch");
+  if(si)si.addEventListener("input",e=>{state.search=e.target.value;render();});
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDash(){
+  const phases=["Starter","Grower","Finiszer"];
+  const costs={};let tac=0;
+  phases.forEach(p=>{costs[p]=cost(p);tac+=costs[p]*PROD[p];});
+  let okC=0,totP=0;
+  phases.forEach(p=>{const b=bal(p);PK.forEach(k=>{totP++;if(isOk(b[k],NORMS[p][k],DIR[k]))okC++;});});
+
+  let h=`<div class="grid-4">
+    <div class="metric-box gold"><div class="metric-val gold font-mono">${fPLN(Math.round(tac))}</div><div class="metric-label">Koszt roczny (PLN)</div></div>
+    <div class="metric-box green"><div class="metric-val green font-mono">${fPLN(PROD.Starter+PROD.Grower+PROD.Finiszer)}</div><div class="metric-label">Produkcja roczna (t)</div></div>
+    <div class="metric-box green"><div class="metric-val green font-mono">${okC}/${totP}</div><div class="metric-label">Parametry w normie</div></div>
+    <div class="metric-box gold"><div class="metric-val gold font-mono">${RM.length}</div><div class="metric-label">Surowce w bazie</div></div>
+  </div>`;
+
+  h+=`<div class="grid-3" style="margin-top:18px">`;
+  phases.forEach(p=>{
+    const b=bal(p);const c=costs[p];const ts=totS(p);
+    h+=`<div class="card ${ACC[p]}"><div class="card-title"><span class="${GC[p]}"></span>${p}</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+        <div><div style="font-size:22px;font-weight:800;color:var(--green-dark)" class="font-mono">${fmt(c,0)} <span style="font-size:11px;color:var(--text-muted)">zł/t</span></div><div style="font-size:10px;color:var(--text-muted)">${fPLN(PROD[p])} t/rok</div></div>
+        <div style="text-align:right"><div class="font-mono fw-700" style="color:${Math.abs(ts-100)<.01?'var(--green-dark)':'var(--red)'}">${fmt(ts,2)}%</div><div style="font-size:10px;color:${Math.abs(ts-100)<.01?'var(--green-dark)':'var(--red)'}">Suma ${Math.abs(ts-100)<.01?'✓':'⚠ ≠100%'}</div></div>
+      </div>`;
+    PK.forEach(k=>{
+      const v=b[k],n=NORMS[p][k],ok=isOk(v,n,DIR[k]);
+      const pct=DIR[k]===">="?(v/n)*100:((n*2-v)/n)*100;
+      h+=`<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:3px">
+        <span style="width:95px;color:var(--text-muted);flex-shrink:0">${PL[k]}</span>
+        <div style="flex:1"><div class="mini-bar"><div class="mini-bar-fill ${ok?'green':'red'}" style="width:${Math.min(pct,100)}%"></div></div></div>
+        <span class="font-mono fw-600" style="width:55px;text-align:right;color:${ok?'var(--green-dark)':'var(--red)'}">${fmt(v,2)}</span>
+        <span class="font-mono" style="width:40px;text-align:right;color:var(--text-muted);font-size:10px">${fmt(n,2)}</span>
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+  h+=`</div>`;
+
+  // cost bar
+  h+=`<div class="card" style="margin-top:4px"><div class="card-title">Struktura kosztów rocznych</div>
+    <div class="cost-bar">`;
+  phases.forEach(p=>{
+    const w=(costs[p]*PROD[p]/tac)*100;
+    h+=`<div class="cost-bar-seg cost-bar-${p.toLowerCase()}" style="width:${w}%">${p} ${fmt(w,0)}%</div>`;
+  });
+  h+=`</div><div style="display:flex;gap:24px;justify-content:center;margin-top:10px">`;
+  phases.forEach(p=>{h+=`<span style="font-size:11px;color:var(--text-light)"><span class="${GC[p]}"></span>${p}: ${fPLN(Math.round(costs[p]*PROD[p]))} zł</span>`;});
+  h+=`</div></div>`;
+  return h;
+}
+
+// ─── RECIPE ──────────────────────────────────────────────────────────────────
+function renderRecipe(){
+  const p=state.phase;const sh=recipes[p];const ts=totS(p);const c=cost(p);
+  const act=sh.map((s,i)=>({i,s,n:RM[i].n,c:RM[i].c,cost:(s/100)*RM[i].c})).filter(m=>m.s>0).sort((a,b)=>b.cost-a.cost);
+  const inact=sh.map((s,i)=>({i,s,n:RM[i].n})).filter(m=>m.s===0);
+
+  let h=`<div class="phase-tabs">`;
+  ["Starter","Grower","Finiszer"].forEach(ph=>{h+=`<button class="phase-tab ${state.phase===ph?'active-'+ph.toLowerCase():''}" onclick="setPhase('${ph}')">${ph}</button>`;});
+  h+=`</div>`;
+
+  // ── 100% control bar ──
+  const sumOk=Math.abs(ts-100)<.01;
+  const diff=ts-100;
+  h+=`<div style="background:${sumOk?'var(--ok-bg)':'var(--red-bg)'};border:2px solid ${sumOk?'#a5d6a7':'#ef9a9a'};border-radius:10px;padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:32px">${sumOk?'✓':'⚠'}</div>
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${sumOk?'var(--green-dark)':'var(--red)'}">SUMA SKŁADNIKÓW</div>
+        <div class="font-mono fw-800" style="font-size:26px;color:${sumOk?'var(--green-dark)':'var(--red)'}">${fmt(ts,2)}%</div>
+      </div>
+      ${!sumOk?`<div style="background:${diff>0?'var(--red)':'var(--gold-dark)'};color:#fff;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace">${diff>0?'+':''}${fmt(diff,2)}%</div>`:''}
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      ${!sumOk?`<button ${_canWrite("recipes")?"":"disabled style=\"opacity:0.4;cursor:not-allowed\""} onclick="normalize('${p}')" style="background:var(--green-mid);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:0.5px;box-shadow:0 2px 8px rgba(26,122,62,0.3)">⚖ Normalizuj do 100%</button>`:`<span style="font-size:13px;color:var(--green-dark);font-weight:600">Bilans zamknięty</span>`}
+    </div>
+  </div>`;
+
+  h+=`<div class="card ${ACC[p]}"><div class="card-title">Składniki aktywne (${act.length})</div><table><thead><tr>
+    <th>Surowiec</th><th class="text-right">Udział %</th><th class="text-right">Cena zł/t</th><th class="text-right">Koszt skł.</th><th class="text-right" style="width:200px">Udział wizualny</th></tr></thead><tbody>`;
+  act.forEach(m=>{
+    h+=`<tr><td class="fw-600"><span class="${GC[p]}"></span>${m.n}</td>
+    <td class="text-right"><input type="number" step="0.1" class="num-input share-input" ${_canWrite("recipes")?"":"disabled"} data-phase="${p}" data-idx="${m.i}" value="${m.s}"></td>
+    <td class="text-right c-muted font-mono">${fPLN(m.c)}</td>
+    <td class="text-right c-green fw-600 font-mono">${fmt(m.cost,1)}</td>
+    <td><div style="display:flex;align-items:center;gap:6px"><div class="mini-bar" style="flex:1"><div class="mini-bar-fill gold" style="width:${m.s}%"></div></div><span class="font-mono c-muted" style="font-size:10px;width:35px;text-align:right">${fmt(m.s,1)}%</span></div></td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+
+  if(inact.length>0){
+    h+=`<div class="card" style="opacity:0.65"><div class="card-title">Nieaktywne surowce (${inact.length})</div><div style="display:flex;flex-wrap:wrap;gap:4px">`;
+    inact.forEach(m=>{h+=`<span class="chip">${m.n}<button class="chip-add" onclick="recipes['${p}'][${m.i}]=0.1;render()">+</button></span>`;});
+    h+=`</div></div>`;
+  }
+
+  h+=`<div class="card"><div style="display:flex;justify-content:space-between"><div><div class="metric-label">Koszt receptury</div><div class="metric-val green font-mono" style="font-size:28px">${fmt(c,0)} <span style="font-size:14px;color:var(--text-muted)">zł/t</span></div></div>
+  <div style="text-align:right"><div class="metric-label">Koszt roczny</div><div class="metric-val gold font-mono" style="font-size:28px">${fPLN(Math.round(c*PROD[p]))} <span style="font-size:14px;color:var(--text-muted)">zł</span></div></div></div></div>`;
+  return h;
+}
+
+// ─── BALANCE ─────────────────────────────────────────────────────────────────
+function renderBalance(){
+  const phases=["Starter","Grower","Finiszer"];
+  const bals={};phases.forEach(p=>{bals[p]=bal(p)});
+
+  let h=``;
+  // Check if any phase doesn't sum to 100%
+  const badPhases=phases.filter(p=>Math.abs(totS(p)-100)>=.01);
+  if(badPhases.length>0){
+    h+=`<div style="background:var(--red-bg);border:2px solid #ef9a9a;border-radius:10px;padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px">⚠</div><div>
+        <div style="font-weight:700;color:var(--red)">Bilans nieważny — suma składników ≠ 100%</div>
+        <div style="font-size:12px;color:var(--red);margin-top:4px">${badPhases.map(p=>`${p}: ${fmt(totS(p),2)}%`).join(' • ')} — przejdź do zakładki <b>Receptury</b> i znormalizuj.</div>
+      </div>
+    </div>`;
+  }
+  h+=`<div class="card"><div class="card-title">⚖ Bilans żywieniowy — Normy Duńskie</div><table><thead><tr><th>Parametr</th>`;
+  phases.forEach(p=>{h+=`<th class="text-right" style="color:var(--green-dark)">${p} Wartość</th><th class="text-right">Norma</th><th class="text-center">Status</th>`;});
+  h+=`</tr></thead><tbody>`;
+  PK.forEach(k=>{
+    h+=`<tr><td class="fw-600">${PL[k]}</td>`;
+    phases.forEach(p=>{
+      const v=bals[p][k],n=NORMS[p][k],ok=isOk(v,n,DIR[k]),sl=v-n;
+      h+=`<td class="text-right font-mono fw-600" style="color:${ok?'var(--green-dark)':'var(--red)'}">${fmt(v,3)}</td>
+        <td class="text-right font-mono c-muted">${fmt(n,2)}</td>
+        <td class="text-center"><span class="badge ${ok?'badge-ok':'badge-fail'}">${ok?'OK':'NIE'}</span><div style="font-size:9px;margin-top:2px;color:${sl>=0?'var(--green-light)':'var(--red)'}">${sl>=0?'+':''}${fmt(sl,3)}</div></td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table></div>`;
+
+  h+=`<div class="card"><div class="card-title">Aktywne ograniczenia</div><div class="grid-3">`;
+  phases.forEach(p=>{
+    const b=bals[p];
+    const crits=PK.filter(k=>DIR[k]===">="?b[k]<NORMS[p][k]:b[k]>NORMS[p][k]);
+    h+=`<div style="background:var(--bg);border-radius:8px;padding:14px;border:1px solid ${crits.length?'#ef9a9a':'#a5d6a7'}"><div class="fw-700" style="color:var(--green-dark);margin-bottom:8px"><span class="${GC[p]}"></span>${p}</div>`;
+    if(!crits.length)h+=`<div style="font-size:11px;color:var(--green-dark)">✓ Wszystkie w normie</div>`;
+    else crits.forEach(k=>{h+=`<div style="font-size:11px;color:var(--red);margin-bottom:2px">▸ ${PL[k]}: ${fmt(b[k],3)} (norma: ${fmt(NORMS[p][k],2)})</div>`;});
+    h+=`</div>`;
+  });
+  h+=`</div></div>`;
+  return h;
+}
+
+// ─── MATERIALS ───────────────────────────────────────────────────────────────
+function renderMaterials(){
+  let filtered=RM.filter(m=>m.n.toLowerCase().includes(state.search.toLowerCase()));
+  filtered=[...filtered].sort((a,b)=>{const va=a[state.sortCol]??0,vb=b[state.sortCol]??0;return typeof va==="string"?va.localeCompare(vb)*state.sortDir:(va-vb)*state.sortDir;});
+
+  let h=`<div style="display:flex;gap:12px;margin-bottom:18px;align-items:center"><input id="matSearch" class="search-input" placeholder="Szukaj surowca..." value="${state.search}"><span style="font-size:11px;color:var(--text-muted)">${filtered.length} surowców</span></div>`;
+
+  const cols=[{k:"n",l:"Surowiec",t:1},{k:"c",l:"Cena zł/t"},{k:"b",l:"Białko"},{k:"NE",l:"NE"},{k:"Ly",l:"SID Lys"},{k:"Me",l:"SID Met+Cys"},{k:"Th",l:"SID Thr"},{k:"Tr",l:"SID Trp"},{k:"W",l:"Włókno"},{k:"Ca",l:"Ca"},{k:"P",l:"P"}];
+
+  h+=`<div class="card" style="overflow:auto;max-height:65vh"><table><thead><tr>`;
+  cols.forEach(c=>{h+=`<th class="${c.t?'':'text-right'}" onclick="state.sortCol='${c.k}';state.sortDir=state.sortCol==='${c.k}'?-state.sortDir:-1;render()">${c.l} ${state.sortCol===c.k?(state.sortDir===1?'▲':'▼'):''}</th>`;});
+  h+=`</tr></thead><tbody>`;
+  filtered.forEach(m=>{
+    h+=`<tr><td class="fw-600">${m.n}</td><td class="text-right"><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><input type="number" step="10" class="num-input price-input" ${_canWrite("materials")?"":"disabled"} data-idx="${RM.indexOf(m)}" value="${m.c}" style="width:85px"></div></td>`;
+    cols.slice(2).forEach(c=>{h+=`<td class="text-right font-mono" style="color:${m[c.k]>0?'var(--text)':'var(--border)'}">${m[c.k]>0?fmt(m[c.k],2):'–'}</td>`;});
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table></div>`;
+
+  h+=`<div class="grid-2" style="margin-top:18px">`;
+  h+=`<div class="card card-accent-gold"><div class="card-title">Top 10 najdroższych</div>`;
+  [...RM].sort((a,b)=>b.c-a.c).slice(0,10).forEach((m,i)=>{h+=`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:11px"><span>${i+1}. ${m.n}</span><span class="fw-600 font-mono" style="color:var(--red)">${fPLN(m.c)} zł</span></div>`;});
+  h+=`</div>`;
+  h+=`<div class="card card-accent"><div class="card-title">Top 10 najtańszych</div>`;
+  [...RM].sort((a,b)=>a.c-b.c).slice(0,10).forEach((m,i)=>{h+=`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:11px"><span>${i+1}. ${m.n}</span><span class="fw-600 font-mono" style="color:var(--green-dark)">${fPLN(m.c)} zł</span></div>`;});
+  h+=`</div></div>`;
+  return h;
+}
+
+// ─── PURCHASE ────────────────────────────────────────────────────────────────
+function renderPurchase(){
+  const phases=["Starter","Grower","Finiszer"];
+  const data=RM.map((m,i)=>{const r={n:m.n,c:m.c};let t=0;phases.forEach(p=>{const q=(recipes[p][i]/100)*PROD[p];r[p]=q;t+=q;});r.t=t;r.tc=t*m.c;return r;}).filter(r=>r.t>0).sort((a,b)=>b.t-a.t);
+  const gt=data.reduce((a,r)=>a+r.tc,0);const tt=data.reduce((a,r)=>a+r.t,0);
+
+  let h=`<div class="grid-3" style="margin-bottom:18px">
+    <div class="metric-box gold"><div class="metric-val gold font-mono">${data.length}</div><div class="metric-label">Surowce do zakupu</div></div>
+    <div class="metric-box green"><div class="metric-val green font-mono">${fPLN(Math.round(tt))}</div><div class="metric-label">Razem ton / rok</div></div>
+    <div class="metric-box green"><div class="metric-val green font-mono">${fPLN(Math.round(gt))}</div><div class="metric-label">Budżet zakupowy (PLN)</div></div>
+  </div>`;
+  h+=`<div class="card" style="overflow:auto"><div class="card-title">Plan zakupów rocznych</div><table><thead><tr>
+    <th>Surowiec</th><th class="text-right">Cena zł/t</th>`;
+  phases.forEach(p=>{h+=`<th class="text-right">${p} (t)</th>`;});
+  h+=`<th class="text-right">Razem (t)</th><th class="text-right">Wartość (zł)</th><th style="width:120px">Udział</th></tr></thead><tbody>`;
+  data.forEach(r=>{
+    h+=`<tr><td class="fw-600">${r.n}</td><td class="text-right font-mono c-muted">${fPLN(r.c)}</td>`;
+    phases.forEach(p=>{h+=`<td class="text-right font-mono" style="color:${r[p]>0?'var(--text)':'var(--border)'}">${r[p]>0?fmt(r[p],0):'–'}</td>`;});
+    h+=`<td class="text-right font-mono fw-700">${fmt(r.t,0)}</td><td class="text-right font-mono c-gold fw-600">${fPLN(Math.round(r.tc))}</td>
+    <td><div class="mini-bar"><div class="mini-bar-fill gold" style="width:${(r.tc/(gt*.35))*100}%"></div></div></td></tr>`;
+  });
+  h+=`<tr style="border-top:2px solid var(--border)"><td class="fw-800 c-green" colspan="5">RAZEM</td><td class="text-right fw-800 c-green font-mono">${fPLN(Math.round(tt))}</td><td class="text-right fw-800 c-gold font-mono">${fPLN(Math.round(gt))}</td><td></td></tr>`;
+  h+=`</tbody></table></div>`;
+  return h;
+}
+
+// ─── SCENARIOS ───────────────────────────────────────────────────────────────
+function renderScenarios(){
+  const phases=["Starter","Grower","Finiszer"];
+  const costs_={};phases.forEach(p=>{costs_[p]=cost(p)});
+  const tac=phases.reduce((a,p)=>a+costs_[p]*PROD[p],0);
+  const shifts=[-20,-10,-5,0,5,10,20];
+
+  let h=`<div class="card"><div class="card-title">△ Analiza scenariuszowa</div><table><thead><tr>
+    <th>Zmiana cen</th>`;
+  phases.forEach(p=>{h+=`<th class="text-right">${p} zł/t</th>`;});
+  h+=`<th class="text-right">Koszt roczny</th><th class="text-right">Δ vs bazowy</th></tr></thead><tbody>`;
+  shifts.forEach(s=>{
+    const isBasis=s===0;let tot=0;
+    const row={};phases.forEach(p=>{row[p]=costs_[p]*(1+s/100);tot+=row[p]*PROD[p];});
+    const delta=tot-tac;
+    h+=`<tr style="background:${isBasis?'var(--gold-pale)':''}"><td class="fw-700" style="color:${s===0?'var(--gold-dark)':s>0?'var(--red)':'var(--green-dark)'}">
+      ${s>0?'+':''}${s}%${isBasis?' <span style="font-size:9px;color:var(--text-muted)">BAZOWY</span>':''}</td>`;
+    phases.forEach(p=>{h+=`<td class="text-right font-mono">${fmt(row[p],0)}</td>`;});
+    h+=`<td class="text-right fw-700 font-mono" style="color:${isBasis?'var(--gold-dark)':'var(--text)'}">${fPLN(Math.round(tot))}</td>
+    <td class="text-right fw-600 font-mono" style="color:${delta>0?'var(--red)':delta<0?'var(--green-dark)':'var(--text-muted)'}">${delta!==0?(delta>0?'+':'')+fPLN(Math.round(delta)):'–'}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+
+  // quarterly
+  h+=`<div class="card"><div class="card-title">Symulacja kwartalna</div><div class="grid-4">`;
+  ["Q1","Q2","Q3","Q4"].forEach(q=>{
+    const pQ=(PROD.Starter+PROD.Grower+PROD.Finiszer)/4;const cQ=tac/4;
+    h+=`<div style="background:var(--bg);border-radius:10px;padding:18px;text-align:center;border:1px solid var(--border-light)">
+      <div style="font-size:20px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">${q}</div>
+      <div style="font-size:11px;color:var(--text-muted)">${fPLN(pQ)} t</div>
+      <div class="font-mono fw-700" style="font-size:20px;margin-top:6px">${fPLN(Math.round(cQ))}</div>
+      <div style="font-size:10px;color:var(--text-muted)">PLN</div></div>`;
+  });
+  h+=`</div></div>`;
+
+  // slider
+  const ss=state.scenShift;
+  h+=`<div class="card"><div class="card-title">Interaktywna symulacja cen</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px">
+      <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">Zmiana cen:</span>
+      <input id="scenSlider" type="range" min="-30" max="30" value="${ss}" style="flex:1">
+      <span class="font-mono fw-800" style="font-size:20px;min-width:60px;text-align:right;color:${ss>0?'var(--red)':ss<0?'var(--green-dark)':'var(--gold-dark)'}">${ss>0?'+':''}${ss}%</span>
+    </div>
+    <div class="grid-3">`;
+  phases.forEach(p=>{
+    const adj=costs_[p]*(1+ss/100);
+    h+=`<div class="metric-box" style="text-align:center;border-top:3px solid var(--green-mid)">
+      <div class="fw-700" style="color:var(--green-dark);margin-bottom:6px">${p}</div>
+      <div class="font-mono fw-800" style="font-size:22px">${fmt(adj,0)} <span style="font-size:11px;color:var(--text-muted)">zł/t</span></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${fPLN(Math.round(adj*PROD[p]))} zł/rok</div></div>`;
+  });
+  h+=`</div><div style="text-align:center;margin-top:18px">
+    <div class="metric-label">Łączny koszt roczny po korekcie</div>
+    <div class="font-mono fw-800" style="font-size:36px;color:${ss>0?'var(--red)':ss<0?'var(--green-dark)':'var(--gold-dark)'}">${fPLN(Math.round(tac*(1+ss/100)))} <span style="font-size:16px;color:var(--text-muted)">PLN</span></div>
+  </div></div>`;
+  return h;
+}
+
+
+// ─── ADMIN PANEL ─────────────────────────────────────────────────────────────
+function renderAdmin() {
+  let h = '<div class="admin-panel"><h3>👥 Zarządzanie użytkownikami (limit: 4)</h3>';
+  h += '<div id="adminUsersContent"><div style="text-align:center;color:var(--text-muted);padding:20px">Ładowanie...</div></div>';
+  h += '</div>';
+  // Load users async after render
+  setTimeout(async () => {
+    try {
+      const users = await api.get('/auth/users');
+      let t = '<table><thead><tr><th>#</th><th>Email</th><th>Imię</th><th>Rola</th><th>Status</th><th>Akcje</th></tr></thead><tbody>';
+      users.forEach((u, i) => {
+        t += '<tr style="opacity:' + (u.is_active ? '1' : '0.4') + '">';
+        t += '<td>' + (i+1) + '</td>';
+        t += '<td class="font-mono" style="font-size:11px">' + u.email + '</td>';
+        t += '<td class="fw-600">' + u.name + '</td>';
+        t += '<td><span class="badge ' + (u.role==='admin'?'badge-ok':'') + '" style="background:' + (u.role==='admin'?'var(--ok-bg)':u.role==='viewer'?'var(--gold-pale)':'var(--bg)') + '">' + u.role + '</span></td>';
+        t += '<td><span class="badge ' + (u.is_active?'badge-ok':'badge-fail') + '">' + (u.is_active?'Aktywny':'Nieaktywny') + '</span></td>';
+        t += '<td style="display:flex;gap:4px">';
+        if (u.is_active && u.email !== _user?.email) {
+          t += '<button class="btn-sm" style="background:var(--red-bg);color:var(--red)" onclick="adminDeactivate(' + u.id + ')">✕</button>';
+          t += '<button class="btn-sm" style="background:var(--gold-pale);color:var(--gold-dark)" onclick="adminResetPwd(' + u.id + ')">🔑</button>';
+          t += '<button class="btn-sm" style="background:var(--bg);color:var(--text)" onclick="adminChangeRole(' + u.id + ',\'' + u.role + '\')">⟳</button>';
+        }
+        if (!u.is_active) t += '<button class="btn-sm" style="background:var(--ok-bg);color:var(--green-dark)" onclick="adminReactivate(' + u.id + ')">↩️</button>';
+        t += '</td></tr>';
+      });
+      t += '</tbody></table>';
+      
+      // Add new user form
+      const active = users.filter(u => u.is_active).length;
+      if (active < 4) {
+        t += '<div style="margin-top:20px;background:var(--green-pale);border-radius:10px;padding:16px">';
+        t += '<div style="font-size:12px;font-weight:700;margin-bottom:10px">➕ Dodaj użytkownika (' + active + '/4)</div>';
+        t += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">';
+        t += '<div><div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">Email</div><input type="text" id="newEmail" class="num-input" style="width:100%;text-align:left" placeholder="email@kabanek.pl"></div>';
+        t += '<div><div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">Imię</div><input type="text" id="newName" class="num-input" style="width:100%;text-align:left" placeholder="Jan Kowalski"></div>';
+        t += '<div><div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">Hasło</div><input type="text" id="newPass" class="num-input" style="width:100%;text-align:left" placeholder="min 6 znaków"></div>';
+        t += '<div style="display:flex;gap:6px"><select id="newRole" class="num-input" style="width:90px;text-align:left"><option value="user">User</option><option value="viewer">Viewer</option><option value="admin">Admin</option></select>';
+        t += '<button class="btn-sm" style="background:var(--green-mid);color:#fff;padding:8px 16px" onclick="adminAddUser()">Dodaj</button></div>';
+        t += '</div></div>';
+      } else {
+        t += '<div style="margin-top:16px;padding:12px;background:var(--gold-pale);border-radius:8px;font-size:11px;color:var(--gold-dark)">ℹ️ Osiągnięto limit 4 użytkowników. Dezaktywuj kogoś aby dodać nowego.</div>';
+      }
+
+      // Permissions info
+      t += '<div style="margin-top:16px;padding:12px;background:var(--bg);border:1px solid var(--border-light);border-radius:8px;font-size:11px;color:var(--text-light)">';
+      t += '<strong>Uprawnienia ról:</strong><br>';
+      t += '<strong>Admin</strong> — pełny dostęp, zarządzanie użytkownikami, edycja norm i produkcji<br>';
+      t += '<strong>User</strong> — edycja receptur i cen surowców, podgląd reszty<br>';
+      t += '<strong>Viewer</strong> — tylko podgląd (read-only)';
+      t += '</div>';
+
+      document.getElementById('adminUsersContent').innerHTML = t;
+    } catch (e) {
+      document.getElementById('adminUsersContent').innerHTML = '<div style="color:var(--red)">Błąd ładowania: ' + e.message + '</div>';
+    }
+  }, 100);
+
+  // Audit log
+  h += '<div class="admin-panel" style="margin-top:18px"><h3>📋 Historia zmian</h3>';
+  h += '<div id="adminAuditContent"><div style="text-align:center;color:var(--text-muted);padding:20px">Ładowanie...</div></div></div>';
+  setTimeout(async () => {
+    try {
+      const logs = await api.get('/auth/audit?limit=50');
+      if (!logs.length) { document.getElementById('adminAuditContent').innerHTML = '<div style="color:var(--text-muted);text-align:center">Brak wpisów</div>'; return; }
+      let t = '<div style="max-height:300px;overflow:auto"><table><thead><tr><th>Data</th><th>Użytkownik</th><th>Obszar</th><th>Akcja</th></tr></thead><tbody>';
+      logs.forEach(l => {
+        t += '<tr><td class="font-mono c-muted" style="font-size:10px">' + l.ts.substring(0,19) + '</td>';
+        t += '<td class="fw-600" style="font-size:11px">' + l.user + '</td>';
+        t += '<td><span class="badge" style="background:var(--bg);font-size:9px">' + l.area + '</span></td>';
+        t += '<td style="font-size:11px">' + l.action + '</td></tr>';
+      });
+      t += '</tbody></table></div>';
+      document.getElementById('adminAuditContent').innerHTML = t;
+    } catch (e) {}
+  }, 200);
+
+  return h;
+}
+
+async function adminAddUser() {
+  const email = document.getElementById('newEmail').value;
+  const name = document.getElementById('newName').value;
+  const pass = document.getElementById('newPass').value;
+  const role = document.getElementById('newRole').value;
+  if (!email || !name || !pass) { showToast('Wypełnij wszystkie pola!'); return; }
+  try {
+    await api.post('/auth/users', { email, name, password: pass, role });
+    showToast('Użytkownik utworzony ✓');
+    render();
+  } catch (e) { showToast('Błąd: ' + e.message); }
+}
+
+async function adminDeactivate(uid) {
+  if (!confirm('Dezaktywować użytkownika?')) return;
+  try { await api.del('/auth/users/' + uid); showToast('Dezaktywowano ✓'); render(); } catch (e) { showToast('Błąd!'); }
+}
+
+async function adminReactivate(uid) {
+  try { await api.put('/auth/users/' + uid, { is_active: true }); showToast('Reaktywowano ✓'); render(); } catch (e) { showToast('Błąd!'); }
+}
+
+async function adminResetPwd(uid) {
+  const pwd = prompt('Nowe hasło:');
+  if (!pwd) return;
+  try { await api.put('/auth/users/' + uid, { password: pwd }); showToast('Hasło zmienione ✓'); } catch (e) { showToast('Błąd!'); }
+}
+
+async function adminChangeRole(uid, current) {
+  const roles = ['admin', 'user', 'viewer'];
+  const next = roles[(roles.indexOf(current) + 1) % roles.length];
+  if (!confirm('Zmienić rolę na: ' + next + '?')) return;
+  try { await api.put('/auth/users/' + uid, { role: next }); showToast('Rola zmieniona na ' + next + ' ✓'); render(); } catch (e) { showToast('Błąd!'); }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+tryRestore();
+
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('loginEmail').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+
+</script>
+</body>
+</html>
