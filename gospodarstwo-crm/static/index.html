@@ -633,8 +633,17 @@ function App(){
   const getUprawaNames=(u)=>{const nrs=(u.grunt||"").split(",").filter(Boolean);return nrs.map(nr=>{const g=grunty.find(g2=>g2.nr===nr);return g?g.nazwa:nr}).filter(Boolean)};
   const getUprawaNrs=(u)=>(u.grunt||"").split(",").filter(Boolean);
   const getUprawaGruntyInfo=(u)=>{const nrs=(u.grunt||"").split(",").filter(Boolean);return nrs.map(nr=>grunty.find(g2=>g2.nr===nr)).filter(Boolean)};
+  const getRecNrs=(r)=>(r.grunt||"").split(",").filter(Boolean);
+  const getRecNames=(r)=>{const nrs=getRecNrs(r);return nrs.map(nr=>{const g=grunty.find(g2=>g2.nr===nr);return g?g.nazwa:nr}).filter(Boolean)};
+  const getRecGruntyInfo=(r)=>{const nrs=getRecNrs(r);return nrs.map(nr=>grunty.find(g2=>g2.nr===nr)).filter(Boolean)};
+  const toggleGruntInNawoz=(ni,nr)=>{setNawozy(p=>p.map((n,i)=>{if(i!==ni)return n;const curr=getRecNrs(n);const idx=curr.indexOf(nr);if(idx>=0)curr.splice(idx,1);else curr.push(nr);const totalPow=curr.reduce((s,n2)=>{const g=grunty.find(g2=>g2.nr===n2);return s+(g?parseFloat(g.pow)||0:0)},0);return{...n,grunt:curr.join(","),pow:totalPow?String(totalPow):""}}))}; 
+  const toggleGruntInOprysk=(oi,nr)=>{setOpryski(p=>p.map((o,i)=>{if(i!==oi)return o;const curr=getRecNrs(o);const idx=curr.indexOf(nr);if(idx>=0)curr.splice(idx,1);else curr.push(nr);const totalPow=curr.reduce((s,n2)=>{const g=grunty.find(g2=>g2.nr===n2);return s+(g?parseFloat(g.pow)||0:0)},0);return{...o,grunt:curr.join(","),pow:totalPow?String(totalPow):""}}))};
   const[uprDropOpen,setUprDropOpen]=useState(null);
   const[uprDropQ,setUprDropQ]=useState("");
+  const[nawDropOpen,setNawDropOpen]=useState(null);
+  const[nawDropQ,setNawDropQ]=useState("");
+  const[oprDropOpen,setOprDropOpen]=useState(null);
+  const[oprDropQ,setOprDropQ]=useState("");
 
   const[nawozy,setNawozy]=useState([]);
   const saveNawozy=async()=>{try{const ex=await api.get("/nawozy");for(const n of nawozy){if(ex.find(e=>e.id===n.id))await api.put("/nawozy/"+n.id,n);else{const r=await api.post("/nawozy",n);n.id=r.id}}for(const e of ex){if(!nawozy.find(n=>n.id===e.id))await api.del("/nawozy/"+e.id)}const fresh=await api.get("/nawozy");setNawozy(fresh||[]);setToast("Nawozy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
@@ -1818,24 +1827,25 @@ function App(){
             </table>
             </div>}
             {/* Dropdown overlay - rendered outside table to avoid overflow:hidden clipping */}
-            {uprDropOpen!==null&&isAdmin&&(()=>{
-              var el=document.getElementById("uprdrop-"+uprDropOpen);
+            {(()=>{const renderGruntDropdown=(prefix,dropOpen,setDropOpen,dropQ,setDropQ,data,toggleFn,label)=>{
+              if(dropOpen===null)return null;
+              var el=document.getElementById(prefix+"-"+dropOpen);
               if(!el)return null;
               var rect=el.getBoundingClientRect();
-              var nrs=getUprawaNrs(uprawy[uprDropOpen]||{});
+              var nrs=getRecNrs(data[dropOpen]||{});
               return ReactDOM.createPortal(<div>
-                <div onClick={()=>{setUprDropOpen(null);setUprDropQ("")}} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9998}}/>
+                <div onClick={()=>{setDropOpen(null);setDropQ("")}} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9998}}/>
                 <div style={{position:"fixed",top:rect.bottom+4,left:Math.min(rect.left,window.innerWidth-420),zIndex:9999,background:"#fff",border:"2px solid #558b2f",borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,.25)",maxHeight:440,width:400,display:"flex",flexDirection:"column"}}>
-                  <div style={{padding:"8px 12px",borderBottom:"1px solid #e8e3db",fontSize:11,fontWeight:700,color:"#2e7d32"}}>🌱 Wybierz działki do uprawy:</div>
-                  <div style={{padding:"6px 10px",borderBottom:"1px solid #e8e3db"}}><input autoFocus value={uprDropQ} onChange={e=>setUprDropQ(e.target.value)} placeholder="Szukaj: nr, nazwa, obręb, właściciel..." style={{width:"100%",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 8px",fontSize:11,outline:"none",boxSizing:"border-box"}}/></div>
+                  <div style={{padding:"8px 12px",borderBottom:"1px solid #e8e3db",fontSize:11,fontWeight:700,color:"#2e7d32"}}>{label}</div>
+                  <div style={{padding:"6px 10px",borderBottom:"1px solid #e8e3db"}}><input autoFocus value={dropQ} onChange={e=>setDropQ(e.target.value)} placeholder="Szukaj: nr, nazwa, obręb, właściciel..." style={{width:"100%",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 8px",fontSize:11,outline:"none",boxSizing:"border-box"}}/></div>
                   <div style={{display:"flex",gap:8,padding:"4px 10px",borderBottom:"1px solid #f0ebe3",fontSize:8,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.5}}>
                     <span style={{width:16}}></span><span style={{minWidth:55}}>Nr</span><span style={{minWidth:65}}>Nazwa</span><span style={{minWidth:60}}>Właściciel</span><span style={{marginLeft:"auto"}}>Pow.</span>
                   </div>
                   <div style={{overflowY:"auto",flex:1,padding:4}}>
-                    {[...grunty].filter(g=>{if(!uprDropQ)return true;var q=uprDropQ.toLowerCase();return[g.nr,g.nazwa,g.obreb,g.wlasciciel,g.gmina].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).sort((a,b)=>{var ac=nrs.includes(a.nr)?0:1,bc=nrs.includes(b.nr)?0:1;if(ac!==bc)return ac-bc;if((a.obreb||"")!==(b.obreb||""))return(a.obreb||"").localeCompare(b.obreb||"");var na=a.nr.split("/"),nb=b.nr.split("/");var d=(parseInt(na[0])||0)-(parseInt(nb[0])||0);return d!==0?d:(parseInt(na[1])||0)-(parseInt(nb[1])||0)}).map((g,gi,arr)=>{var checked=nrs.includes(g.nr);var showHeader=gi===0||(arr[gi-1].obreb||"")!==(g.obreb||"");return(<React.Fragment key={g.nr}>
+                    {[...grunty].filter(g=>{if(!dropQ)return true;var q=dropQ.toLowerCase();return[g.nr,g.nazwa,g.obreb,g.wlasciciel,g.gmina].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).sort((a,b)=>{var ac=nrs.includes(a.nr)?0:1,bc=nrs.includes(b.nr)?0:1;if(ac!==bc)return ac-bc;if((a.obreb||"")!==(b.obreb||""))return(a.obreb||"").localeCompare(b.obreb||"");var na=a.nr.split("/"),nb=b.nr.split("/");var d=(parseInt(na[0])||0)-(parseInt(nb[0])||0);return d!==0?d:(parseInt(na[1])||0)-(parseInt(nb[1])||0)}).map((g,gi,arr)=>{var checked=nrs.includes(g.nr);var showHeader=gi===0||(arr[gi-1].obreb||"")!==(g.obreb||"");return(<React.Fragment key={g.nr}>
                       {showHeader&&<div style={{padding:"4px 10px",background:"#f5f0e8",fontSize:9,fontWeight:800,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1,borderRadius:4,marginTop:gi>0?6:0}}>{g.obreb||"Brak obrębu"} • {g.gmina||""}</div>}
                       <label style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",cursor:"pointer",borderRadius:6,background:checked?"#e8f5e9":"transparent",fontSize:12,transition:"background 0.15s"}} onMouseOver={e=>e.currentTarget.style.background=checked?"#c8e6c9":"#f5f0e8"} onMouseOut={e=>e.currentTarget.style.background=checked?"#e8f5e9":"transparent"}>
-                      <input type="checkbox" checked={checked} onChange={()=>toggleGruntInUprawa(uprDropOpen,g.nr)} style={{accentColor:"#2e7d32",width:16,height:16}}/>
+                      <input type="checkbox" checked={checked} onChange={()=>toggleFn(dropOpen,g.nr)} style={{accentColor:"#2e7d32",width:16,height:16}}/>
                       <span style={{fontFamily:"monospace",fontWeight:700,fontSize:12,color:checked?"#2e7d32":"#1a3328",minWidth:55}}>{g.nr}</span>
                       <span style={{color:"#558b2f",fontSize:10,minWidth:65,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.nazwa||""}</span>
                       <span style={{color:"#6a1b9a",fontSize:9,minWidth:60,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.wlasciciel||""}</span>
@@ -1844,11 +1854,16 @@ function App(){
                   </div>
                   <div style={{borderTop:"2px solid #e8e3db",padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <span style={{fontSize:10,color:"#8a7e72"}}>{nrs.length} wybrano{nrs.length>0?" • "+fN(nrs.reduce((s,n)=>{var g=grunty.find(g2=>g2.nr===n);return s+(g?parseFloat(g.pow)||0:0)},0),2)+" ha":""}</span>
-                    <button onClick={()=>{setUprDropOpen(null);setUprDropQ("")}} style={{background:"#558b2f",color:"#fff",border:"none",borderRadius:6,padding:"5px 18px",fontSize:11,fontWeight:700,cursor:"pointer"}}>✓ Gotowe</button>
+                    <button onClick={()=>{setDropOpen(null);setDropQ("")}} style={{background:"#558b2f",color:"#fff",border:"none",borderRadius:6,padding:"5px 18px",fontSize:11,fontWeight:700,cursor:"pointer"}}>✓ Gotowe</button>
                   </div>
                 </div>
               </div>,document.body);
-            })()}
+            };
+            return<React.Fragment>
+              {renderGruntDropdown("uprdrop",uprDropOpen,setUprDropOpen,uprDropQ,setUprDropQ,uprawy,toggleGruntInUprawa,"🌱 Wybierz działki do uprawy:")}
+              {renderGruntDropdown("nawdrop",nawDropOpen,setNawDropOpen,nawDropQ,setNawDropQ,nawozy,toggleGruntInNawoz,"🧪 Wybierz działki do nawożenia:")}
+              {renderGruntDropdown("oprdrop",oprDropOpen,setOprDropOpen,oprDropQ,setOprDropQ,opryski,toggleGruntInOprysk,"🧴 Wybierz działki do oprysku:")}
+            </React.Fragment>})()}
           </div>
         </div>
       </div>}
@@ -1866,21 +1881,26 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{nawozy.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Zabiegów</div></div>
               {["Azotowy","Fosforowy","Potasowy","Wapniowy","Wieloskładnikowy"].map(t=>{const c2=nawozy.filter(n=>n.typ===t).length;if(!c2)return null;return(<div key={t} className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{c2}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>{t}</div></div>)}).filter(Boolean)}
             </div>
-            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj nawożenia (działka, nawóz, typ)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj nawożenia (działka, nawóz, właściciel, obręb)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {nawozy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak nawożeń.</div>:
             <table className="tbl">
-              <thead><tr>{["#","Data","Nr działki","Nazwa potoczna","Nawóz","Typ","Dawka (kg/ha)","Pow. (ha)","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{nawozy.map((n,ni)=>({n,ni})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var matchG=grunty.find(g=>x.n.grunt&&g.nr===x.n.grunt);return[x.n.grunt,x.n.nawoz,x.n.typ,x.n.uwagi,matchG?matchG.nazwa:""].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({n,ni})=>{var matchG=grunty.find(g=>n.grunt&&(n.grunt===g.nr||n.grunt.startsWith(g.nr+" ")||n.grunt.startsWith(g.nr+" —")));return(<tr key={ni}>
+              <thead><tr>{["#","Data","Działki","Nazwa","Nawóz","Typ","Dawka (kg/ha)","Pow. (ha)","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
+              <tbody>{nawozy.map((n,ni)=>({n,ni})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var gInfo=getRecGruntyInfo(x.n);var owners=gInfo.map(g=>g.wlasciciel||"");var obreby=gInfo.map(g=>g.obreb||"");return[...getRecNrs(x.n),...getRecNames(x.n),...owners,...obreby,x.n.nawoz,x.n.typ,x.n.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({n,ni})=>{var nrs=getRecNrs(n);var names=getRecNames(n);return(<tr key={ni}>
                 <td style={{color:"#8a7e72"}}>{ni+1}</td>
                 <td><EC val={n.d} type="date" w="110px" onChange={v=>updNawoz(ni,"d",v)}/></td>
-                <td><select value={n.grunt||""} onChange={e=>updNawoz(ni,"grunt",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",minWidth:100}}><option value="">— nr —</option>{grunty.map((g,gi)=><option key={gi} value={g.nr}>{g.nr}</option>)}</select></td>
-                <td style={{fontSize:11,color:"#558b2f",fontWeight:600}}>{matchG?matchG.nazwa:"—"}</td>
+                <td style={{minWidth:140}}><div>
+                  <div id={"nawdrop-"+ni} onClick={()=>{setNawDropOpen(nawDropOpen===ni?null:ni);setNawDropQ("")}} style={{background:"#fff",border:"2px solid "+(nrs.length>1?"#558b2f":"#ddd6cc"),borderRadius:8,padding:"5px 8px",fontSize:11,cursor:"pointer",minHeight:26,display:"flex",flexWrap:"wrap",gap:3,alignItems:"center"}}>
+                    {nrs.length===0?<span style={{color:"#aaa",fontSize:10}}>— działki —</span>:nrs.map((nr,nri)=><span key={nri} style={{background:nrs.length>1?"#e8f5e9":"#f0ebe3",color:nrs.length>1?"#2e7d32":"#1a3328",padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,fontFamily:"monospace"}}>{nr}</span>)}
+                    <span style={{marginLeft:"auto",fontSize:8,color:"#8a7e72",transform:nawDropOpen===ni?"rotate(180deg)":"rotate(0)"}}>▼</span>
+                  </div>
+                </div></td>
+                <td style={{fontSize:11,color:"#558b2f",fontWeight:600}}>{names.length===0?"—":names.join(", ")}</td>
                 <td><EC val={n.nawoz} w="120px" onChange={v=>updNawoz(ni,"nawoz",v)}/></td>
                 <td><select value={n.typ} onChange={e=>updNawoz(ni,"typ",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none"}}>{["Azotowy","Fosforowy","Potasowy","Wapniowy","Wieloskładnikowy","Organiczny","Inny"].map(t=><option key={t} value={t}>{t}</option>)}</select></td>
                 <td style={{textAlign:"center"}}><EC val={n.dawka} w="70px" onChange={v=>updNawoz(ni,"dawka",v)}/></td>
-                <td style={{textAlign:"center"}}><EC val={n.pow} type="number" w="55px" onChange={v=>updNawoz(ni,"pow",v)}/></td>
+                <td style={{textAlign:"center",minWidth:60}}>{(()=>{var gInfo=getRecGruntyInfo(n);var autoSum=gInfo.reduce((s,g)=>s+(parseFloat(g.pow)||0),0);if(gInfo.length>0&&autoSum>0)return<div title={gInfo.map(g=>g.nr+": "+g.pow+" ha").join("\n")} style={{cursor:"help"}}><span style={{fontSize:12,fontWeight:800,color:"#558b2f"}}>{fN(autoSum,2)}</span><span style={{fontSize:8,color:"#8a7e72",marginLeft:1}}>ha</span></div>;return <EC val={n.pow} type="number" w="55px" onChange={v=>updNawoz(ni,"pow",v)}/>})()}</td>
                 <td><EC val={n.uwagi} w="120px" onChange={v=>updNawoz(ni,"uwagi",v)}/></td>
-                <td><button onClick={()=>delNawoz(ni)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button></td>
+                <td>{isAdmin&&<button onClick={()=>delNawoz(ni)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>)})}</tbody>
             </table>}
           </div>
@@ -1901,17 +1921,22 @@ function App(){
               {["Chwasty","Choroby","Szkodniki","Regulator","Desykacja"].map(c2=>{const n2=opryski.filter(o=>o.cel===c2).length;if(!n2)return null;return(<div key={c2} className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{n2}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>{c2}</div></div>)}).filter(Boolean)}
             </div>
             {opryski.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak oprysków.</div>:<div>
-            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj oprysku (środek, działka, cel)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj oprysku (środek, działka, właściciel, cel)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <table className="tbl">
-              <thead><tr>{["#","Data","Nr działki","Nazwa potoczna","Środek","Dawka","Pow.(ha)","Cel","Faza","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{opryski.map((o,oi)=>({o,oi})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var mg=grunty.find(g=>x.o.grunt&&g.nr===x.o.grunt);return[x.o.grunt,x.o.srodek,x.o.cel,x.o.faza,x.o.uwagi,mg?mg.nazwa:""].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({o,oi})=>{var matchG=grunty.find(g=>o.grunt&&(o.grunt===g.nr||o.grunt.startsWith(g.nr+" ")||o.grunt.startsWith(g.nr+" —")));return(<tr key={oi}>
+              <thead><tr>{["#","Data","Działki","Nazwa","Środek","Dawka","Pow.(ha)","Cel","Faza","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
+              <tbody>{opryski.map((o,oi)=>({o,oi})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var gInfo=getRecGruntyInfo(x.o);var owners=gInfo.map(g=>g.wlasciciel||"");var obreby=gInfo.map(g=>g.obreb||"");return[...getRecNrs(x.o),...getRecNames(x.o),...owners,...obreby,x.o.srodek,x.o.cel,x.o.faza,x.o.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({o,oi})=>{var nrs=getRecNrs(o);var names=getRecNames(o);return(<tr key={oi}>
                 <td style={{color:"#8a7e72"}}>{oi+1}</td>
                 <td>{<EC val={o.d} type="date" w="110px" onChange={v=>updOprysk(oi,"d",v)}/>}</td>
-                <td>{<select value={o.grunt||""} onChange={e=>updOprysk(oi,"grunt",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",minWidth:100}}><option value="">— nr —</option>{grunty.map((g,gi)=><option key={gi} value={g.nr}>{g.nr}</option>)}</select>}</td>
-                <td style={{fontSize:11,color:"#558b2f",fontWeight:600}}>{matchG?matchG.nazwa:"—"}</td>
+                <td style={{minWidth:140}}><div>
+                  <div id={"oprdrop-"+oi} onClick={()=>{setOprDropOpen(oprDropOpen===oi?null:oi);setOprDropQ("")}} style={{background:"#fff",border:"2px solid "+(nrs.length>1?"#558b2f":"#ddd6cc"),borderRadius:8,padding:"5px 8px",fontSize:11,cursor:"pointer",minHeight:26,display:"flex",flexWrap:"wrap",gap:3,alignItems:"center"}}>
+                    {nrs.length===0?<span style={{color:"#aaa",fontSize:10}}>— działki —</span>:nrs.map((nr,nri)=><span key={nri} style={{background:nrs.length>1?"#e8f5e9":"#f0ebe3",color:nrs.length>1?"#2e7d32":"#1a3328",padding:"1px 6px",borderRadius:4,fontSize:9,fontWeight:700,fontFamily:"monospace"}}>{nr}</span>)}
+                    <span style={{marginLeft:"auto",fontSize:8,color:"#8a7e72",transform:oprDropOpen===oi?"rotate(180deg)":"rotate(0)"}}>▼</span>
+                  </div>
+                </div></td>
+                <td style={{fontSize:11,color:"#558b2f",fontWeight:600}}>{names.length===0?"—":names.join(", ")}</td>
                 <td>{<EC val={o.srodek} w="110px" onChange={v=>updOprysk(oi,"srodek",v)}/>}</td>
                 <td>{<EC val={o.dawka} w="70px" onChange={v=>updOprysk(oi,"dawka",v)}/>}</td>
-                <td style={{textAlign:"center"}}>{<EC val={o.pow} type="number" w="50px" onChange={v=>updOprysk(oi,"pow",v)}/>}</td>
+                <td style={{textAlign:"center",minWidth:60}}>{(()=>{var gInfo=getRecGruntyInfo(o);var autoSum=gInfo.reduce((s,g)=>s+(parseFloat(g.pow)||0),0);if(gInfo.length>0&&autoSum>0)return<div title={gInfo.map(g=>g.nr+": "+g.pow+" ha").join("\n")} style={{cursor:"help"}}><span style={{fontSize:12,fontWeight:800,color:"#558b2f"}}>{fN(autoSum,2)}</span><span style={{fontSize:8,color:"#8a7e72",marginLeft:1}}>ha</span></div>;return <EC val={o.pow} type="number" w="50px" onChange={v=>updOprysk(oi,"pow",v)}/>})()}</td>
                 <td>{<select value={o.cel} onChange={e=>updOprysk(oi,"cel",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none"}}>{["Chwasty","Choroby","Szkodniki","Regulator","Desykacja","Inne"].map(c3=><option key={c3} value={c3}>{c3}</option>)}</select>}</td>
                 <td>{<EC val={o.faza} w="80px" onChange={v=>updOprysk(oi,"faza",v)}/>}</td>
                 <td>{<EC val={o.uwagi} w="100px" onChange={v=>updOprysk(oi,"uwagi",v)}/>}</td>
