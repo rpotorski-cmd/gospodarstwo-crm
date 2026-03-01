@@ -303,6 +303,10 @@ def seed():
             db.query(Grunt).filter(Grunt.woj == "warminsko-mazurskie").first() is not None
             or db.query(Grunt).filter(Grunt.gmina == "").first() is not None
             or db.query(Grunt).filter(Grunt.powiat == "").first() is not None
+            or db.query(Grunt).filter(Grunt.gmina == "Kisielice").first() is not None
+            or db.query(Grunt).filter(Grunt.gmina == "Iława").first() is not None
+            or db.query(Grunt).filter(Grunt.powiat == "iławski").first() is not None
+            or db.query(Grunt).filter(Grunt.woj == "warmińsko-mazurskie").first() is not None
         )
         if existing_grunty == 0 or has_old:
             if has_old:
