@@ -1,6 +1,6 @@
 """Seed initial data from HTML constants into database"""
 from database import SessionLocal
-from models import User, Stock, Ubojnia, Akcyza, Paszarnia, Silosy, CustomElement, Grunt
+from models import User, Stock, Ubojnia, Akcyza, Paszarnia, Silosy, CustomElement, Grunt, Ciagnik
 from auth import hash_password
 
 
@@ -242,6 +242,54 @@ STOCK_DATA = [
     {"name":"Vit N 5L","unit":"szt","qty":36,"note":"DODATKI / WITAMINY"},
 ]
 
+CIAGNIKI_DATA = [
+    {"typ":"ciagnik","nazwa":"CF MOTO C-FORCE 625S","marka":"CF MOTO","rok":"2024","rejestr":"WP9238","uwagi":"Rodzaj: ciągnik rolniczy | VIN: LCELDUZP8R6000749 | Poj: 580 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ciagnik","nazwa":"CLAAS AXION 850","marka":"CLAAS","rok":"2023","rejestr":"WE721C","uwagi":"Rodzaj: ciągnik rolniczy | VIN: VPKTA6000A5002027 | Poj: 6728 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ciagnik","nazwa":"MASSEY FERGUSON MF 7600","marka":"MASSEY FERGUSON","rok":"2012","rejestr":"WZUNV99","uwagi":"Rodzaj: ciągnik rolniczy | VIN: C282074 | Poj: 7365 ccm | Właściciel: Robert Potorski | Ubezpieczający: Robert Potorski"},
+    {"typ":"ciagnik","nazwa":"MASSEY FERGUSON MF 8730","marka":"MASSEY FERGUSON","rok":"2020","rejestr":"WP7560","uwagi":"Rodzaj: ciągnik rolniczy | VIN: VKKMY45GLLB293059 | Poj: 8419 ccm | Właściciel: Kabanek Sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ciagnik","nazwa":"MTZ 1221A","marka":"MTZ","rok":"2006","rejestr":"WZUT722","uwagi":"Rodzaj: ciągnik rolniczy | VIN: 00479M | Poj: 7120 ccm | Właściciel: Mieczysław Potorski | Ubezpieczający: Mieczysław Potorski"},
+    {"typ":"ciagnik","nazwa":"MTZ BELARUS 1221.2","marka":"MTZ","rok":"2018","rejestr":"WZUTP71","uwagi":"Rodzaj: ciągnik rolniczy | VIN: Y4R122101J1101167 | Poj: 7120 ccm | Właściciel: Robert Potorski | Ubezpieczający: Robert Potorski"},
+    {"typ":"ciagnik","nazwa":"MTZ BELARUS TRAKTOR 1025A","marka":"MTZ","rok":"2001","rejestr":"WZUN080","uwagi":"Rodzaj: ciągnik rolniczy | VIN: 00108R | Poj: 4752 ccm | Właściciel: Kinga Potorska | Ubezpieczający: Kinga Potorska"},
+    {"typ":"ciagnik","nazwa":"NEW HOLLAND T6050","marka":"NEW HOLLAND","rok":"2009","rejestr":"WZUNJ15","uwagi":"Rodzaj: ciągnik rolniczy | VIN: Z9BD04696 | Poj: 6728 ccm | Właściciel: Robert Potorski | Ubezpieczający: Robert Potorski"},
+    {"typ":"ciagnik","nazwa":"NEW HOLLAND T7.200","marka":"NEW HOLLAND","rok":"2015","rejestr":"WZUTG98","uwagi":"Rodzaj: ciągnik rolniczy | VIN: ZFBN10434 | Poj: 6728 ccm | Właściciel: Robert Potorski | Ubezpieczający: Robert Potorski"},
+    {"typ":"ciagnik","nazwa":"RENAULT T 480 T 4x2","marka":"RENAULT","rok":"2022","rejestr":"WGM8958L","uwagi":"Rodzaj: ciągnik siodłowy | VIN: VF611A36XND038612 | Poj: 12777 ccm | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ciagnik","nazwa":"SCANIA S 500 A4x2NA Highline","marka":"SCANIA","rok":"2024","rejestr":"WGM7253L","uwagi":"Rodzaj: ciągnik siodłowy | VIN: YS2S4X20005760172 | Poj: 12742 ccm | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ciagnik","nazwa":"SCANIA S 500 A4x2NA Highline","marka":"SCANIA","rok":"2024","rejestr":"WGM7251L","uwagi":"Rodzaj: ciągnik siodłowy | VIN: YS2S4X20005759893 | Poj: 12742 ccm | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ciagnik","nazwa":"SCANIA S 500 A4x2NA Highline","marka":"SCANIA","rok":"2024","rejestr":"WGM2399M","uwagi":"Rodzaj: ciągnik siodłowy | VIN: YS2S4X20005770032 | Poj: 12742 ccm | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ciagnik","nazwa":"SCANIA S 500 B6x2NA Highline","marka":"SCANIA","rok":"2024","rejestr":"WGM7250L","uwagi":"Rodzaj: ciągnik siodłowy | VIN: YS2S4X20005759912 | Poj: 12742 ccm | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ciagnik","nazwa":"SCANIA S 500 B6x2NA Highline","marka":"SCANIA","rok":"2025","rejestr":"WGM2398M","uwagi":"Rodzaj: ciągnik siodłowy | VIN: YS2S4X20005770058 | Poj: 12742 ccm | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"ladowarka","nazwa":"KMM M630-60","marka":"KMM","rok":"2019","rejestr":"---","uwagi":"Rodzaj: ładowarka teleskopowa | VIN: 630012 | Właściciel: Kabanek Sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"BRANDYS PS 217.13","marka":"BRANDYS","rok":"1990","rejestr":"WZUS766","uwagi":"Rodzaj: przyczepa ciężarowa, wywrotka | VIN: TKYPS1721L2002969 | Właściciel: Mieczysław Potorski | Ubezpieczający: Mieczysław Potorski"},
+    {"typ":"inne","nazwa":"DACIA DUSTER 1.5 DCI LAUREATE 4X4","marka":"DACIA","rok":"2015","rejestr":"WZU96RC","uwagi":"Rodzaj: osobowy | VIN: UU1HSDJ9G53719660 | Poj: 1461 ccm | Właściciel: Kinga Potorska | Ubezpieczający: Kinga Potorska"},
+    {"typ":"inne","nazwa":"KASSBOHRER SSL 35","marka":"KASSBOHRER","rok":"2007","rejestr":"WZU518AC","uwagi":"Rodzaj: naczepa ciężarowa, pojemnik, przewóz towarów sypkich | VIN: WKV67233471350378 | Właściciel: Gospodarstwo Rolne Robert Potorski | Ubezpieczający: Robert Potorski"},
+    {"typ":"inne","nazwa":"KIA SPORTAGE 1.6 T-GDI MR`19 E6D","marka":"KIA","rok":"2021","rejestr":"WND99416","uwagi":"Rodzaj: osobowy | VIN: U5YPG816GML041445 | Poj: 1591 ccm | Właściciel: Kabanek Sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"KIA STONIC 1.0 T-GDI M DCT","marka":"KIA","rok":"2020","rejestr":"WP7540N","uwagi":"Rodzaj: osobowy | VIN: KNADA817GM6481395 | Poj: 998 ccm | Właściciel: Natural-Pig Sp. z o.o. | Ubezpieczający: Natural-Pig Sp. z o.o."},
+    {"typ":"inne","nazwa":"LEXUS RX 22-","marka":"LEXUS","rok":"2023","rejestr":"WP6073S","uwagi":"Rodzaj: osobowy | VIN: JTJCMBHA902008285 | Poj: 2393 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"LEXUS RX500H","marka":"LEXUS","rok":"2023","rejestr":"WP1809S","uwagi":"Rodzaj: osobowy | VIN: JTJCMBHA202005034 | Poj: 2393 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"MAN TGM","marka":"MAN","rok":"2007","rejestr":"NO3928T","uwagi":"Rodzaj: ciężarowy | VIN: WMAN26ZZX8Y205376 | Poj: 6871 ccm | Właściciel: Kabanek Sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"PEZZAIOLI SBA31","marka":"PEZZAIOLI","rok":"2024","rejestr":"WGM9083R","uwagi":"Rodzaj: naczepa ciężarowa, inna, przewóz żywych zwierząt | VIN: ZFJSBA31URM008705 | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"PEZZAIOLI SBA31","marka":"PEZZAIOLI","rok":"2024","rejestr":"WGM9231R","uwagi":"Rodzaj: naczepa ciężarowa, inna, przewóz żywych zwierząt | VIN: ZFJSBA31URM008706 | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"PEZZAIOLI SBA31","marka":"PEZZAIOLI","rok":"2024","rejestr":"WGM9284R","uwagi":"Rodzaj: naczepa ciężarowa, inna, przewóz żywych zwierząt | VIN: ZFJSBA31URM008707 | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"PEZZAIOLI SBA31","marka":"PEZZAIOLI","rok":"2025","rejestr":"WGM0010S","uwagi":"Rodzaj: naczepa ciężarowa, inna, przewóz żywych zwierząt | VIN: ZFJSBA31URM008713 | Właściciel: PKO Leasing S.A. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"PEZZAIOLI SBA32","marka":"PEZZAIOLI","rok":"2024","rejestr":"WGM8874R","uwagi":"Rodzaj: naczepa ciężarowa, inna, przewóz żywych zwierząt | VIN: ZFJSBA31URM008682 | Właściciel: ING LEASE (POLSKA) sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"PEZZAIOLI SBA63/S F138AL","marka":"PEZZAIOLI","rok":"2023","rejestr":"WGM3161R","uwagi":"Rodzaj: naczepa ciężarowa, inna, przewóz żywych zwierząt | VIN: ZFJSBA63UPM008291 | Właściciel: ING LEASE (POLSKA) sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"PORSCHE MACAN T","marka":"PORSCHE","rok":"2022","rejestr":"WD2652R","uwagi":"Rodzaj: osobowy | VIN: WP1ZZZ950PLB08674 | Poj: 1984 ccm | Właściciel: SANTANDER CONSUMER MULTIRENT sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"PRONAR T 672/2","marka":"PRONAR","rok":"2009","rejestr":"WZUPE44","uwagi":"Rodzaj: przyczepa ciężarowa rolnicza, skrzynia | VIN: SZB6722XX91X00151 | Właściciel: Robert Potorski | Ubezpieczający: Robert Potorski"},
+    {"typ":"inne","nazwa":"PRONAR T700XL","marka":"PRONAR","rok":"2019","rejestr":"WZUSR35","uwagi":"Rodzaj: przyczepa ciężarowa | VIN: SZB700XLXK2X00105 | Właściciel: Robert Potorski | Ubezpieczający: Robert Potorski"},
+    {"typ":"inne","nazwa":"SAM SAM","marka":"SAM","rok":"1992","rejestr":"WZUP436","uwagi":"Rodzaj: przyczepa lekka | VIN: CI2700415 | Właściciel: Janina Potorska | Ubezpieczający: Janina Potorska"},
+    {"typ":"inne","nazwa":"SKODA FELICIA 98-01","marka":"SKODA","rok":"2001","rejestr":"WCI44XC","uwagi":"Rodzaj: osobowy | VIN: TMBEFF6131X353115 | Poj: 1289 ccm | Właściciel: Mieczysław Potorski | Ubezpieczający: Mieczysław Potorski"},
+    {"typ":"inne","nazwa":"SUZUKI Vitara 1.5 DualJet Hybrid Premium Plus 4WD AGS","marka":"SUZUKI","rok":"2024","rejestr":"WP1648T","uwagi":"Rodzaj: osobowy | VIN: TSMLYEH1S00D63837 | Poj: 1462 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Natural-Pig Sp. z o.o."},
+    {"typ":"inne","nazwa":"SUZUKI Vitara 1.5 Strong Hybrid Elegance Sun 4WD AGS","marka":"SUZUKI","rok":"2024","rejestr":"WP1825T","uwagi":"Rodzaj: osobowy | VIN: TSMLYEH1S00D62489 | Poj: 1462 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Natural-Pig Sp. z o.o."},
+    {"typ":"inne","nazwa":"SUZUKI Vitara 1.5 Strong Hybrid Premium 2WD AGS","marka":"SUZUKI","rok":"2024","rejestr":"WP2419T","uwagi":"Rodzaj: osobowy | VIN: TSMLYEH1S00D78589 | Poj: 1462 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Natural-Pig Sp. z o.o."},
+    {"typ":"inne","nazwa":"TOYOTA Proace City","marka":"TOYOTA","rok":"2021","rejestr":"WP9108P","uwagi":"Rodzaj: ciężarowy | VIN: YAREFYHYCGJ972231 | Poj: 1499 ccm | Właściciel: Toyota Leasing Polska Sp. z o.o. o/w Płocku | Ubezpieczający: Natural-Pig Sp. z o.o."},
+    {"typ":"inne","nazwa":"TOYOTA RAV4 2.5 Hybrid Selection 4x2","marka":"TOYOTA","rok":"2021","rejestr":"WP8337P","uwagi":"Rodzaj: osobowy | VIN: JTMGBRFV20D072942 | Poj: 2487 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"TOYOTA RAV4 2.5 Hybrid Selection 4x4","marka":"TOYOTA","rok":"2024","rejestr":"WP7805S","uwagi":"Rodzaj: osobowy | VIN: JTME63FV50D557813 | Poj: 2487 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"TOYOTA RAV4 2.5 Hybrid Selection 4x4","marka":"TOYOTA","rok":"2024","rejestr":"WE8CL09","uwagi":"Rodzaj: osobowy | VIN: JTME63FVX0J048947 | Poj: 2487 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"TOYOTA RAV4 2.5 Plug-In Hybrid Selection 4x4","marka":"TOYOTA","rok":"2024","rejestr":"WP7874S","uwagi":"Rodzaj: osobowy | VIN: JTME63FV60D557951 | Poj: 2487 ccm | Właściciel: ING LEASE (POLSKA) sp. z o.o. o/w Płocku | Ubezpieczający: Kabanek Sp. z o.o."},
+    {"typ":"inne","nazwa":"VOLVO FM","marka":"VOLVO","rok":"2015","rejestr":"WZU6FF5","uwagi":"Rodzaj: ciężarowy, pojemnik, przewóz sypkich artykułów spożywczych | VIN: YV2XTW0C4FB715529 | Poj: 12777 ccm | Właściciel: Natural-Pig Sp. z o.o. | Ubezpieczający: Natural-Pig Sp. z o.o."},
+    {"typ":"inne","nazwa":"WIELTON PRS-2/W10","marka":"WIELTON","rok":"2010","rejestr":"WZUPG82","uwagi":"Rodzaj: przyczepa ciężarowa rolnicza, wywrotka | VIN: SUDPRS20000020978 | Właściciel: Robert Potorski | Ubezpieczający: Robert Potorski"},
+]
+
 
 def seed():
     db = SessionLocal()
@@ -357,6 +405,19 @@ def seed():
 
             print(f"  ✓ {count} elementów konfiguracyjnych (admin)")
 
+
+        # Ciagniki/Maszyny (z Excela pojazdów) - reseed if empty or fewer
+        existing_ciag = db.query(Ciagnik).count()
+        if existing_ciag == 0 or existing_ciag < len(CIAGNIKI_DATA):
+            if existing_ciag > 0:
+                db.query(Ciagnik).delete()
+                print("  ↻ Aktualizacja maszyn z wykazu pojazdów")
+            for c in CIAGNIKI_DATA:
+                db.add(Ciagnik(
+                    typ=c["typ"], nazwa=c["nazwa"], marka=c["marka"],
+                    rok=c["rok"], rejestr=c["rejestr"], uwagi=c["uwagi"]
+                ))
+            print(f"  ✓ {len(CIAGNIKI_DATA)} maszyn/pojazdów zaimportowanych")
 
         # Grunty (z Excela) - reseed if old data
         existing_grunty = db.query(Grunt).count()
