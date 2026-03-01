@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -9,16 +9,15 @@ from database import get_db
 from models import User
 from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
 
 
 def create_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -43,20 +42,19 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Brak tokena")
     payload = decode_token(credentials.credentials)
     if not payload:
-        raise HTTPException(status_code=401, detail="Nieprawidłowy token")
+        raise HTTPException(status_code=401, detail="Nieprawidlowy token")
     user_id = payload.get("sub")
     if not user_id:
-        raise HTTPException(status_code=401, detail="Nieprawidłowy token")
+        raise HTTPException(status_code=401, detail="Nieprawidlowy token")
     user = db.query(User).filter(User.id == int(user_id), User.is_active == True).first()
     if not user:
-        raise HTTPException(status_code=401, detail="Użytkownik nieaktywny")
+        raise HTTPException(status_code=401, detail="Uzytkownik nieaktywny")
     return user
 
 
 def require_role(*roles):
-    """Decorator-style dependency for role checking"""
     async def check(user: User = Depends(get_current_user)):
         if user.role not in roles:
-            raise HTTPException(status_code=403, detail="Brak uprawnień")
+            raise HTTPException(status_code=403, detail="Brak uprawnien")
         return user
     return check
