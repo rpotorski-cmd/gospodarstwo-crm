@@ -1775,35 +1775,54 @@ function App(){
             </div>
             <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj uprawy (działka, roślina, uwagi)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {uprawy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak upraw.</div>:
+            <div style={{overflowX:"auto"}}>
             <table className="tbl">
               <thead><tr>{["#","Działki","Nazwy potoczne","Roślina","Pow. (ha)","Siew","Zbiór","Plon (t)","Uwagi","Mapa",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
               <tbody>{uprawy.map((u,ui)=>({u,ui})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var nrs=getUprawaNrs(x.u);var names=getUprawaNames(x.u);return[...nrs,...names,x.u.roslina,x.u.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({u,ui})=>{var nrs=getUprawaNrs(u);var names=getUprawaNames(u);var teryts=getUprawaTeryts(u);return(<tr key={ui}>
-                <td style={{color:"#8a7e72"}}>{ui+1}</td>
-                <td style={{position:"relative",minWidth:140}}>{isAdmin?<div>
-                  <div onClick={()=>setUprDropOpen(uprDropOpen===ui?null:ui)} style={{background:"#fff",border:"1px solid "+(nrs.length>1?"#558b2f":"#ddd6cc"),borderRadius:6,padding:"4px 8px",fontSize:11,cursor:"pointer",minHeight:22,display:"flex",flexWrap:"wrap",gap:3,alignItems:"center"}}>
-                    {nrs.length===0?<span style={{color:"#aaa"}}>— wybierz działki —</span>:nrs.map((nr,ni)=><span key={ni} style={{background:nrs.length>1?"#e8f5e9":"#f0ebe3",color:nrs.length>1?"#2e7d32":"#1a3328",padding:"1px 6px",borderRadius:4,fontSize:10,fontWeight:600,fontFamily:"monospace"}}>{nr}</span>)}
-                    <span style={{marginLeft:"auto",fontSize:8,color:"#8a7e72"}}>▼</span>
+                <td style={{color:"#8a7e72",width:30,textAlign:"center"}}>{ui+1}</td>
+                <td style={{minWidth:160}}>{isAdmin?<div>
+                  <div id={"uprdrop-"+ui} onClick={()=>setUprDropOpen(uprDropOpen===ui?null:ui)} style={{background:"#fff",border:"2px solid "+(nrs.length>1?"#558b2f":"#ddd6cc"),borderRadius:8,padding:"6px 10px",fontSize:11,cursor:"pointer",minHeight:28,display:"flex",flexWrap:"wrap",gap:4,alignItems:"center",transition:"border-color 0.2s"}}>
+                    {nrs.length===0?<span style={{color:"#aaa",fontSize:11}}>— wybierz działki —</span>:nrs.map((nr,ni)=><span key={ni} style={{background:nrs.length>1?"#e8f5e9":"#f0ebe3",color:nrs.length>1?"#2e7d32":"#1a3328",padding:"2px 8px",borderRadius:5,fontSize:10,fontWeight:700,fontFamily:"monospace",border:"1px solid "+(nrs.length>1?"#a5d6a7":"#ddd6cc")}}>{nr}</span>)}
+                    <span style={{marginLeft:"auto",fontSize:9,color:"#8a7e72",transition:"transform 0.2s",transform:uprDropOpen===ui?"rotate(180deg)":"rotate(0)"}}>▼</span>
                   </div>
-                  {uprDropOpen===ui&&<div style={{position:"absolute",top:"100%",left:0,zIndex:999,background:"#fff",border:"2px solid #558b2f",borderRadius:8,boxShadow:"0 4px 16px rgba(0,0,0,.2)",maxHeight:200,overflowY:"auto",minWidth:180,padding:4}}>
-                    {grunty.map((g,gi)=>{var checked=nrs.includes(g.nr);return(<label key={gi} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",cursor:"pointer",borderRadius:4,background:checked?"#e8f5e9":"transparent",fontSize:11}} onMouseOver={e=>e.currentTarget.style.background=checked?"#c8e6c9":"#f5f0e8"} onMouseOut={e=>e.currentTarget.style.background=checked?"#e8f5e9":"transparent"}>
-                      <input type="checkbox" checked={checked} onChange={()=>toggleGruntInUprawa(ui,g.nr)} style={{accentColor:"#2e7d32"}}/>
-                      <span style={{fontFamily:"monospace",fontWeight:600}}>{g.nr}</span>
-                      <span style={{color:"#8a7e72",fontSize:10}}>{g.nazwa||""}</span>
-                    </label>)})}
-                    <div style={{borderTop:"1px solid #e8e3db",marginTop:4,paddingTop:4,textAlign:"center"}}><button onClick={()=>setUprDropOpen(null)} style={{background:"#558b2f",color:"#fff",border:"none",borderRadius:4,padding:"3px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>✓ Gotowe</button></div>
-                  </div>}
-                </div>:<div style={{display:"flex",flexWrap:"wrap",gap:3}}>{nrs.length===0?"—":nrs.map((nr,ni)=><span key={ni} style={{background:"#e8f5e9",color:"#2e7d32",padding:"1px 6px",borderRadius:4,fontSize:10,fontWeight:600,fontFamily:"monospace"}}>{nr}</span>)}</div>}</td>
-                <td style={{fontSize:11,color:"#558b2f",fontWeight:600}}>{names.length===0?"—":names.join(", ")}</td>
-                <td>{isAdmin?<EC val={u.roslina} w="100px" onChange={v=>updUprawa(ui,"roslina",v)}/>:u.roslina||"—"}</td>
-                <td style={{textAlign:"center"}}>{isAdmin?<EC val={u.pow} type="number" w="55px" onChange={v=>updUprawa(ui,"pow",v)}/>:u.pow||"—"}</td>
-                <td>{isAdmin?<EC val={u.dataS} type="date" w="110px" onChange={v=>updUprawa(ui,"dataS",v)}/>:u.dataS?fD(u.dataS):"—"}</td>
-                <td>{isAdmin?<EC val={u.dataZ} type="date" w="110px" onChange={v=>updUprawa(ui,"dataZ",v)}/>:u.dataZ?fD(u.dataZ):"—"}</td>
-                <td style={{textAlign:"center"}}>{isAdmin?<EC val={u.plon} type="number" w="55px" onChange={v=>updUprawa(ui,"plon",v)}/>:u.plon||"—"}</td>
-                <td>{isAdmin?<EC val={u.uwagi} w="120px" onChange={v=>updUprawa(ui,"uwagi",v)}/>:u.uwagi||"—"}</td>
-                <td style={{textAlign:"center"}}>{teryts.length>0&&<button onClick={()=>window.open("/api/geoportal?teryt="+encodeURIComponent(teryts.join(",")),"_blank")} style={{background:"#1565c0",color:"#fff",padding:"3px 8px",borderRadius:6,fontSize:10,fontWeight:700,border:"none",cursor:"pointer",whiteSpace:"nowrap"}}>🗺 Mapa{nrs.length>1?" ("+nrs.length+")":""}</button>}</td>
-                <td>{isAdmin&&<button onClick={()=>delUprawa(ui)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
+                </div>:<div style={{display:"flex",flexWrap:"wrap",gap:4}}>{nrs.length===0?"—":nrs.map((nr,ni)=><span key={ni} style={{background:"#e8f5e9",color:"#2e7d32",padding:"2px 8px",borderRadius:5,fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{nr}</span>)}</div>}</td>
+                <td style={{fontSize:11,color:"#558b2f",fontWeight:600,maxWidth:160}}>{names.length===0?"—":names.join(", ")}</td>
+                <td>{isAdmin?<EC val={u.roslina} w="110px" onChange={v=>updUprawa(ui,"roslina",v)}/>:u.roslina||"—"}</td>
+                <td style={{textAlign:"center"}}>{isAdmin?<EC val={u.pow} type="number" w="60px" onChange={v=>updUprawa(ui,"pow",v)}/>:u.pow||"—"}</td>
+                <td>{isAdmin?<EC val={u.dataS} type="date" w="115px" onChange={v=>updUprawa(ui,"dataS",v)}/>:u.dataS?fD(u.dataS):"—"}</td>
+                <td>{isAdmin?<EC val={u.dataZ} type="date" w="115px" onChange={v=>updUprawa(ui,"dataZ",v)}/>:u.dataZ?fD(u.dataZ):"—"}</td>
+                <td style={{textAlign:"center"}}>{isAdmin?<EC val={u.plon} type="number" w="60px" onChange={v=>updUprawa(ui,"plon",v)}/>:u.plon||"—"}</td>
+                <td>{isAdmin?<EC val={u.uwagi} w="130px" onChange={v=>updUprawa(ui,"uwagi",v)}/>:u.uwagi||"—"}</td>
+                <td style={{textAlign:"center"}}>{teryts.length>0&&<button onClick={()=>window.open("/api/geoportal?teryt="+encodeURIComponent(teryts.join(",")),"_blank")} style={{background:"#1565c0",color:"#fff",padding:"4px 10px",borderRadius:6,fontSize:10,fontWeight:700,border:"none",cursor:"pointer",whiteSpace:"nowrap"}}>🗺 Mapa{nrs.length>1?" ("+nrs.length+")":""}</button>}</td>
+                <td style={{width:30,textAlign:"center"}}>{isAdmin&&<button onClick={()=>delUprawa(ui)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>)})}</tbody>
-            </table>}
+            </table>
+            </div>}
+            {/* Dropdown overlay - rendered outside table to avoid overflow:hidden clipping */}
+            {uprDropOpen!==null&&isAdmin&&(()=>{
+              var el=document.getElementById("uprdrop-"+uprDropOpen);
+              if(!el)return null;
+              var rect=el.getBoundingClientRect();
+              var nrs=getUprawaNrs(uprawy[uprDropOpen]||{});
+              return ReactDOM.createPortal(<div>
+                <div onClick={()=>setUprDropOpen(null)} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9998}}/>
+                <div style={{position:"fixed",top:rect.bottom+4,left:rect.left,zIndex:9999,background:"#fff",border:"2px solid #558b2f",borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,.25)",maxHeight:320,width:Math.max(rect.width,260),display:"flex",flexDirection:"column"}}>
+                  <div style={{padding:"8px 12px",borderBottom:"1px solid #e8e3db",fontSize:11,fontWeight:700,color:"#2e7d32"}}>🌱 Wybierz działki do uprawy:</div>
+                  <div style={{overflowY:"auto",flex:1,padding:4}}>
+                    {grunty.map((g,gi)=>{var checked=nrs.includes(g.nr);return(<label key={gi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",cursor:"pointer",borderRadius:6,background:checked?"#e8f5e9":"transparent",fontSize:12,transition:"background 0.15s",borderBottom:"1px solid #f5f0e8"}} onMouseOver={e=>e.currentTarget.style.background=checked?"#c8e6c9":"#f5f0e8"} onMouseOut={e=>e.currentTarget.style.background=checked?"#e8f5e9":"transparent"}>
+                      <input type="checkbox" checked={checked} onChange={()=>toggleGruntInUprawa(uprDropOpen,g.nr)} style={{accentColor:"#2e7d32",width:16,height:16}}/>
+                      <span style={{fontFamily:"monospace",fontWeight:700,fontSize:12,color:"#1a3328",minWidth:60}}>{g.nr}</span>
+                      <span style={{color:"#558b2f",fontSize:11}}>{g.nazwa||""}</span>
+                      <span style={{marginLeft:"auto",color:"#8a7e72",fontSize:10}}>{g.pow?g.pow+" ha":""}</span>
+                    </label>)})}
+                  </div>
+                  <div style={{borderTop:"2px solid #e8e3db",padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:10,color:"#8a7e72"}}>{nrs.length} wybrano</span>
+                    <button onClick={()=>setUprDropOpen(null)} style={{background:"#558b2f",color:"#fff",border:"none",borderRadius:6,padding:"5px 18px",fontSize:11,fontWeight:700,cursor:"pointer"}}>✓ Gotowe</button>
+                  </div>
+                </div>
+              </div>,document.body);
+            })()}
           </div>
         </div>
       </div>}
