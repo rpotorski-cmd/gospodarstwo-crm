@@ -628,11 +628,13 @@ function App(){
   const addUprawa=()=>{logAudit("uprawy","Dodano nową uprawę");setUprawy(p=>[...p,{id:Date.now(),grunt:"",roslina:"",odmiana:"",pow:"",dataS:"",dataZ:"",plon:"",uwagi:""}])};
   const updUprawa=(i,f,v)=>{setUprawy(p=>p.map((u,ui)=>ui===i?{...u,[f]:v}:u))};
   const delUprawa=i=>{logAudit("uprawy","Usunięto uprawę #"+(i+1));setUprawy(p=>p.filter((_,ui)=>ui!==i))};
-  const toggleGruntInUprawa=(ui,nr)=>{setUprawy(p=>p.map((u,i)=>{if(i!==ui)return u;const curr=(u.grunt||"").split(",").filter(Boolean);const idx=curr.indexOf(nr);if(idx>=0)curr.splice(idx,1);else curr.push(nr);return{...u,grunt:curr.join(",")}}))};
+  const toggleGruntInUprawa=(ui,nr)=>{setUprawy(p=>p.map((u,i)=>{if(i!==ui)return u;const curr=(u.grunt||"").split(",").filter(Boolean);const idx=curr.indexOf(nr);if(idx>=0)curr.splice(idx,1);else curr.push(nr);const newGrunt=curr.join(",");const totalPow=curr.reduce((s,n)=>{const g=grunty.find(g2=>g2.nr===n);return s+(g?parseFloat(g.pow)||0:0)},0);return{...u,grunt:newGrunt,pow:totalPow?String(totalPow):""}}))};
   const getUprawaTeryts=(u)=>{const nrs=(u.grunt||"").split(",").filter(Boolean);return nrs.map(nr=>{const g=grunty.find(g2=>g2.nr===nr);return g?g.teryt:null}).filter(Boolean)};
   const getUprawaNames=(u)=>{const nrs=(u.grunt||"").split(",").filter(Boolean);return nrs.map(nr=>{const g=grunty.find(g2=>g2.nr===nr);return g?g.nazwa:nr}).filter(Boolean)};
   const getUprawaNrs=(u)=>(u.grunt||"").split(",").filter(Boolean);
+  const getUprawaGruntyInfo=(u)=>{const nrs=(u.grunt||"").split(",").filter(Boolean);return nrs.map(nr=>grunty.find(g2=>g2.nr===nr)).filter(Boolean)};
   const[uprDropOpen,setUprDropOpen]=useState(null);
+  const[uprDropQ,setUprDropQ]=useState("");
 
   const[nawozy,setNawozy]=useState([]);
   const saveNawozy=async()=>{try{const ex=await api.get("/nawozy");for(const n of nawozy){if(ex.find(e=>e.id===n.id))await api.put("/nawozy/"+n.id,n);else{const r=await api.post("/nawozy",n);n.id=r.id}}for(const e of ex){if(!nawozy.find(n=>n.id===e.id))await api.del("/nawozy/"+e.id)}const fresh=await api.get("/nawozy");setNawozy(fresh||[]);setToast("Nawozy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
@@ -1773,22 +1775,22 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{fN(uprawy.reduce((s,u)=>s+(parseFloat(u.pow)||0),0),2)} ha</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Obsiane</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#e65100"}}>{fN(uprawy.reduce((s,u)=>s+(parseFloat(u.plon)||0),0),1)} t</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Plon łącznie</div></div>
             </div>
-            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj uprawy (działka, roślina, uwagi)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj uprawy (działka, roślina, właściciel, obręb, uwagi)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {uprawy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak upraw.</div>:
             <div style={{overflowX:"auto"}}>
             <table className="tbl">
               <thead><tr>{["#","Działki","Nazwy potoczne","Roślina","Pow. (ha)","Siew","Zbiór","Plon (t)","Uwagi","Mapa",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{uprawy.map((u,ui)=>({u,ui})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var nrs=getUprawaNrs(x.u);var names=getUprawaNames(x.u);return[...nrs,...names,x.u.roslina,x.u.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({u,ui})=>{var nrs=getUprawaNrs(u);var names=getUprawaNames(u);var teryts=getUprawaTeryts(u);return(<tr key={ui}>
+              <tbody>{uprawy.map((u,ui)=>({u,ui})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var nrs=getUprawaNrs(x.u);var names=getUprawaNames(x.u);var gInfo=getUprawaGruntyInfo(x.u);var owners=gInfo.map(g=>g.wlasciciel||"");var obreby=gInfo.map(g=>g.obreb||"");return[...nrs,...names,...owners,...obreby,x.u.roslina,x.u.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({u,ui})=>{var nrs=getUprawaNrs(u);var names=getUprawaNames(u);var teryts=getUprawaTeryts(u);return(<tr key={ui}>
                 <td style={{color:"#8a7e72",width:30,textAlign:"center"}}>{ui+1}</td>
                 <td style={{minWidth:160}}>{isAdmin?<div>
-                  <div id={"uprdrop-"+ui} onClick={()=>setUprDropOpen(uprDropOpen===ui?null:ui)} style={{background:"#fff",border:"2px solid "+(nrs.length>1?"#558b2f":"#ddd6cc"),borderRadius:8,padding:"6px 10px",fontSize:11,cursor:"pointer",minHeight:28,display:"flex",flexWrap:"wrap",gap:4,alignItems:"center",transition:"border-color 0.2s"}}>
+                  <div id={"uprdrop-"+ui} onClick={()=>{setUprDropOpen(uprDropOpen===ui?null:ui);setUprDropQ("")}} style={{background:"#fff",border:"2px solid "+(nrs.length>1?"#558b2f":"#ddd6cc"),borderRadius:8,padding:"6px 10px",fontSize:11,cursor:"pointer",minHeight:28,display:"flex",flexWrap:"wrap",gap:4,alignItems:"center",transition:"border-color 0.2s"}}>
                     {nrs.length===0?<span style={{color:"#aaa",fontSize:11}}>— wybierz działki —</span>:nrs.map((nr,ni)=><span key={ni} style={{background:nrs.length>1?"#e8f5e9":"#f0ebe3",color:nrs.length>1?"#2e7d32":"#1a3328",padding:"2px 8px",borderRadius:5,fontSize:10,fontWeight:700,fontFamily:"monospace",border:"1px solid "+(nrs.length>1?"#a5d6a7":"#ddd6cc")}}>{nr}</span>)}
                     <span style={{marginLeft:"auto",fontSize:9,color:"#8a7e72",transition:"transform 0.2s",transform:uprDropOpen===ui?"rotate(180deg)":"rotate(0)"}}>▼</span>
                   </div>
                 </div>:<div style={{display:"flex",flexWrap:"wrap",gap:4}}>{nrs.length===0?"—":nrs.map((nr,ni)=><span key={ni} style={{background:"#e8f5e9",color:"#2e7d32",padding:"2px 8px",borderRadius:5,fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{nr}</span>)}</div>}</td>
                 <td style={{fontSize:11,color:"#558b2f",fontWeight:600,maxWidth:160}}>{names.length===0?"—":names.join(", ")}</td>
                 <td>{isAdmin?<EC val={u.roslina} w="110px" onChange={v=>updUprawa(ui,"roslina",v)}/>:u.roslina||"—"}</td>
-                <td style={{textAlign:"center"}}>{isAdmin?<EC val={u.pow} type="number" w="60px" onChange={v=>updUprawa(ui,"pow",v)}/>:u.pow||"—"}</td>
+                <td style={{textAlign:"center",minWidth:70}}>{(()=>{var gInfo=getUprawaGruntyInfo(u);var autoSum=gInfo.reduce((s,g)=>s+(parseFloat(g.pow)||0),0);if(gInfo.length>0&&autoSum>0)return<div title={gInfo.map(g=>g.nr+": "+g.pow+" ha").join("\n")} style={{cursor:"help"}}><span style={{fontSize:13,fontWeight:800,color:"#558b2f"}}>{fN(autoSum,2)}</span><span style={{fontSize:9,color:"#8a7e72",marginLeft:2}}>ha</span>{gInfo.length>1&&<div style={{fontSize:8,color:"#8a7e72",marginTop:1}}>{gInfo.length} dz.</div>}</div>;return isAdmin?<EC val={u.pow} type="number" w="60px" onChange={v=>updUprawa(ui,"pow",v)}/>:<span>{u.pow||"—"}</span>})()}</td>
                 <td>{isAdmin?<EC val={u.dataS} type="date" w="115px" onChange={v=>updUprawa(ui,"dataS",v)}/>:u.dataS?fD(u.dataS):"—"}</td>
                 <td>{isAdmin?<EC val={u.dataZ} type="date" w="115px" onChange={v=>updUprawa(ui,"dataZ",v)}/>:u.dataZ?fD(u.dataZ):"—"}</td>
                 <td style={{textAlign:"center"}}>{isAdmin?<EC val={u.plon} type="number" w="60px" onChange={v=>updUprawa(ui,"plon",v)}/>:u.plon||"—"}</td>
@@ -1805,20 +1807,26 @@ function App(){
               var rect=el.getBoundingClientRect();
               var nrs=getUprawaNrs(uprawy[uprDropOpen]||{});
               return ReactDOM.createPortal(<div>
-                <div onClick={()=>setUprDropOpen(null)} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9998}}/>
-                <div style={{position:"fixed",top:rect.bottom+4,left:rect.left,zIndex:9999,background:"#fff",border:"2px solid #558b2f",borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,.25)",maxHeight:320,width:Math.max(rect.width,260),display:"flex",flexDirection:"column"}}>
+                <div onClick={()=>{setUprDropOpen(null);setUprDropQ("")}} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9998}}/>
+                <div style={{position:"fixed",top:rect.bottom+4,left:Math.min(rect.left,window.innerWidth-420),zIndex:9999,background:"#fff",border:"2px solid #558b2f",borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,.25)",maxHeight:380,width:400,display:"flex",flexDirection:"column"}}>
                   <div style={{padding:"8px 12px",borderBottom:"1px solid #e8e3db",fontSize:11,fontWeight:700,color:"#2e7d32"}}>🌱 Wybierz działki do uprawy:</div>
+                  <div style={{padding:"6px 10px",borderBottom:"1px solid #e8e3db"}}><input autoFocus value={uprDropQ} onChange={e=>setUprDropQ(e.target.value)} placeholder="Szukaj: nr, nazwa, obręb, właściciel..." style={{width:"100%",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 8px",fontSize:11,outline:"none",boxSizing:"border-box"}}/></div>
+                  <div style={{display:"flex",gap:8,padding:"4px 10px",borderBottom:"1px solid #f0ebe3",fontSize:8,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.5}}>
+                    <span style={{width:16}}></span><span style={{minWidth:55}}>Nr</span><span style={{minWidth:70}}>Nazwa</span><span style={{minWidth:55}}>Obręb</span><span style={{minWidth:65}}>Właściciel</span><span style={{marginLeft:"auto"}}>Pow.</span>
+                  </div>
                   <div style={{overflowY:"auto",flex:1,padding:4}}>
-                    {grunty.map((g,gi)=>{var checked=nrs.includes(g.nr);return(<label key={gi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",cursor:"pointer",borderRadius:6,background:checked?"#e8f5e9":"transparent",fontSize:12,transition:"background 0.15s",borderBottom:"1px solid #f5f0e8"}} onMouseOver={e=>e.currentTarget.style.background=checked?"#c8e6c9":"#f5f0e8"} onMouseOut={e=>e.currentTarget.style.background=checked?"#e8f5e9":"transparent"}>
+                    {grunty.filter(g=>{if(!uprDropQ)return true;var q=uprDropQ.toLowerCase();return[g.nr,g.nazwa,g.obreb,g.wlasciciel,g.gmina].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map((g,gi)=>{var checked=nrs.includes(g.nr);return(<label key={gi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",cursor:"pointer",borderRadius:6,background:checked?"#e8f5e9":"transparent",fontSize:12,transition:"background 0.15s",borderBottom:"1px solid #f5f0e8"}} onMouseOver={e=>e.currentTarget.style.background=checked?"#c8e6c9":"#f5f0e8"} onMouseOut={e=>e.currentTarget.style.background=checked?"#e8f5e9":"transparent"}>
                       <input type="checkbox" checked={checked} onChange={()=>toggleGruntInUprawa(uprDropOpen,g.nr)} style={{accentColor:"#2e7d32",width:16,height:16}}/>
-                      <span style={{fontFamily:"monospace",fontWeight:700,fontSize:12,color:"#1a3328",minWidth:60}}>{g.nr}</span>
-                      <span style={{color:"#558b2f",fontSize:11}}>{g.nazwa||""}</span>
-                      <span style={{marginLeft:"auto",color:"#8a7e72",fontSize:10}}>{g.pow?g.pow+" ha":""}</span>
+                      <span style={{fontFamily:"monospace",fontWeight:700,fontSize:12,color:"#1a3328",minWidth:55}}>{g.nr}</span>
+                      <span style={{color:"#558b2f",fontSize:10,minWidth:70,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.nazwa||""}</span>
+                      <span style={{color:"#8a7e72",fontSize:9,minWidth:55,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.obreb||""}</span>
+                      <span style={{color:"#6a1b9a",fontSize:9,minWidth:65,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.wlasciciel||""}</span>
+                      <span style={{marginLeft:"auto",color:"#558b2f",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>{g.pow?g.pow+" ha":""}</span>
                     </label>)})}
                   </div>
                   <div style={{borderTop:"2px solid #e8e3db",padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{fontSize:10,color:"#8a7e72"}}>{nrs.length} wybrano</span>
-                    <button onClick={()=>setUprDropOpen(null)} style={{background:"#558b2f",color:"#fff",border:"none",borderRadius:6,padding:"5px 18px",fontSize:11,fontWeight:700,cursor:"pointer"}}>✓ Gotowe</button>
+                    <span style={{fontSize:10,color:"#8a7e72"}}>{nrs.length} wybrano{nrs.length>0?" • "+fN(nrs.reduce((s,n)=>{var g=grunty.find(g2=>g2.nr===n);return s+(g?parseFloat(g.pow)||0:0)},0),2)+" ha":""}</span>
+                    <button onClick={()=>{setUprDropOpen(null);setUprDropQ("")}} style={{background:"#558b2f",color:"#fff",border:"none",borderRadius:6,padding:"5px 18px",fontSize:11,fontWeight:700,cursor:"pointer"}}>✓ Gotowe</button>
                   </div>
                 </div>
               </div>,document.body);
