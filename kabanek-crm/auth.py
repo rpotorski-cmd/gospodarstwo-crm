@@ -44,15 +44,3 @@ def require_permission(area: str, action: str = "read"):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
         return current_user
     return checker
-```
-
-Potem edytuj też **requirements.txt** — skasuj `passlib[bcrypt]`:
-```
-fastapi
-uvicorn
-sqlalchemy
-pydantic
-python-multipart
-bcrypt==4.0.1
-PyJWT
-python-jose[cryptography]
