@@ -118,6 +118,9 @@ class Grunt(Base):
     obciazona = Column(String(10), default="nie")
     bank_nazwa = Column(String(255), default="")
     bank_kwota = Column(String(100), default="")
+    umowa = Column(String(255), default="")
+    termin_umowy = Column(String(20), default="")
+    doplaty = Column(String(100), default="")
 
 
 class Uprawa(Base):
