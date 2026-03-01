@@ -628,6 +628,11 @@ function App(){
   const addUprawa=()=>{logAudit("uprawy","Dodano nową uprawę");setUprawy(p=>[...p,{id:Date.now(),grunt:"",roslina:"",odmiana:"",pow:"",dataS:"",dataZ:"",plon:"",uwagi:""}])};
   const updUprawa=(i,f,v)=>{setUprawy(p=>p.map((u,ui)=>ui===i?{...u,[f]:v}:u))};
   const delUprawa=i=>{logAudit("uprawy","Usunięto uprawę #"+(i+1));setUprawy(p=>p.filter((_,ui)=>ui!==i))};
+  const toggleGruntInUprawa=(ui,nr)=>{setUprawy(p=>p.map((u,i)=>{if(i!==ui)return u;const curr=(u.grunt||"").split(",").filter(Boolean);const idx=curr.indexOf(nr);if(idx>=0)curr.splice(idx,1);else curr.push(nr);return{...u,grunt:curr.join(",")}}))};
+  const getUprawaTeryts=(u)=>{const nrs=(u.grunt||"").split(",").filter(Boolean);return nrs.map(nr=>{const g=grunty.find(g2=>g2.nr===nr);return g?g.teryt:null}).filter(Boolean)};
+  const getUprawaNames=(u)=>{const nrs=(u.grunt||"").split(",").filter(Boolean);return nrs.map(nr=>{const g=grunty.find(g2=>g2.nr===nr);return g?g.nazwa:nr}).filter(Boolean)};
+  const getUprawaNrs=(u)=>(u.grunt||"").split(",").filter(Boolean);
+  const[uprDropOpen,setUprDropOpen]=useState(null);
 
   const[nawozy,setNawozy]=useState([]);
   const saveNawozy=async()=>{try{const ex=await api.get("/nawozy");for(const n of nawozy){if(ex.find(e=>e.id===n.id))await api.put("/nawozy/"+n.id,n);else{const r=await api.post("/nawozy",n);n.id=r.id}}for(const e of ex){if(!nawozy.find(n=>n.id===e.id))await api.del("/nawozy/"+e.id)}const fresh=await api.get("/nawozy");setNawozy(fresh||[]);setToast("Nawozy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
@@ -1771,18 +1776,32 @@ function App(){
             <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj uprawy (działka, roślina, uwagi)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {uprawy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak upraw.</div>:
             <table className="tbl">
-              <thead><tr>{["#","Nr działki","Nazwa potoczna","Roślina","Pow. (ha)","Siew","Zbiór","Plon (t)","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{uprawy.map((u,ui)=>({u,ui})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var matchG=grunty.find(g=>x.u.grunt&&g.nr===x.u.grunt);return[x.u.grunt,x.u.roslina,x.u.uwagi,matchG?matchG.nazwa:""].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({u,ui})=>{var matchG=grunty.find(g=>u.grunt&&(u.grunt===g.nr||u.grunt.startsWith(g.nr+" ")||u.grunt.startsWith(g.nr+" —")));return(<tr key={ui}>
+              <thead><tr>{["#","Działki","Nazwy potoczne","Roślina","Pow. (ha)","Siew","Zbiór","Plon (t)","Uwagi","Mapa",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
+              <tbody>{uprawy.map((u,ui)=>({u,ui})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var nrs=getUprawaNrs(x.u);var names=getUprawaNames(x.u);return[...nrs,...names,x.u.roslina,x.u.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({u,ui})=>{var nrs=getUprawaNrs(u);var names=getUprawaNames(u);var teryts=getUprawaTeryts(u);return(<tr key={ui}>
                 <td style={{color:"#8a7e72"}}>{ui+1}</td>
-                <td><select value={u.grunt||""} onChange={e=>updUprawa(ui,"grunt",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",minWidth:100}}><option value="">— nr —</option>{grunty.map((g,gi)=><option key={gi} value={g.nr}>{g.nr}</option>)}</select></td>
-                <td style={{fontSize:11,color:"#558b2f",fontWeight:600}}>{matchG?matchG.nazwa:"—"}</td>
-                <td><EC val={u.roslina} w="100px" onChange={v=>updUprawa(ui,"roslina",v)}/></td>
-                <td style={{textAlign:"center"}}><EC val={u.pow} type="number" w="55px" onChange={v=>updUprawa(ui,"pow",v)}/></td>
-                <td><EC val={u.dataS} type="date" w="110px" onChange={v=>updUprawa(ui,"dataS",v)}/></td>
-                <td><EC val={u.dataZ} type="date" w="110px" onChange={v=>updUprawa(ui,"dataZ",v)}/></td>
-                <td style={{textAlign:"center"}}><EC val={u.plon} type="number" w="55px" onChange={v=>updUprawa(ui,"plon",v)}/></td>
-                <td><EC val={u.uwagi} w="120px" onChange={v=>updUprawa(ui,"uwagi",v)}/></td>
-                <td><button onClick={()=>delUprawa(ui)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button></td>
+                <td style={{position:"relative",minWidth:140}}>{isAdmin?<div>
+                  <div onClick={()=>setUprDropOpen(uprDropOpen===ui?null:ui)} style={{background:"#fff",border:"1px solid "+(nrs.length>1?"#558b2f":"#ddd6cc"),borderRadius:6,padding:"4px 8px",fontSize:11,cursor:"pointer",minHeight:22,display:"flex",flexWrap:"wrap",gap:3,alignItems:"center"}}>
+                    {nrs.length===0?<span style={{color:"#aaa"}}>— wybierz działki —</span>:nrs.map((nr,ni)=><span key={ni} style={{background:nrs.length>1?"#e8f5e9":"#f0ebe3",color:nrs.length>1?"#2e7d32":"#1a3328",padding:"1px 6px",borderRadius:4,fontSize:10,fontWeight:600,fontFamily:"monospace"}}>{nr}</span>)}
+                    <span style={{marginLeft:"auto",fontSize:8,color:"#8a7e72"}}>▼</span>
+                  </div>
+                  {uprDropOpen===ui&&<div style={{position:"absolute",top:"100%",left:0,zIndex:999,background:"#fff",border:"2px solid #558b2f",borderRadius:8,boxShadow:"0 4px 16px rgba(0,0,0,.2)",maxHeight:200,overflowY:"auto",minWidth:180,padding:4}}>
+                    {grunty.map((g,gi)=>{var checked=nrs.includes(g.nr);return(<label key={gi} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 8px",cursor:"pointer",borderRadius:4,background:checked?"#e8f5e9":"transparent",fontSize:11}} onMouseOver={e=>e.currentTarget.style.background=checked?"#c8e6c9":"#f5f0e8"} onMouseOut={e=>e.currentTarget.style.background=checked?"#e8f5e9":"transparent"}>
+                      <input type="checkbox" checked={checked} onChange={()=>toggleGruntInUprawa(ui,g.nr)} style={{accentColor:"#2e7d32"}}/>
+                      <span style={{fontFamily:"monospace",fontWeight:600}}>{g.nr}</span>
+                      <span style={{color:"#8a7e72",fontSize:10}}>{g.nazwa||""}</span>
+                    </label>)})}
+                    <div style={{borderTop:"1px solid #e8e3db",marginTop:4,paddingTop:4,textAlign:"center"}}><button onClick={()=>setUprDropOpen(null)} style={{background:"#558b2f",color:"#fff",border:"none",borderRadius:4,padding:"3px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>✓ Gotowe</button></div>
+                  </div>}
+                </div>:<div style={{display:"flex",flexWrap:"wrap",gap:3}}>{nrs.length===0?"—":nrs.map((nr,ni)=><span key={ni} style={{background:"#e8f5e9",color:"#2e7d32",padding:"1px 6px",borderRadius:4,fontSize:10,fontWeight:600,fontFamily:"monospace"}}>{nr}</span>)}</div>}</td>
+                <td style={{fontSize:11,color:"#558b2f",fontWeight:600}}>{names.length===0?"—":names.join(", ")}</td>
+                <td>{isAdmin?<EC val={u.roslina} w="100px" onChange={v=>updUprawa(ui,"roslina",v)}/>:u.roslina||"—"}</td>
+                <td style={{textAlign:"center"}}>{isAdmin?<EC val={u.pow} type="number" w="55px" onChange={v=>updUprawa(ui,"pow",v)}/>:u.pow||"—"}</td>
+                <td>{isAdmin?<EC val={u.dataS} type="date" w="110px" onChange={v=>updUprawa(ui,"dataS",v)}/>:u.dataS?fD(u.dataS):"—"}</td>
+                <td>{isAdmin?<EC val={u.dataZ} type="date" w="110px" onChange={v=>updUprawa(ui,"dataZ",v)}/>:u.dataZ?fD(u.dataZ):"—"}</td>
+                <td style={{textAlign:"center"}}>{isAdmin?<EC val={u.plon} type="number" w="55px" onChange={v=>updUprawa(ui,"plon",v)}/>:u.plon||"—"}</td>
+                <td>{isAdmin?<EC val={u.uwagi} w="120px" onChange={v=>updUprawa(ui,"uwagi",v)}/>:u.uwagi||"—"}</td>
+                <td style={{textAlign:"center"}}>{teryts.length>0&&<button onClick={()=>window.open("/api/geoportal?teryt="+encodeURIComponent(teryts.join(",")),"_blank")} style={{background:"#1565c0",color:"#fff",padding:"3px 8px",borderRadius:6,fontSize:10,fontWeight:700,border:"none",cursor:"pointer",whiteSpace:"nowrap"}}>🗺 Mapa{nrs.length>1?" ("+nrs.length+")":""}</button>}</td>
+                <td>{isAdmin&&<button onClick={()=>delUprawa(ui)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>)})}</tbody>
             </table>}
           </div>
