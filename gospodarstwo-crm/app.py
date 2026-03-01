@@ -68,6 +68,30 @@ async def get_permissions():
     return MODULE_PERMS
 
 
+@app.get("/api/geoportal/{teryt:path}")
+async def geoportal_redirect(teryt: str):
+    """Proxy ULDK API to get parcel coordinates, redirect to Google Maps"""
+    import urllib.request, urllib.parse, re
+    from fastapi.responses import RedirectResponse
+    try:
+        url = "https://uldk.gugik.gov.pl/?request=GetParcelById&id=" + urllib.parse.quote(teryt) + "&result=geom_wkt"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        resp = urllib.request.urlopen(req, timeout=10)
+        txt = resp.read().decode("utf-8", "ignore").strip()
+        nums = re.findall(r'[\d.]+', txt)
+        if nums and len(nums) >= 4:
+            xs, ys = [], []
+            for i in range(0, len(nums) - 1, 2):
+                xs.append(float(nums[i]))
+                ys.append(float(nums[i + 1]))
+            cx = (min(xs) + max(xs)) / 2
+            cy = (min(ys) + max(ys)) / 2
+            return RedirectResponse(f"https://www.google.com/maps/@{cy},{cx},18z")
+    except Exception:
+        pass
+    return RedirectResponse(f"https://www.google.com/maps/search/{urllib.parse.quote(teryt)}")
+
+
 @app.get("/")
 async def root():
     index = os.path.join(static_dir, "index.html")
