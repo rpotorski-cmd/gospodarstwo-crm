@@ -70,69 +70,79 @@ async def get_permissions():
 
 @app.get("/api/geoportal")
 async def geoportal_redirect(teryt: str = ""):
-    """Fetch parcel geometry from ULDK, show on Leaflet map with polygon"""
+    """Fetch parcel geometry from ULDK, show on Leaflet map with polygon(s)"""
     import urllib.request, urllib.parse, re
     from fastapi.responses import HTMLResponse, RedirectResponse
     if not teryt:
         return RedirectResponse("https://www.google.com/maps")
-    coords_js = "[]"
+    # Support multiple TERYTs separated by comma
+    teryts = [t.strip() for t in teryt.split(",") if t.strip()]
+    all_polygons = []
     center_lat, center_lng = 53.168, 19.806
     debug_info = ""
-    try:
-        url = "https://uldk.gugik.gov.pl/?request=GetParcelById&id=" + teryt + "&result=geom_wkt&srid=4326"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        resp = urllib.request.urlopen(req, timeout=10)
-        txt = resp.read().decode("utf-8", "ignore").strip()
-        debug_info = "URL:" + url + " RAW:" + txt[:500].replace("<","&lt;").replace(">","&gt;").replace('"',"'")
-        # ULDK returns: "0\nPOLYGON((lng lat, lng lat, ...))" - first line is status
-        lines = txt.split("\n")
-        wkt = lines[-1].strip() if len(lines) > 1 else txt.strip()
-        # Parse POLYGON or MULTIPOLYGON
-        ring = re.search(r'\(\(([^)]+)\)', wkt)
-        if ring:
-            pairs = ring.group(1).split(",")
-            coords = []
-            for p in pairs:
-                parts = p.strip().split()
-                if len(parts) >= 2:
-                    try:
-                        lng, lat = float(parts[0]), float(parts[1])
-                        # Sanity check - Poland is roughly lat 49-55, lng 14-24
-                        if 14 < lng < 25 and 49 < lat < 55:
-                            coords.append([lat, lng])
-                    except ValueError:
-                        pass
-            if coords:
-                lats = [c[0] for c in coords]
-                lngs = [c[1] for c in coords]
-                center_lat = (min(lats) + max(lats)) / 2
-                center_lng = (min(lngs) + max(lngs)) / 2
-                coords_js = str(coords)
-    except Exception as e:
-        debug_info = str(e)
+    all_lats, all_lngs = [], []
+    for single_teryt in teryts:
+        try:
+            url = "https://uldk.gugik.gov.pl/?request=GetParcelById&id=" + single_teryt + "&result=geom_wkt&srid=4326"
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            resp = urllib.request.urlopen(req, timeout=10)
+            txt = resp.read().decode("utf-8", "ignore").strip()
+            debug_info += single_teryt + ":" + txt[:200].replace("<","&lt;").replace(">","&gt;").replace('"',"'") + " | "
+            lines = txt.split("\n")
+            wkt = lines[-1].strip() if len(lines) > 1 else txt.strip()
+            ring = re.search(r'\(\(([^)]+)\)', wkt)
+            if ring:
+                pairs = ring.group(1).split(",")
+                coords = []
+                for p in pairs:
+                    parts = p.strip().split()
+                    if len(parts) >= 2:
+                        try:
+                            lng, lat = float(parts[0]), float(parts[1])
+                            if 14 < lng < 25 and 49 < lat < 55:
+                                coords.append([lat, lng])
+                                all_lats.append(lat)
+                                all_lngs.append(lng)
+                        except ValueError:
+                            pass
+                if coords:
+                    all_polygons.append({"teryt": single_teryt, "coords": coords})
+        except Exception as e:
+            debug_info += single_teryt + ":ERR:" + str(e) + " | "
+    if all_lats:
+        center_lat = (min(all_lats) + max(all_lats)) / 2
+        center_lng = (min(all_lngs) + max(all_lngs)) / 2
+    polygons_js = str([{"teryt": p["teryt"], "coords": p["coords"]} for p in all_polygons]).replace("'", '"')
+    title = ", ".join(teryts) if len(teryts) <= 3 else f"{len(teryts)} działek"
+    colors = ["#d32f2f","#1565c0","#2e7d32","#e65100","#6a1b9a","#00838f","#c62828","#283593"]
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Działka {teryt}</title>
+<title>Działki: {title}</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>body{{margin:0}}#map{{width:100%;height:100vh}}
-.info{{position:absolute;top:10px;left:50px;z-index:1000;background:#fff;padding:8px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);font:bold 14px sans-serif;color:#1565c0}}</style>
+.info{{position:absolute;top:10px;left:50px;z-index:1000;background:#fff;padding:8px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);font:bold 13px sans-serif;color:#1565c0;max-width:80%;word-break:break-all}}</style>
 </head><body>
-<div class="info">Działka: {teryt}</div>
+<div class="info">🌱 Uprawa scalona: {title}</div>
 <div id="map"></div>
 <script>
-var coords={coords_js};
-var map=L.map('map').setView([{center_lat},{center_lng}],17);
+var polygons={polygons_js};
+var colors={str(colors)};
+var map=L.map('map').setView([{center_lat},{center_lng}],16);
 L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'OSM'}}).addTo(map);
 var dzialki=L.tileLayer.wms('https://integracja.gugik.gov.pl/cgi-bin/KraijObiektServletNew',{{layers:'dzialki,numery_dzialek',format:'image/png',transparent:true,maxZoom:20,attribution:'EGiB'}});
 dzialki.addTo(map);
-if(coords.length>2){{
-  var poly=L.polygon(coords,{{color:'#d32f2f',weight:3,fillColor:'#ff5252',fillOpacity:0.25}}).addTo(map);
-  map.fitBounds(poly.getBounds().pad(0.3));
-  poly.bindPopup('<b>{teryt}</b>').openPopup();
-}}
+var bounds=L.latLngBounds();
+polygons.forEach(function(p,i){{
+  if(p.coords.length>2){{
+    var c=colors[i%colors.length];
+    var poly=L.polygon(p.coords,{{color:c,weight:3,fillColor:c,fillOpacity:0.2}}).addTo(map);
+    poly.bindPopup('<b>'+p.teryt+'</b>');
+    bounds.extend(poly.getBounds());
+  }}
+}});
+if(bounds.isValid())map.fitBounds(bounds.pad(0.3));
 </script>
-<!-- debug: {debug_info} -->
 <div style="position:absolute;bottom:5px;left:5px;z-index:1000;background:rgba(255,255,255,0.9);padding:4px 8px;font:10px monospace;max-width:90%;word-break:break-all;border-radius:4px">DEBUG: {debug_info}</div>
 </body></html>"""
     return HTMLResponse(html)
