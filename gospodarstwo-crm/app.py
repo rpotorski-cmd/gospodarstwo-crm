@@ -35,8 +35,11 @@ try:
     from sqlalchemy import text
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE dokumenty ADD COLUMN IF NOT EXISTS file_data BYTEA"))
+        conn.execute(text("ALTER TABLE grunty ADD COLUMN IF NOT EXISTS umowa VARCHAR(255) DEFAULT ''"))
+        conn.execute(text("ALTER TABLE grunty ADD COLUMN IF NOT EXISTS termin_umowy VARCHAR(20) DEFAULT ''"))
+        conn.execute(text("ALTER TABLE grunty ADD COLUMN IF NOT EXISTS doplaty VARCHAR(100) DEFAULT ''"))
         conn.commit()
-        print("  Migration: file_data column OK")
+        print("  Migration: all columns OK")
 except Exception as e:
     print(f"  Migration note: {e}")
 
