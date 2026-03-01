@@ -1,9 +1,4 @@
-"""
-Admin routes:
-1. CustomElement CRUD — admin manages lists of meds, death causes, feed types, etc.
-2. Document file upload/download — PDF/scans stored on server
-"""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from database import get_db
 from models import CustomElement, AuditLog, User
@@ -18,22 +13,6 @@ def audit(db, user, area, action):
     db.commit()
 
 
-# ═══════════════════════════════════════
-# CUSTOM ELEMENTS (admin-managed lists)
-# ═══════════════════════════════════════
-# Categories:
-#   meds          — medications (name, unit, defPrice, defDose)
-#   causes        — death causes (name, color)
-#   feed_types    — feed types: Starter, Grower, Finiszer + custom
-#   ubojnie       — slaughterhouses
-#   bufory        — feed mill buffer types
-#   biogaz_cats   — biogas maintenance categories
-#   doc_cats      — document categories
-#   nawoz_types   — fertilizer types
-#   oprysk_targets — spraying targets
-#   paliwo_types  — fuel types
-#   todos_def     — default TODO items for cycles (name, icon, cat, desc)
-
 VALID_CATEGORIES = [
     "meds", "causes", "feed_types", "ubojnie", "bufory",
     "biogaz_cats", "doc_cats", "nawoz_types", "oprysk_targets",
@@ -46,7 +25,6 @@ async def list_all_elements(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """List all custom elements grouped by category (all users can read)"""
     items = db.query(CustomElement).order_by(
         CustomElement.category, CustomElement.sort_order, CustomElement.id
     ).all()
@@ -65,9 +43,8 @@ async def list_elements_by_category(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """List elements for a specific category"""
     if category not in VALID_CATEGORIES:
-        raise HTTPException(status_code=400, detail=f"Nieprawidłowa kategoria: {category}")
+        raise HTTPException(status_code=400, detail=f"Nieprawidlowa kategoria: {category}")
     items = db.query(CustomElement).filter(
         CustomElement.category == category
     ).order_by(CustomElement.sort_order, CustomElement.id).all()
@@ -76,27 +53,25 @@ async def list_elements_by_category(
 
 @router.post("/elements")
 async def create_element(
-    data: dict,
+    request: Request,
     user: User = Depends(require_role(ROLE_ADMIN)),
     db: Session = Depends(get_db)
 ):
-    """Create a new custom element (admin only)"""
+    data = await request.json()
     cat = data.get("category", "")
     if cat not in VALID_CATEGORIES:
-        raise HTTPException(status_code=400, detail=f"Nieprawidłowa kategoria: {cat}")
+        raise HTTPException(status_code=400, detail=f"Nieprawidlowa kategoria: {cat}")
     name = data.get("name", "").strip()
     if not name:
         raise HTTPException(status_code=400, detail="Nazwa wymagana")
 
-    # Check for duplicates in same category
     existing = db.query(CustomElement).filter(
         CustomElement.category == cat,
         CustomElement.name == name
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail=f"Element '{name}' już istnieje w tej kategorii")
+        raise HTTPException(status_code=400, detail=f"Element '{name}' juz istnieje w tej kategorii")
 
-    # Get max sort_order for category
     max_order = db.query(CustomElement).filter(
         CustomElement.category == cat
     ).count()
@@ -123,33 +98,24 @@ async def create_element(
 @router.put("/elements/{eid}")
 async def update_element(
     eid: int,
-    data: dict,
+    request: Request,
     user: User = Depends(require_role(ROLE_ADMIN)),
     db: Session = Depends(get_db)
 ):
-    """Update a custom element (admin only)"""
+    data = await request.json()
     el = db.query(CustomElement).filter(CustomElement.id == eid).first()
     if not el:
         raise HTTPException(status_code=404, detail="Nie znaleziono")
 
-    if "name" in data:
-        el.name = data["name"]
-    if "unit" in data:
-        el.unit = data["unit"]
-    if "defPrice" in data:
-        el.def_price = float(data["defPrice"])
-    if "defDose" in data:
-        el.def_dose = data["defDose"]
-    if "color" in data:
-        el.color = data["color"]
-    if "icon" in data:
-        el.icon = data["icon"]
-    if "extra" in data:
-        el.extra = data["extra"]
-    if "sortOrder" in data:
-        el.sort_order = int(data["sortOrder"])
-    if "isActive" in data:
-        el.is_active = bool(data["isActive"])
+    if "name" in data: el.name = data["name"]
+    if "unit" in data: el.unit = data["unit"]
+    if "defPrice" in data: el.def_price = float(data["defPrice"])
+    if "defDose" in data: el.def_dose = data["defDose"]
+    if "color" in data: el.color = data["color"]
+    if "icon" in data: el.icon = data["icon"]
+    if "extra" in data: el.extra = data["extra"]
+    if "sortOrder" in data: el.sort_order = int(data["sortOrder"])
+    if "isActive" in data: el.is_active = bool(data["isActive"])
 
     db.commit()
     audit(db, user, "admin", f"Zaktualizowano element [{el.category}]: {el.name}")
@@ -162,7 +128,6 @@ async def delete_element(
     user: User = Depends(require_role(ROLE_ADMIN)),
     db: Session = Depends(get_db)
 ):
-    """Deactivate (soft-delete) a custom element (admin only)"""
     el = db.query(CustomElement).filter(CustomElement.id == eid).first()
     if not el:
         raise HTTPException(status_code=404, detail="Nie znaleziono")
@@ -180,7 +145,6 @@ async def hard_delete_element(
     user: User = Depends(require_role(ROLE_ADMIN)),
     db: Session = Depends(get_db)
 ):
-    """Permanently delete a custom element (admin only)"""
     el = db.query(CustomElement).filter(CustomElement.id == eid).first()
     if not el:
         raise HTTPException(status_code=404, detail="Nie znaleziono")
@@ -188,18 +152,18 @@ async def hard_delete_element(
     cat = el.category
     db.delete(el)
     db.commit()
-    audit(db, user, "admin", f"Usunięto trwale element [{cat}]: {name}")
+    audit(db, user, "admin", f"Usunieto trwale element [{cat}]: {name}")
     return {"ok": True}
 
 
 @router.put("/elements/reorder/{category}")
 async def reorder_elements(
     category: str,
-    data: dict,
+    request: Request,
     user: User = Depends(require_role(ROLE_ADMIN)),
     db: Session = Depends(get_db)
 ):
-    """Reorder elements in a category. data = {order: [id1, id2, ...]}"""
+    data = await request.json()
     order = data.get("order", [])
     for idx, eid in enumerate(order):
         el = db.query(CustomElement).filter(
@@ -211,7 +175,7 @@ async def reorder_elements(
     return {"ok": True}
 
 
-def _el_to_dict(el: CustomElement) -> dict:
+def _el_to_dict(el):
     return {
         "id": el.id,
         "category": el.category,
@@ -225,6 +189,3 @@ def _el_to_dict(el: CustomElement) -> dict:
         "sortOrder": el.sort_order,
         "isActive": el.is_active,
     }
-
-
-# Document file upload/download handled by files_routes.py
