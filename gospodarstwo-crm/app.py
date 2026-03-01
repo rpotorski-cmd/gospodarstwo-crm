@@ -19,9 +19,38 @@ from config import MODULE_PERMS, UPLOAD_DIR
 
 app = FastAPI(title="Kabanek Gospodarstwo CRM", version="2.0")
 
+# ─── HTTPS redirect (Railway provides SSL) ───
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import RedirectResponse
+
+
+class SecurityMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        # HTTPS redirect (Railway sets x-forwarded-proto)
+        proto = request.headers.get("x-forwarded-proto", "https")
+        if proto == "http" and os.getenv("RAILWAY_ENVIRONMENT"):
+            url = request.url.replace(scheme="https")
+            return RedirectResponse(url=str(url), status_code=301)
+        response = await call_next(request)
+        # Security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        if os.getenv("RAILWAY_ENVIRONMENT"):
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
+
+
+app.add_middleware(SecurityMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        os.getenv("ALLOWED_ORIGIN", "https://gospodarstwo-crm-production.up.railway.app"),
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
