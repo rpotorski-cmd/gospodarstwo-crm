@@ -11,7 +11,6 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
 
-/* LOGIN OVERLAY */
 .login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0a1f0a 0%,#1B7A2B 50%,#145A1F 100%);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .5s}
 .login-overlay.hidden{opacity:0;pointer-events:none}
 .login-box{background:#fff;border-radius:24px;padding:48px 40px;width:400px;max-width:90vw;box-shadow:0 24px 80px rgba(0,0,0,.3)}
@@ -30,35 +29,31 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;backgroun
 .login-hint{margin-top:20px;padding:14px;background:var(--green-pale);border-radius:10px;font-size:12px;color:var(--text-muted);line-height:1.6}
 .login-hint strong{color:var(--green)}
 
-/* ROLE BADGE */
 .role-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .role-badge.admin{background:rgba(198,40,40,.1);color:var(--red)}
 .role-badge.manager{background:rgba(66,165,245,.12);color:var(--blue)}
 .role-badge.pracownik{background:rgba(196,160,53,.12);color:var(--gold)}
 
-/* TOAST */
 .toast{position:fixed;top:20px;right:20px;padding:14px 24px;border-radius:12px;color:#fff;font-size:14px;font-weight:600;z-index:10000;transform:translateX(120%);transition:transform .3s ease;max-width:400px}
 .toast.show{transform:translateX(0)}
 .toast.success{background:var(--green)}
 .toast.error{background:var(--red)}
 .toast.info{background:var(--blue)}
 
-/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:5000;display:none;align-items:center;justify-content:center}
 .modal-overlay.active{display:flex}
 .modal{background:#fff;border-radius:20px;padding:32px;width:500px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
 .modal h3{font-size:18px;font-weight:800;margin-bottom:20px}
 .modal-field{margin-bottom:14px}
 .modal-field label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-.modal-field input,.modal-field select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none}
-.modal-field input:focus,.modal-field select:focus{border-color:var(--green)}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{border-color:var(--green)}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 .modal-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:none}
 .modal-btn.primary{background:var(--green);color:#fff}
 .modal-btn.secondary{background:var(--bg);color:var(--text-muted);border:1px solid var(--border)}
 .modal-btn.danger{background:var(--red);color:#fff}
 
-/* APP LAYOUT */
 .app{display:flex;height:100vh}
 .sidebar{width:250px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 14px;flex-shrink:0;overflow-y:auto}
 .sidebar-logo{display:flex;align-items:center;gap:12px;padding:8px 10px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
@@ -83,6 +78,10 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;backgroun
 .topbar-actions{display:flex;align-items:center;gap:10px}
 .btn-primary{padding:9px 18px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--green-light));color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit}
 .btn-primary:hover{filter:brightness(1.08)}
+.btn-sm{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--card);cursor:pointer;font-family:inherit;color:var(--text-muted)}
+.btn-sm:hover{border-color:var(--green);color:var(--green)}
+.btn-sm.danger{color:var(--red);border-color:var(--red-pale)}
+.btn-sm.danger:hover{background:var(--red-pale);border-color:var(--red)}
 .content{flex:1;overflow:auto;padding:24px}
 .page{display:none;flex-direction:column;gap:22px}.page.active{display:flex}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:14px}
@@ -108,17 +107,17 @@ table td{padding:11px 13px}td.profit-pos{font-weight:700;color:var(--green)}td.p
 .search-box:focus-within{border-color:var(--green)}
 .search-box input{border:none;outline:none;background:transparent;font-size:14px;color:var(--text);width:100%;font-family:inherit}
 .client-list{display:grid;gap:10px}
-.client-row{background:var(--card);border-radius:14px;padding:16px 20px;border:1px solid var(--border);display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr 1fr;align-items:center;gap:10px;transition:all .2s}
+.client-row{background:var(--card);border-radius:14px;padding:16px 20px;border:1px solid var(--border);display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr 1fr auto;align-items:center;gap:10px;transition:all .2s;cursor:pointer}
 .client-row:hover{border-color:var(--green-muted);box-shadow:0 4px 16px rgba(0,0,0,.04)}
 .client-name{font-weight:600;font-size:14px}
 .client-metric{text-align:center}.client-metric-val{font-size:15px;font-weight:700}.client-metric-label{font-size:11px;color:var(--text-muted)}
+.client-actions{display:flex;gap:6px}
 .no-data{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px}
 .preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 .preset-btn{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
 .preset-btn:hover{border-color:var(--green);color:var(--green)}
 .preset-btn.active{border-color:var(--green);background:var(--green);color:#fff}
 
-/* USER MANAGEMENT */
 .user-grid{display:grid;gap:12px}
 .user-card{background:var(--card);border-radius:14px;padding:18px 22px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 .user-info{display:flex;align-items:center;gap:14px}
@@ -199,7 +198,7 @@ pracownik / prac123 — Pracownik
 <div><h2 id="page-title">Dashboard</h2><p id="page-subtitle">Przegląd wyników i statystyk</p></div>
 <div class="topbar-actions">
 <div id="roleIndicator"></div>
-<button class="btn-primary write-only" onclick="showNewCycleModal()">+ Nowy tucz</button>
+<button class="btn-primary write-only" id="topbarAction" style="display:none">+ Nowy</button>
 </div>
 </div>
 <div class="content">
@@ -216,9 +215,10 @@ pracownik / prac123 — Pracownik
 
 <!-- CLIENTS -->
 <div class="page" id="page-clients">
-<div style="display:flex;gap:12px;flex-wrap:wrap">
-<div class="search-box"><input type="text" placeholder="Szukaj klienta..." id="clientSearch" oninput="loadClients()"></div>
-<div class="search-box" style="flex:0.7;min-width:180px"><input type="text" placeholder="Nr kolczyka..." id="kolczykSearch" oninput="loadClients()"></div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+<div class="search-box"><input type="text" placeholder="Szukaj klienta po nazwie..." id="clientSearch"></div>
+<div class="search-box" style="flex:0.7;min-width:180px"><input type="text" placeholder="Nr kolczyka..." id="kolczykSearch"></div>
+<button class="btn-primary write-only" onclick="showAddClientModal()">+ Dodaj klienta</button>
 </div>
 <div class="preset-row" id="presetRow">
 <button class="preset-btn active" onclick="setPreset('all',this)">Wszyscy</button>
@@ -233,7 +233,11 @@ pracownik / prac123 — Pracownik
 
 <!-- CYCLES -->
 <div class="page" id="page-cycles">
-<div class="card" style="padding:0;overflow:hidden"><div style="padding:20px 24px;border-bottom:1px solid var(--border)"><div class="card-title">Wszystkie cykle tuczu</div></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<div class="card-title">Wszystkie cykle tuczu</div>
+<button class="btn-primary write-only" onclick="showNewCycleModal()">+ Nowy cykl</button>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
 <div class="table-wrap"><table class="full"><thead><tr><th>#</th><th>Miesiąc</th><th>Klient</th><th>Pasza</th><th>Start</th><th>Sprzedaż</th><th>Zysk</th><th>Upadki</th><th>Status</th></tr></thead><tbody id="cyclesTable"></tbody></table></div></div>
 </div>
 
@@ -268,17 +272,20 @@ pracownik / prac123 — Pracownik
 </div></div></div>
 
 <script>
-// ═══ STATE ═══
+// STATE
 let TOKEN = localStorage.getItem('kabanek_token');
 let USER = JSON.parse(localStorage.getItem('kabanek_user') || 'null');
 let currentPreset = 'all';
+let currentTab = 'dashboard';
 let profitChart, prodChart, finTopChart, finBotChart;
+let clientsCache = [];
+let searchTimer = null;
 
 const fmt = n => { if(n==null) return '—'; const a=Math.abs(n); if(a>=1e6) return (n/1e6).toFixed(2)+' mln'; if(a>=1e3) return (n/1e3).toFixed(0)+' tys'; return n.toFixed(0) };
 const fmtPLN = n => { if(n==null) return '—'; return n.toLocaleString('pl-PL',{style:'currency',currency:'PLN',maximumFractionDigits:0}) };
 const rolePL = r => ({admin:'Administrator',manager:'Manager',pracownik:'Pracownik'}[r]||r);
 
-// ═══ API HELPER ═══
+// API HELPER
 async function api(path, opts={}) {
     const headers = {'Content-Type':'application/json'};
     if(TOKEN) headers['Authorization'] = 'Bearer '+TOKEN;
@@ -291,19 +298,19 @@ async function api(path, opts={}) {
     return res.json();
 }
 
-// ═══ TOAST ═══
+// TOAST
 function showToast(msg, type='info') {
     const t = document.getElementById('toast');
     t.textContent = msg; t.className = 'toast '+type+' show';
     setTimeout(()=>t.classList.remove('show'), 3000);
 }
 
-// ═══ MODAL ═══
+// MODAL
 function showModal(html) { document.getElementById('modalContent').innerHTML=html; document.getElementById('modalOverlay').classList.add('active'); }
 function hideModal() { document.getElementById('modalOverlay').classList.remove('active'); }
 document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) hideModal(); });
 
-// ═══ AUTH ═══
+// AUTH
 async function doLogin() {
     const username = document.getElementById('loginUser').value.trim();
     const password = document.getElementById('loginPass').value;
@@ -338,18 +345,26 @@ function doLogout() {
 document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 document.getElementById('loginUser').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPass').focus(); });
 
-// ═══ INIT ═══
+// Search with debounce
+document.getElementById('clientSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadClients, 300);
+});
+document.getElementById('kolczykSearch').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadClients, 300);
+});
+
+// INIT
 function initApp() {
     document.getElementById('loginOverlay').classList.add('hidden');
     document.getElementById('appContainer').style.display = 'flex';
 
-    // Set user info
     document.getElementById('sidebarAvatar').textContent = USER.full_name[0];
     document.getElementById('sidebarName').textContent = USER.full_name;
     document.getElementById('sidebarRole').textContent = rolePL(USER.role);
     document.getElementById('roleIndicator').innerHTML = '<span class="role-badge '+USER.role+'">'+rolePL(USER.role)+'</span>';
 
-    // Role-based visibility
     const isAdmin = USER.role === 'admin';
     const canWrite = USER.role !== 'pracownik';
     document.querySelectorAll('.admin-only').forEach(el => {
@@ -361,26 +376,25 @@ function initApp() {
         else el.classList.remove('hidden-by-role');
     });
 
-    // Load data
     loadDashboard();
     switchTab('dashboard');
 }
 
-// ═══ TABS ═══
+// TABS
 const titles = {dashboard:'Dashboard',clients:'Klienci',cycles:'Cykle tuczu',finance:'Finanse',users:'Użytkownicy',logs:'Logi aktywności'};
-const subtitles = {dashboard:'Przegląd wyników i statystyk',clients:'Wyszukiwanie klientów i rankingi',cycles:'Historia i bieżące tucze',finance:'Rozliczenia finansowe klientów',users:'Zarządzanie kontami i uprawnieniami',logs:'Historia działań w systemie'};
+const subtitles = {dashboard:'Przegląd wyników i statystyk',clients:'Zarządzanie klientami i rankingi',cycles:'Historia i bieżące tucze',finance:'Rozliczenia finansowe klientów',users:'Zarządzanie kontami i uprawnieniami',logs:'Historia działań w systemie'};
 
 function switchTab(t) {
+    currentTab = t;
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById('page-'+t).classList.add('active');
     document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+    const allItems = document.querySelectorAll('.sidebar-item');
     const idx = {dashboard:0,clients:1,cycles:2,finance:3,users:4,logs:5}[t];
-    const items = document.querySelectorAll('.sidebar-item:not(.hidden-by-role)');
-    if(items[idx]) items[idx].classList.add('active');
+    if(allItems[idx]) allItems[idx].classList.add('active');
     document.getElementById('page-title').textContent = titles[t];
     document.getElementById('page-subtitle').textContent = subtitles[t];
 
-    // Lazy load
     if(t==='clients') loadClients();
     if(t==='cycles') loadCycles();
     if(t==='finance') loadFinance();
@@ -388,7 +402,7 @@ function switchTab(t) {
     if(t==='logs') loadLogs();
 }
 
-// ═══ DASHBOARD ═══
+// DASHBOARD
 async function loadDashboard() {
     try {
         const data = await api('/api/dashboard');
@@ -400,7 +414,6 @@ async function loadDashboard() {
             <div class="stat-card"><div class="stat-header"><div class="stat-icon gold"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span class="stat-label">Średni FCR</span></div><div class="stat-value">${s.avgFcr}</div></div>
             <div class="stat-card"><div class="stat-header"><div class="stat-icon red"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><span class="stat-label">Śr. upadki</span></div><div class="stat-value">${s.avgMortality}%</div></div>
         `;
-        // Charts
         Chart.defaults.font.family = "'DM Sans',sans-serif";
         Chart.defaults.color = '#5A6F5A';
         const yd = data.yearlyData;
@@ -409,7 +422,6 @@ async function loadDashboard() {
         if(prodChart) prodChart.destroy();
         prodChart = new Chart(document.getElementById('productionChart'),{type:'line',data:{labels:yd.map(d=>d.year),datasets:[{label:'Sztuk',data:yd.map(d=>d.pigs),fill:true,backgroundColor:'rgba(27,122,43,.08)',borderColor:'#1B7A2B',borderWidth:2.5,pointBackgroundColor:'#1B7A2B',pointRadius:5,tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#E8EDE8'},ticks:{callback:v=>fmt(v)}}}}});
 
-        // Recent cycles table
         document.getElementById('dashTable').innerHTML = data.recentCycles.map(c=>`<tr>
             <td style="font-weight:700;color:var(--green)">${c.cycle_number||c.id}</td>
             <td>${c.month}</td><td style="font-weight:500">${c.client}</td><td style="color:var(--text-muted)">${c.feed}</td>
@@ -428,30 +440,123 @@ async function loadClients() {
     if(search) params.set('search', search);
     if(kolczyk) params.set('kolczyk', kolczyk);
     if(currentPreset!=='all') params.set('preset', currentPreset);
-    params.set('limit','100');
+    params.set('limit','200');
     try {
         const clients = await api('/api/clients?'+params.toString());
+        clientsCache = clients;
         document.getElementById('clientCount').textContent = `Wyświetlono ${clients.length} klientów`;
         if(!clients.length) {
             document.getElementById('clientList').innerHTML = '<div class="no-data">Brak wyników</div>';
             return;
         }
+        const canWrite = USER && USER.role !== 'pracownik';
         document.getElementById('clientList').innerHTML = clients.map(c => `
-            <div class="client-row">
-                <div><div class="client-name">${c.name}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${c.cycles} cykli · ${c.feeds}</div></div>
+            <div class="client-row" onclick="showEditClientModal(${c.id})">
+                <div><div class="client-name">${esc(c.name)}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${c.cycles} cykli · ${esc(c.feeds||'')}</div></div>
                 <div class="client-metric"><div class="client-metric-val">${c.pigs.toLocaleString()}</div><div class="client-metric-label">sztuk</div></div>
                 <div class="client-metric"><div class="client-metric-val" style="color:${c.profit>=0?'var(--green)':'var(--red)'}">${fmt(c.profit)} zł</div><div class="client-metric-label">zysk · ${c.profit_per_pig>0?'+':''}${c.profit_per_pig.toFixed(0)}/szt</div></div>
                 <div class="client-metric"><div class="client-metric-val">${c.fcr>0?c.fcr.toFixed(2):'—'}</div><div class="client-metric-label">FCR</div></div>
                 <div class="client-metric"><div class="client-metric-val" style="color:${c.mortality>3?'var(--red)':'var(--text)'}">${c.mortality.toFixed(2)}%</div><div class="client-metric-label">${c.deaths} szt.</div></div>
+                ${canWrite ? '<div class="client-actions"><button class="btn-sm" onclick="event.stopPropagation();showEditClientModal('+c.id+')">✏️</button><button class="btn-sm danger" onclick="event.stopPropagation();deleteClient('+c.id+',\''+esc(c.name)+'\')">🗑</button></div>' : '<div></div>'}
             </div>`).join('');
-    } catch(e) { showToast('Błąd: '+e.message, 'error'); }
+    } catch(e) { showToast('Błąd ładowania klientów: '+e.message, 'error'); }
 }
+
+function esc(s) { if(!s) return ''; return s.replace(/'/g,'&#39;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 function setPreset(p, btn) {
     currentPreset = p;
     document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     loadClients();
+}
+
+// ADD CLIENT
+function showAddClientModal() {
+    showModal(`
+        <h3>Dodaj klienta</h3>
+        <div class="modal-field"><label>Nazwa klienta</label><input id="ac_name" placeholder="np. Gospodarstwo Kowalski"></div>
+        <div class="modal-field"><label>Nr kolczyka</label><input id="ac_kolczyk" placeholder="np. PL123456789"></div>
+        <div class="modal-field"><label>Dostawca paszy</label><input id="ac_feeds" placeholder="np. Sano, De Heus"></div>
+        <div class="modal-actions">
+            <button class="modal-btn secondary" onclick="hideModal()">Anuluj</button>
+            <button class="modal-btn primary" onclick="createClient()">Dodaj klienta</button>
+        </div>`);
+    setTimeout(()=>document.getElementById('ac_name').focus(), 100);
+}
+
+async function createClient() {
+    const name = document.getElementById('ac_name').value.trim();
+    if(!name) { showToast('Podaj nazwę klienta','error'); return; }
+    try {
+        await api('/api/clients', {method:'POST', body:JSON.stringify({
+            name: name,
+            kolczyk: document.getElementById('ac_kolczyk').value.trim(),
+            feeds: document.getElementById('ac_feeds').value.trim(),
+        })});
+        hideModal();
+        showToast('Klient dodany','success');
+        loadClients();
+    } catch(e) { showToast(e.message,'error'); }
+}
+
+// EDIT CLIENT
+function showEditClientModal(id) {
+    const c = clientsCache.find(x=>x.id===id);
+    if(!c) return;
+    const canWrite = USER && USER.role !== 'pracownik';
+    showModal(`
+        <h3>${canWrite?'Edytuj':'Podgląd'}: ${esc(c.name)}</h3>
+        <div class="modal-field"><label>Nazwa</label><input id="ec_name" value="${esc(c.name)}" ${canWrite?'':'disabled'}></div>
+        <div class="modal-field"><label>Nr kolczyka</label><input id="ec_kolczyk" value="${esc(c.kolczyk||'')}" ${canWrite?'':'disabled'}></div>
+        <div class="modal-field"><label>Dostawca paszy</label><input id="ec_feeds" value="${esc(c.feeds||'')}" ${canWrite?'':'disabled'}></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="modal-field"><label>Cykle</label><input id="ec_cycles" type="number" value="${c.cycles}" ${canWrite?'':'disabled'}></div>
+            <div class="modal-field"><label>Sztuk</label><input id="ec_pigs" type="number" value="${c.pigs}" ${canWrite?'':'disabled'}></div>
+            <div class="modal-field"><label>Sprzedanych</label><input id="ec_sold" type="number" value="${c.sold}" ${canWrite?'':'disabled'}></div>
+            <div class="modal-field"><label>Zysk (PLN)</label><input id="ec_profit" type="number" step="0.01" value="${c.profit}" ${canWrite?'':'disabled'}></div>
+            <div class="modal-field"><label>FCR</label><input id="ec_fcr" type="number" step="0.01" value="${c.fcr}" ${canWrite?'':'disabled'}></div>
+            <div class="modal-field"><label>Upadki (%)</label><input id="ec_mortality" type="number" step="0.01" value="${c.mortality}" ${canWrite?'':'disabled'}></div>
+            <div class="modal-field"><label>Upadki (szt)</label><input id="ec_deaths" type="number" value="${c.deaths}" ${canWrite?'':'disabled'}></div>
+            <div class="modal-field"><label>Zysk/szt</label><input id="ec_ppp" type="number" step="0.01" value="${c.profit_per_pig}" ${canWrite?'':'disabled'}></div>
+        </div>
+        <div class="modal-actions">
+            ${canWrite?'<button class="modal-btn danger" onclick="deleteClient('+c.id+',\''+esc(c.name)+'\')">Usuń klienta</button>':''}
+            <button class="modal-btn secondary" onclick="hideModal()">Zamknij</button>
+            ${canWrite?'<button class="modal-btn primary" onclick="updateClient('+c.id+')">Zapisz zmiany</button>':''}
+        </div>`);
+}
+
+async function updateClient(id) {
+    try {
+        await api('/api/clients/'+id, {method:'PUT', body:JSON.stringify({
+            name: document.getElementById('ec_name').value.trim(),
+            kolczyk: document.getElementById('ec_kolczyk').value.trim(),
+            feeds: document.getElementById('ec_feeds').value.trim(),
+            cycles: parseInt(document.getElementById('ec_cycles').value)||0,
+            pigs: parseInt(document.getElementById('ec_pigs').value)||0,
+            sold: parseInt(document.getElementById('ec_sold').value)||0,
+            profit: parseFloat(document.getElementById('ec_profit').value)||0,
+            fcr: parseFloat(document.getElementById('ec_fcr').value)||0,
+            mortality: parseFloat(document.getElementById('ec_mortality').value)||0,
+            deaths: parseInt(document.getElementById('ec_deaths').value)||0,
+            profit_per_pig: parseFloat(document.getElementById('ec_ppp').value)||0,
+        })});
+        hideModal();
+        showToast('Klient zaktualizowany','success');
+        loadClients();
+    } catch(e) { showToast(e.message,'error'); }
+}
+
+// DELETE CLIENT
+async function deleteClient(id, name) {
+    if(!confirm('Na pewno usunąć klienta "'+name+'"?')) return;
+    try {
+        await api('/api/clients/'+id, {method:'DELETE'});
+        hideModal();
+        showToast('Klient usunięty','success');
+        loadClients();
+    } catch(e) { showToast(e.message,'error'); }
 }
 
 // ═══ CYCLES ═══
@@ -470,6 +575,41 @@ async function loadCycles() {
     } catch(e) { showToast('Błąd: '+e.message, 'error'); }
 }
 
+function showNewCycleModal() {
+    // Load clients for dropdown
+    const clientOpts = clientsCache.length > 0
+        ? clientsCache.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')
+        : '<option value="">Najpierw otwórz Klienci</option>';
+    showModal(`
+        <h3>Nowy cykl tuczu</h3>
+        <div class="modal-field"><label>Klient</label><select id="nc_client">${clientOpts}</select></div>
+        <div class="modal-field"><label>Miesiąc</label><input id="nc_month" placeholder="np. sty 2026"></div>
+        <div class="modal-field"><label>Pasza</label><input id="nc_feed" placeholder="Dostawca paszy"></div>
+        <div class="modal-field"><label>Sztuk (start)</label><input id="nc_start" type="number"></div>
+        <div class="modal-field"><label>Typ</label><select id="nc_type">
+            <option value="Kabanek">Kabanek</option>
+            <option value="Natural PIG">Natural PIG</option>
+        </select></div>
+        <div class="modal-actions">
+            <button class="modal-btn secondary" onclick="hideModal()">Anuluj</button>
+            <button class="modal-btn primary" onclick="createCycle()">Dodaj</button>
+        </div>`);
+}
+
+async function createCycle() {
+    try {
+        await api('/api/cycles', {method:'POST', body:JSON.stringify({
+            client_id: parseInt(document.getElementById('nc_client').value),
+            month: document.getElementById('nc_month').value,
+            feed: document.getElementById('nc_feed').value,
+            start_qty: parseInt(document.getElementById('nc_start').value)||0,
+            cycle_type: document.getElementById('nc_type').value,
+        })});
+        hideModal(); showToast('Cykl dodany','success');
+        loadCycles(); loadDashboard();
+    } catch(e) { showToast(e.message,'error'); }
+}
+
 // ═══ FINANCE ═══
 async function loadFinance() {
     try {
@@ -483,7 +623,6 @@ async function loadFinance() {
             <div class="stat-card"><div class="stat-value" style="color:var(--red)">${fmt(s.lossSum)} zł</div><div class="stat-label">Suma strat</div></div>
             <div class="stat-card"><div class="stat-value" style="color:${s.totalProfit>=0?'var(--green)':'var(--red)'}"><strong>${fmt(s.totalProfit)} zł</strong></div><div class="stat-label">Bilans</div></div>
         `;
-        // Charts
         const top10 = data.clients.filter(c=>c.totalProfit>0).slice(0,10);
         const bot10 = [...data.clients].sort((a,b)=>a.totalProfit-b.totalProfit).filter(c=>c.totalProfit<0).slice(0,10);
 
@@ -495,7 +634,6 @@ async function loadFinance() {
         if(bot10.length) {
             finBotChart = new Chart(document.getElementById('finBotChart'),{type:'bar',data:{labels:bot10.map(c=>c.name.length>22?c.name.slice(0,20)+'…':c.name),datasets:[{data:bot10.map(c=>c.totalProfit),backgroundColor:'rgba(198,40,40,.75)',borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>fmtPLN(t.raw)}}},scales:{x:{ticks:{callback:v=>fmt(v)}},y:{ticks:{font:{size:11,weight:600}}}}}});
         }
-        // Table
         document.getElementById('finTable').innerHTML = data.clients.map((c,i)=>`<tr>
             <td style="font-weight:700;color:var(--text-muted)">${i+1}</td>
             <td style="font-weight:500">${c.name}</td>
@@ -518,12 +656,12 @@ async function loadUsers() {
                 <div class="user-info">
                     <div class="user-avatar ${u.role}-av">${u.full_name[0]}</div>
                     <div>
-                        <div style="font-weight:600">${u.full_name}</div>
-                        <div style="font-size:12px;color:var(--text-muted)">@${u.username} · <span class="role-badge ${u.role}">${rolePL(u.role)}</span>${!u.is_active?' · <span style="color:var(--red)">Nieaktywny</span>':''}</div>
+                        <div style="font-weight:600">${esc(u.full_name)}</div>
+                        <div style="font-size:12px;color:var(--text-muted)">@${esc(u.username)} · <span class="role-badge ${u.role}">${rolePL(u.role)}</span>${!u.is_active?' · <span style="color:var(--red)">Nieaktywny</span>':''}</div>
                     </div>
                 </div>
                 <div class="user-actions">
-                    <button class="user-action-btn" onclick="showEditUserModal(${u.id},'${u.username}','${u.full_name}','${u.role}',${u.is_active})">Edytuj</button>
+                    <button class="user-action-btn" onclick="showEditUserModal(${u.id},'${esc(u.username)}','${esc(u.full_name)}','${u.role}',${u.is_active})">Edytuj</button>
                     ${u.id !== USER.id ? '<button class="user-action-btn danger" onclick="toggleUserActive('+u.id+','+u.is_active+')">'+(u.is_active?'Dezaktywuj':'Aktywuj')+'</button>' : ''}
                 </div>
             </div>`).join('');
@@ -561,8 +699,8 @@ async function createUser() {
 
 function showEditUserModal(id, username, name, role, active) {
     showModal(`
-        <h3>Edytuj: ${name}</h3>
-        <div class="modal-field"><label>Imię i nazwisko</label><input id="eu_name" value="${name}"></div>
+        <h3>Edytuj: ${esc(name)}</h3>
+        <div class="modal-field"><label>Imię i nazwisko</label><input id="eu_name" value="${esc(name)}"></div>
         <div class="modal-field"><label>Rola</label><select id="eu_role">
             <option value="pracownik" ${role==='pracownik'?'selected':''}>Pracownik</option>
             <option value="manager" ${role==='manager'?'selected':''}>Manager</option>
@@ -611,39 +749,7 @@ async function loadLogs() {
     } catch(e) { showToast('Błąd: '+e.message, 'error'); }
 }
 
-// ═══ NEW CYCLE MODAL ═══
-function showNewCycleModal() {
-    showModal(`
-        <h3>Nowy cykl tuczu</h3>
-        <div class="modal-field"><label>Klient (ID)</label><input id="nc_client" type="number" placeholder="ID klienta"></div>
-        <div class="modal-field"><label>Miesiąc</label><input id="nc_month" placeholder="np. sty 2026"></div>
-        <div class="modal-field"><label>Pasza</label><input id="nc_feed" placeholder="Dostawca paszy"></div>
-        <div class="modal-field"><label>Sztuk (start)</label><input id="nc_start" type="number"></div>
-        <div class="modal-field"><label>Typ</label><select id="nc_type">
-            <option value="Kabanek">Kabanek</option>
-            <option value="Natural PIG">Natural PIG</option>
-        </select></div>
-        <div class="modal-actions">
-            <button class="modal-btn secondary" onclick="hideModal()">Anuluj</button>
-            <button class="modal-btn primary" onclick="createCycle()">Dodaj</button>
-        </div>`);
-}
-
-async function createCycle() {
-    try {
-        await api('/api/cycles', {method:'POST', body:JSON.stringify({
-            client_id: parseInt(document.getElementById('nc_client').value),
-            month: document.getElementById('nc_month').value,
-            feed: document.getElementById('nc_feed').value,
-            start_qty: parseInt(document.getElementById('nc_start').value)||0,
-            cycle_type: document.getElementById('nc_type').value,
-        })});
-        hideModal(); showToast('Cykl dodany','success');
-        loadCycles(); loadDashboard();
-    } catch(e) { showToast(e.message,'error'); }
-}
-
-// ═══ STARTUP ═══
+// STARTUP
 if(TOKEN && USER) { initApp(); }
 </script>
 </body>
