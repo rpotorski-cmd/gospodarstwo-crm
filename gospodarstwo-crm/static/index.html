@@ -1686,7 +1686,7 @@ function App(){
                     {g.pow&&<span style={{background:"#e8f5e9",color:"#2e7d32",padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700}}>{g.pow} ha</span>}
                   </div>
                   <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                    {g.teryt&&<button onClick={()=>{const t=g.teryt.trim();window.open("https://mapy.geoportal.gov.pl/?identifyParcel="+t,"_blank")}} style={{background:"#1565c0",color:"#fff",padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,border:"none",cursor:"pointer"}}>🌐 Geoportal</button>}
+                    {g.teryt&&<button onClick={()=>{const t=g.teryt.trim();window.open("https://mapy.geoportal.gov.pl/imapnext/imap/?identifyParcel="+t,"_blank")}} style={{background:"#1565c0",color:"#fff",padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,border:"none",cursor:"pointer"}}>🌐 Geoportal</button>}
                     {isAdmin&&<button onClick={()=>{delGrunt(gi);setSelGruntIdx(null)}} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}
                   </div>
                 </div>
