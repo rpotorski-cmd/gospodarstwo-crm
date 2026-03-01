@@ -1,143 +1,131 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+import os
+import base64
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import Optional, List
 from database import get_db
-from models import User, AuditLog
-from auth import verify_password, create_token, hash_password, get_current_user, require_role
-from config import ROLE_ADMIN, MAX_USERS
-from datetime import datetime
-import time
-from collections import defaultdict
+from models import Dokument, AuditLog, User
+from auth import get_current_user, decode_token
+from config import can_write, can_read, MAX_FILE_SIZE_MB
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/api/files", tags=["files"])
 
-# ─── RATE LIMITER (brute-force protection) ───
-_login_attempts = defaultdict(list)  # IP -> [timestamp, ...]
-MAX_LOGIN_ATTEMPTS = 5  # max attempts
-LOGIN_WINDOW_SEC = 300  # per 5 minutes
+ALLOWED_EXT = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".tiff", ".tif", ".bmp", ".gif"]
 
 
-def check_rate_limit(ip: str):
-    now = time.time()
-    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < LOGIN_WINDOW_SEC]
-    if len(_login_attempts[ip]) >= MAX_LOGIN_ATTEMPTS:
-        raise HTTPException(
-            status_code=429,
-            detail=f"Zbyt wiele prób logowania. Spróbuj za {LOGIN_WINDOW_SEC // 60} minut."
-        )
-    _login_attempts[ip].append(now)
-
-
-class LoginReq(BaseModel):
-    email: str
-    password: str
-
-
-class UserCreate(BaseModel):
-    email: str
-    name: str
-    password: str
-    role: str = "user"
-
-
-class UserUpdate(BaseModel):
-    name: Optional[str] = None
-    role: Optional[str] = None
-    password: Optional[str] = None
-    is_active: Optional[bool] = None
-
-
-def log_audit(db: Session, user_name: str, email: str, area: str, action: str):
-    entry = AuditLog(user_name=user_name, email=email, area=area, action=action)
-    db.add(entry)
+def audit(db, user, area, action):
+    db.add(AuditLog(user_name=user.name, email=user.email, area=area, action=action))
     db.commit()
 
 
-@router.post("/login")
-async def login(req: LoginReq, request: Request, db: Session = Depends(get_db)):
-    client_ip = request.client.host if request.client else "unknown"
-    check_rate_limit(client_ip)
-    user = db.query(User).filter(User.email == req.email, User.is_active == True).first()
-    if not user or not verify_password(req.password, user.password_hash):
-        log_audit(db, req.email, req.email, "login_failed", f"Nieudane logowanie z IP: {client_ip}")
-        raise HTTPException(status_code=401, detail="Nieprawidłowy email lub hasło")
-    # Clear rate limit on success
-    _login_attempts.pop(client_ip, None)
-    token = create_token({"sub": str(user.id), "role": user.role})
-    log_audit(db, user.name, user.email, "login", "Zalogowano")
+def get_user_from_token_query(token, db):
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Nieprawidlowy token")
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Nieprawidlowy token")
+    user = db.query(User).filter(User.id == int(user_id), User.is_active == True).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Uzytkownik nieaktywny")
+    return user
+
+
+@router.post("/upload/{doc_id}")
+async def upload_file(
+    doc_id: int,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not can_write(user.role, "dokumenty"):
+        raise HTTPException(status_code=403, detail="Brak uprawnien")
+
+    doc = db.query(Dokument).filter(Dokument.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nie znaleziony")
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_EXT:
+        raise HTTPException(status_code=400, detail=f"Niedozwolony typ pliku. Dozwolone: {', '.join(ALLOWED_EXT)}")
+
+    content = await file.read()
+    size_mb = len(content) / (1024 * 1024)
+    if size_mb > MAX_FILE_SIZE_MB:
+        raise HTTPException(status_code=400, detail=f"Plik za duzy. Max: {MAX_FILE_SIZE_MB} MB")
+
+    # Store file in PostgreSQL
+    doc.file_name = file.filename or f"plik{ext}"
+    doc.file_data = content
+    doc.file_size = len(content)
+    doc.file_mime = file.content_type or "application/octet-stream"
+    doc.file_path = "db"  # marker that file is in database
+    db.commit()
+
+    audit(db, user, "dokumenty", f"Wgrano plik: {file.filename} -> dokument #{doc_id}")
+
     return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {"id": user.id, "email": user.email, "name": user.name, "role": user.role}
+        "ok": True,
+        "fileName": doc.file_name,
+        "fileSize": doc.file_size,
+        "fileMime": doc.file_mime,
+        "url": f"/api/files/download/{doc_id}"
     }
 
 
-@router.get("/me")
-async def me(user: User = Depends(get_current_user)):
-    return {"id": user.id, "email": user.email, "name": user.name, "role": user.role}
+@router.get("/download/{doc_id}")
+async def download_file(
+    doc_id: int,
+    token: str = Query(default=None),
+    db: Session = Depends(get_db)
+):
+    if not token:
+        raise HTTPException(status_code=401, detail="Brak tokena")
+    user = get_user_from_token_query(token, db)
+    if not can_read(user.role, "dokumenty"):
+        raise HTTPException(status_code=403, detail="Brak uprawnien")
+
+    doc = db.query(Dokument).filter(Dokument.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nie znaleziony")
+    if not doc.file_data:
+        raise HTTPException(status_code=404, detail="Brak pliku")
+
+    file_bytes = bytes(doc.file_data) if not isinstance(doc.file_data, bytes) else doc.file_data
+
+    # URL-encode filename for non-ASCII characters (Polish letters)
+    from urllib.parse import quote
+    safe_name = quote(doc.file_name or "plik", safe="")
+
+    return Response(
+        content=file_bytes,
+        media_type=doc.file_mime or "application/octet-stream",
+        headers={"Content-Disposition": f"inline; filename*=UTF-8''{safe_name}"}
+    )
 
 
-@router.get("/users")
-async def list_users(user: User = Depends(require_role(ROLE_ADMIN)), db: Session = Depends(get_db)):
-    users = db.query(User).all()
-    return [{"id": u.id, "email": u.email, "name": u.name, "role": u.role, "is_active": u.is_active} for u in users]
+@router.delete("/delete/{doc_id}")
+async def delete_file(
+    doc_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Tylko administrator może usuwać pliki")
+    if not can_write(user.role, "dokumenty"):
+        raise HTTPException(status_code=403, detail="Brak uprawnien")
 
+    doc = db.query(Dokument).filter(Dokument.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nie znaleziony")
 
-@router.post("/users")
-async def create_user(req: UserCreate, user: User = Depends(require_role(ROLE_ADMIN)), db: Session = Depends(get_db)):
-    total = db.query(User).filter(User.is_active == True).count()
-    if total >= MAX_USERS:
-        raise HTTPException(status_code=400, detail=f"Osiągnięto limit {MAX_USERS} użytkowników. Usuń nieaktywnych aby dodać nowych.")
-    if db.query(User).filter(User.email == req.email).first():
-        raise HTTPException(status_code=400, detail="Email zajęty")
-    new = User(email=req.email, name=req.name, password_hash=hash_password(req.password), role=req.role)
-    db.add(new)
+    old_name = doc.file_name
+    doc.file_name = ""
+    doc.file_path = ""
+    doc.file_size = 0
+    doc.file_mime = ""
+    doc.file_data = None
     db.commit()
-    db.refresh(new)
-    log_audit(db, user.name, user.email, "users", f"Utworzono: {req.name} ({req.role})")
-    return {"id": new.id, "email": new.email, "name": new.name, "role": new.role}
 
-
-@router.put("/users/{uid}")
-async def update_user(uid: int, req: UserUpdate, user: User = Depends(require_role(ROLE_ADMIN)), db: Session = Depends(get_db)):
-    target = db.query(User).filter(User.id == uid).first()
-    if not target:
-        raise HTTPException(status_code=404, detail="Nie znaleziono")
-    if req.name is not None:
-        target.name = req.name
-    if req.role is not None:
-        target.role = req.role
-    if req.password is not None:
-        target.password_hash = hash_password(req.password)
-    if req.is_active is not None:
-        target.is_active = req.is_active
-    db.commit()
-    log_audit(db, user.name, user.email, "users", f"Zaktualizowano: {target.name}")
-    return {"ok": True}
-
-
-@router.delete("/users/{uid}")
-async def delete_user(uid: int, user: User = Depends(require_role(ROLE_ADMIN)), db: Session = Depends(get_db)):
-    target = db.query(User).filter(User.id == uid).first()
-    if not target:
-        raise HTTPException(status_code=404, detail="Nie znaleziono")
-    target.is_active = False
-    db.commit()
-    log_audit(db, user.name, user.email, "users", f"Dezaktywowano: {target.name}")
-    return {"ok": True}
-
-
-# ─── AUDIT LOG ───
-
-@router.get("/audit")
-async def get_audit(limit: int = 200, user: User = Depends(require_role(ROLE_ADMIN)), db: Session = Depends(get_db)):
-    logs = db.query(AuditLog).order_by(AuditLog.id.desc()).limit(limit).all()
-    return [{"ts": str(l.ts), "user": l.user_name, "email": l.email, "area": l.area, "action": l.action} for l in logs]
-
-
-@router.delete("/audit")
-async def clear_audit(user: User = Depends(require_role(ROLE_ADMIN)), db: Session = Depends(get_db)):
-    db.query(AuditLog).delete()
-    db.commit()
+    audit(db, user, "dokumenty", f"Usunieto plik: {old_name} z dokumentu #{doc_id}")
     return {"ok": True}
