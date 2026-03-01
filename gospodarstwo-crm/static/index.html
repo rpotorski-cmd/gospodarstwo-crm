@@ -1808,21 +1808,22 @@ function App(){
               var nrs=getUprawaNrs(uprawy[uprDropOpen]||{});
               return ReactDOM.createPortal(<div>
                 <div onClick={()=>{setUprDropOpen(null);setUprDropQ("")}} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9998}}/>
-                <div style={{position:"fixed",top:rect.bottom+4,left:Math.min(rect.left,window.innerWidth-420),zIndex:9999,background:"#fff",border:"2px solid #558b2f",borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,.25)",maxHeight:380,width:400,display:"flex",flexDirection:"column"}}>
+                <div style={{position:"fixed",top:rect.bottom+4,left:Math.min(rect.left,window.innerWidth-420),zIndex:9999,background:"#fff",border:"2px solid #558b2f",borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,.25)",maxHeight:440,width:400,display:"flex",flexDirection:"column"}}>
                   <div style={{padding:"8px 12px",borderBottom:"1px solid #e8e3db",fontSize:11,fontWeight:700,color:"#2e7d32"}}>🌱 Wybierz działki do uprawy:</div>
                   <div style={{padding:"6px 10px",borderBottom:"1px solid #e8e3db"}}><input autoFocus value={uprDropQ} onChange={e=>setUprDropQ(e.target.value)} placeholder="Szukaj: nr, nazwa, obręb, właściciel..." style={{width:"100%",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 8px",fontSize:11,outline:"none",boxSizing:"border-box"}}/></div>
                   <div style={{display:"flex",gap:8,padding:"4px 10px",borderBottom:"1px solid #f0ebe3",fontSize:8,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.5}}>
-                    <span style={{width:16}}></span><span style={{minWidth:55}}>Nr</span><span style={{minWidth:70}}>Nazwa</span><span style={{minWidth:55}}>Obręb</span><span style={{minWidth:65}}>Właściciel</span><span style={{marginLeft:"auto"}}>Pow.</span>
+                    <span style={{width:16}}></span><span style={{minWidth:55}}>Nr</span><span style={{minWidth:65}}>Nazwa</span><span style={{minWidth:60}}>Właściciel</span><span style={{marginLeft:"auto"}}>Pow.</span>
                   </div>
                   <div style={{overflowY:"auto",flex:1,padding:4}}>
-                    {grunty.filter(g=>{if(!uprDropQ)return true;var q=uprDropQ.toLowerCase();return[g.nr,g.nazwa,g.obreb,g.wlasciciel,g.gmina].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map((g,gi)=>{var checked=nrs.includes(g.nr);return(<label key={gi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",cursor:"pointer",borderRadius:6,background:checked?"#e8f5e9":"transparent",fontSize:12,transition:"background 0.15s",borderBottom:"1px solid #f5f0e8"}} onMouseOver={e=>e.currentTarget.style.background=checked?"#c8e6c9":"#f5f0e8"} onMouseOut={e=>e.currentTarget.style.background=checked?"#e8f5e9":"transparent"}>
+                    {[...grunty].filter(g=>{if(!uprDropQ)return true;var q=uprDropQ.toLowerCase();return[g.nr,g.nazwa,g.obreb,g.wlasciciel,g.gmina].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).sort((a,b)=>{var ac=nrs.includes(a.nr)?0:1,bc=nrs.includes(b.nr)?0:1;if(ac!==bc)return ac-bc;if((a.obreb||"")!==(b.obreb||""))return(a.obreb||"").localeCompare(b.obreb||"");var na=a.nr.split("/"),nb=b.nr.split("/");var d=(parseInt(na[0])||0)-(parseInt(nb[0])||0);return d!==0?d:(parseInt(na[1])||0)-(parseInt(nb[1])||0)}).map((g,gi,arr)=>{var checked=nrs.includes(g.nr);var showHeader=gi===0||(arr[gi-1].obreb||"")!==(g.obreb||"");return(<React.Fragment key={g.nr}>
+                      {showHeader&&<div style={{padding:"4px 10px",background:"#f5f0e8",fontSize:9,fontWeight:800,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1,borderRadius:4,marginTop:gi>0?6:0}}>{g.obreb||"Brak obrębu"} • {g.gmina||""}</div>}
+                      <label style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",cursor:"pointer",borderRadius:6,background:checked?"#e8f5e9":"transparent",fontSize:12,transition:"background 0.15s"}} onMouseOver={e=>e.currentTarget.style.background=checked?"#c8e6c9":"#f5f0e8"} onMouseOut={e=>e.currentTarget.style.background=checked?"#e8f5e9":"transparent"}>
                       <input type="checkbox" checked={checked} onChange={()=>toggleGruntInUprawa(uprDropOpen,g.nr)} style={{accentColor:"#2e7d32",width:16,height:16}}/>
-                      <span style={{fontFamily:"monospace",fontWeight:700,fontSize:12,color:"#1a3328",minWidth:55}}>{g.nr}</span>
-                      <span style={{color:"#558b2f",fontSize:10,minWidth:70,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.nazwa||""}</span>
-                      <span style={{color:"#8a7e72",fontSize:9,minWidth:55,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.obreb||""}</span>
-                      <span style={{color:"#6a1b9a",fontSize:9,minWidth:65,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.wlasciciel||""}</span>
+                      <span style={{fontFamily:"monospace",fontWeight:700,fontSize:12,color:checked?"#2e7d32":"#1a3328",minWidth:55}}>{g.nr}</span>
+                      <span style={{color:"#558b2f",fontSize:10,minWidth:65,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.nazwa||""}</span>
+                      <span style={{color:"#6a1b9a",fontSize:9,minWidth:60,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.wlasciciel||""}</span>
                       <span style={{marginLeft:"auto",color:"#558b2f",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>{g.pow?g.pow+" ha":""}</span>
-                    </label>)})}
+                    </label></React.Fragment>)})}
                   </div>
                   <div style={{borderTop:"2px solid #e8e3db",padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <span style={{fontSize:10,color:"#8a7e72"}}>{nrs.length} wybrano{nrs.length>0?" • "+fN(nrs.reduce((s,n)=>{var g=grunty.find(g2=>g2.nr===n);return s+(g?parseFloat(g.pow)||0:0)},0),2)+" ha":""}</span>
