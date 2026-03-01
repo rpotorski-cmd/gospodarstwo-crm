@@ -227,6 +227,18 @@ async def root():
     return JSONResponse({"status": "Kabanek Gospodarstwo CRM API", "docs": "/docs"})
 
 
+@app.get("/manifest.json")
+async def manifest():
+    return FileResponse(os.path.join(static_dir, "manifest.json"), media_type="application/manifest+json")
+
+
+@app.get("/sw.js")
+async def service_worker():
+    return FileResponse(os.path.join(static_dir, "sw.js"), media_type="application/javascript",
+                        headers={"Service-Worker-Allowed": "/"})
+
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8001))
