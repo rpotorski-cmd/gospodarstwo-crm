@@ -188,6 +188,59 @@ GRUNTY_DATA = [
     {"kw":"NS1Z/00066242/6","nr":"29a/6","obreb":"Kościelisko","pow":"0.0026","nazwa":"Miejsce postojowe nr 2","wlasciciel":"Fundacja Rodzinna","woj":"małopolskie","powiat":"tatrzański","gmina":"Kościelisko","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":""},
 ]
 
+STOCK_DATA = [
+    {"name":"Amoksiklav 500g 62,5%","unit":"szt","qty":5,"note":"AMOKSA"},
+    {"name":"Paracilin 1000g","unit":"szt","qty":1,"note":"AMOKSA"},
+    {"name":"Fortamox 500mg/g (1000g)","unit":"szt","qty":1,"note":"AMOKSA"},
+    {"name":"Biomox 80/100g (1000g)","unit":"szt","qty":6,"note":"AMOKSA"},
+    {"name":"Amoxy Active 697mg/g (1kg)","unit":"szt","qty":88,"note":"AMOKSA"},
+    {"name":"Octacilin 697mg/g (1kg)","unit":"szt","qty":33,"note":"AMOKSA"},
+    {"name":"Doxymed 1000mg/g (1kg) czerwony","unit":"szt","qty":50,"note":"DOKSY"},
+    {"name":"Doxymed 500mg/g (5kg) niebieskie","unit":"szt","qty":1,"note":"DOKSY"},
+    {"name":"Altidox 500mg/g (1kg)","unit":"szt","qty":20,"note":"DOKSY"},
+    {"name":"Lincoscan 400mg/g (1,5kg)","unit":"szt","qty":1,"note":"LINKOMYCYNA"},
+    {"name":"Dophalin 1kg","unit":"szt","qty":23,"note":"LINKOMYCYNA"},
+    {"name":"Lincofort 400 (1500g)","unit":"szt","qty":4,"note":"LINKOMYCYNA"},
+    {"name":"Solutyl 1,1kg","unit":"szt","qty":1,"note":"TYLOZYNA"},
+    {"name":"Tylogran","unit":"szt","qty":149,"note":"TYLOZYNA"},
+    {"name":"Enrofloksacyna Vetos-Farma 100mg/ml (1L)","unit":"szt","qty":31,"note":"ENROFLOKSACYNA"},
+    {"name":"Enrobioflox 10% 100mg/ml (1000ml)","unit":"szt","qty":2,"note":"ENROFLOKSACYNA"},
+    {"name":"Aquacoli 2000000 j.m./ml (5ml)","unit":"szt","qty":12,"note":"KOLISTYNY SIARCZAN"},
+    {"name":"Nipoxyme 22.500.000 IU/g (250g)","unit":"szt","qty":8,"note":"KOLISTYNY SIARCZAN"},
+    {"name":"Coldostin 4 800 000 IU/g (1kg)","unit":"szt","qty":1,"note":"KOLISTYNY SIARCZAN"},
+    {"name":"Colfive 5 000 000 j.m./ml (5L)","unit":"szt","qty":3,"note":"KOLISTYNY SIARCZAN"},
+    {"name":"Aivlosin 625mg/g (5x400g)","unit":"kartoniki","qty":31,"note":"155 paczek łącznie"},
+    {"name":"Neofort 700mg/g (1000g)","unit":"szt","qty":67,"note":"NEOMYCYNY SIARCZAN"},
+    {"name":"Neomycyna Vetos Farma 1000g","unit":"szt","qty":36,"note":"NEOMYCYNY SIARCZAN"},
+    {"name":"Neosol 145g/1000ml (900ml)","unit":"szt","qty":6,"note":"NEOMYCYNY SIARCZAN"},
+    {"name":"Ecomectin 6mg/g (5x333g)","unit":"paczki","qty":71,"note":"IWERMYKTYNA"},
+    {"name":"Lewamizol 10% 100mg/g (1000g)","unit":"szt","qty":12,"note":"LEWAMIZOLU CHLOROWODOREK"},
+    {"name":"Levamol 8% (800g)","unit":"szt","qty":1,"note":"LEWAMIZOLU CHLOROWODOREK"},
+    {"name":"Panacur Aquasol 200mg/ml (4L)","unit":"szt","qty":2,"note":"LEWAMIZOLU CHLOROWODOREK"},
+    {"name":"Floron 100mg/ml (~1L)","unit":"szt","qty":3,"note":"FLORFENIKOL"},
+    {"name":"K-FLOR 100mg/ml (1L)","unit":"szt","qty":13,"note":"FLORFENIKOL"},
+    {"name":"Hypersol 500mg/g (5kg)","unit":"szt","qty":2,"note":"OKSYTETRACYKLINA"},
+    {"name":"Oksytetracyklina 50% (500g)","unit":"szt","qty":1,"note":"OKSYTETRACYKLINA"},
+    {"name":"Fenbenat 40mg/g (500g)","unit":"szt","qty":4,"note":"FENBENAT"},
+    {"name":"Solacyl 1000mg/g (1kg)","unit":"szt","qty":1,"note":"SODU SALICYLAN"},
+    {"name":"Tilmovet 100mg/g (1kg)","unit":"szt","qty":4,"note":"TYLMIKOZYNA"},
+    {"name":"Tildosin 250mg/ml (960ml)","unit":"szt","qty":1,"note":"TYLMIKOZYNA"},
+    {"name":"Vetmulin 450mg/g (1kg)","unit":"szt","qty":26,"note":"TIAMULINA"},
+    {"name":"Biomutin 450mg/g (1kg)","unit":"szt","qty":8,"note":"TIAMULINA"},
+    {"name":"Metaxol 20/100mg/ml (5L)","unit":"szt","qty":1,"note":"SULFAMETOKSAZOL"},
+    {"name":"Metasol 1kg","unit":"szt","qty":30,"note":"ROZPUSZCZALNIK AMOKSY"},
+    {"name":"Węglan sodu bezwodny","unit":"szt","qty":10,"note":"ROZPUSZCZALNIK AMOKSY"},
+    {"name":"Magi 960g","unit":"szt","qty":25,"note":"DODATKI / WITAMINY"},
+    {"name":"Garlic Stroong 5L","unit":"szt","qty":1,"note":"napoczęte"},
+    {"name":"Eselin 5L","unit":"szt","qty":11,"note":"DODATKI / WITAMINY"},
+    {"name":"Vit K 5L","unit":"szt","qty":9,"note":"DODATKI / WITAMINY"},
+    {"name":"Vit C 25kg","unit":"szt","qty":3,"note":"DODATKI / WITAMINY"},
+    {"name":"Nervomix 5L","unit":"szt","qty":1,"note":"DODATKI / WITAMINY"},
+    {"name":"AD3E + K3 5L","unit":"szt","qty":1,"note":"DODATKI / WITAMINY"},
+    {"name":"Pulmomix AERO 5L","unit":"szt","qty":3,"note":"1 szt używana"},
+]
+
+
 def seed():
     db = SessionLocal()
     try:
@@ -200,11 +253,16 @@ def seed():
                 ))
             print(f"  ✓ {len(USERS)} użytkowników")
 
-        # Stock (medication inventory)
-        if db.query(Stock).count() == 0:
-            for m in MEDS:
-                db.add(Stock(name=m["name"], unit=m["unit"], qty=0, min_qty=0))
-            print(f"  ✓ {len(MEDS)} leków w magazynie")
+        # Stock (medication inventory) - reseed from Excel import
+        existing_stock = db.query(Stock).count()
+        has_old_stock = existing_stock > 0 and existing_stock < len(STOCK_DATA)
+        if existing_stock == 0 or has_old_stock:
+            if has_old_stock:
+                db.query(Stock).delete()
+                print("  ↻ Aktualizacja magazynu leków z Excela")
+            for s in STOCK_DATA:
+                db.add(Stock(name=s["name"], unit=s["unit"], qty=s["qty"], min_qty=0, note=s.get("note","")))
+            print(f"  ✓ {len(STOCK_DATA)} leków zaimportowanych z Excela")
 
         # Ubojnie
         if db.query(Ubojnia).count() == 0:
