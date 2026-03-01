@@ -452,15 +452,17 @@ function App(){
 
   // ═══ PRODUKCJA ROŚLINNA ═══
   const[rView,setRView]=useState("ciagniki");
+  const[selMaszIdx,setSelMaszIdx]=useState(null);
+  const[selGruntIdx,setSelGruntIdx]=useState(null);
   const[ciagniki,setCiagniki]=useState([]);
-  const saveCiagniki=async()=>{try{const ex=await api.get("/ciagniki");for(const c of ciagniki){if(ex.find(e=>e.id===c.id))await api.put("/ciagniki/"+c.id,c);else{const r=await api.post("/ciagniki",c);c.id=r.id}}for(const e of ex){if(!ciagniki.find(c=>c.id===e.id))await api.del("/ciagniki/"+e.id)}setToast("Maszyny zapisane");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const saveCiagniki=async()=>{try{const ex=await api.get("/ciagniki");for(const c of ciagniki){if(ex.find(e=>e.id===c.id))await api.put("/ciagniki/"+c.id,c);else{const r=await api.post("/ciagniki",c);c.id=r.id}}for(const e of ex){if(!ciagniki.find(c=>c.id===e.id))await api.del("/ciagniki/"+e.id)}const fresh=await api.get("/ciagniki");setCiagniki(fresh||[]);setToast("Maszyny zapisane");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addCiagnik=()=>{logAudit("maszyny","Dodano maszyne");setCiagniki(p=>[...p,{id:Date.now(),typ:"ciagnik",nazwa:"",marka:"",rok:"",moc:"",rejestr:"",przeglad:"",ubezp:"",uwagi:"",olejSilnik:"",olejSkrzynia:"",olejMostP:"",olejMostT:"",naprawy:""}])};
   const[maszynyTab,setMaszynyTab]=useState("ciagniki");
   const updCiagnik=(i,f,v)=>{setCiagniki(p=>p.map((c,ci)=>ci===i?{...c,[f]:v}:c))};
   const delCiagnik=i=>{logAudit("maszyny","Usunieto maszyne: "+(ciagniki[i]?.nazwa||"#"+(i+1)));setCiagniki(p=>p.filter((_,ci)=>ci!==i))};
 
   const[grunty,setGrunty]=useState([]);
-  const saveGrunty=async()=>{try{const ex=await api.get("/grunty");for(const g of grunty){if(ex.find(e=>e.id===g.id))await api.put("/grunty/"+g.id,g);else{const r=await api.post("/grunty",g);g.id=r.id}}for(const e of ex){if(!grunty.find(g=>g.id===e.id))await api.del("/grunty/"+e.id)}setToast("Grunty zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const saveGrunty=async()=>{try{const ex=await api.get("/grunty");for(const g of grunty){if(ex.find(e=>e.id===g.id))await api.put("/grunty/"+g.id,g);else{const r=await api.post("/grunty",g);g.id=r.id}}for(const e of ex){if(!grunty.find(g=>g.id===e.id))await api.del("/grunty/"+e.id)}const fresh=await api.get("/grunty");setGrunty(fresh||[]);setToast("Grunty zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   // ═══ TERYT BAZA: woj→powiat→gminy ═══
   const TERYT_DB={"warmińsko-mazurskie":{
     "bartoszycki":["Bartoszyce","Bisztynek","Górowo Iławeckie","Sępopol"],
@@ -617,41 +619,41 @@ function App(){
   const delGrunt=i=>{logAudit("grunty","Usunięto grunt: "+(grunty[i]?.nazwa||"#"+(i+1)));setGrunty(p=>p.filter((_,gi)=>gi!==i))};
 
   const[uprawy,setUprawy]=useState([]);
-  const saveUprawy=async()=>{try{const ex=await api.get("/uprawy");for(const u of uprawy){if(ex.find(e=>e.id===u.id))await api.put("/uprawy/"+u.id,u);else{const r=await api.post("/uprawy",u);u.id=r.id}}for(const e of ex){if(!uprawy.find(u=>u.id===e.id))await api.del("/uprawy/"+e.id)}setToast("Uprawy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const saveUprawy=async()=>{try{const ex=await api.get("/uprawy");for(const u of uprawy){if(ex.find(e=>e.id===u.id))await api.put("/uprawy/"+u.id,u);else{const r=await api.post("/uprawy",u);u.id=r.id}}for(const e of ex){if(!uprawy.find(u=>u.id===e.id))await api.del("/uprawy/"+e.id)}const fresh=await api.get("/uprawy");setUprawy(fresh||[]);setToast("Uprawy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addUprawa=()=>{logAudit("uprawy","Dodano nową uprawę");setUprawy(p=>[...p,{id:Date.now(),grunt:"",roslina:"",odmiana:"",pow:"",dataS:"",dataZ:"",plon:"",uwagi:""}])};
   const updUprawa=(i,f,v)=>{setUprawy(p=>p.map((u,ui)=>ui===i?{...u,[f]:v}:u))};
   const delUprawa=i=>{logAudit("uprawy","Usunięto uprawę #"+(i+1));setUprawy(p=>p.filter((_,ui)=>ui!==i))};
 
   const[nawozy,setNawozy]=useState([]);
-  const saveNawozy=async()=>{try{const ex=await api.get("/nawozy");for(const n of nawozy){if(ex.find(e=>e.id===n.id))await api.put("/nawozy/"+n.id,n);else{const r=await api.post("/nawozy",n);n.id=r.id}}for(const e of ex){if(!nawozy.find(n=>n.id===e.id))await api.del("/nawozy/"+e.id)}setToast("Nawozy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const saveNawozy=async()=>{try{const ex=await api.get("/nawozy");for(const n of nawozy){if(ex.find(e=>e.id===n.id))await api.put("/nawozy/"+n.id,n);else{const r=await api.post("/nawozy",n);n.id=r.id}}for(const e of ex){if(!nawozy.find(n=>n.id===e.id))await api.del("/nawozy/"+e.id)}const fresh=await api.get("/nawozy");setNawozy(fresh||[]);setToast("Nawozy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addNawoz=()=>{logAudit("nawozy","Dodano nawożenie");setNawozy(p=>[...p,{id:Date.now(),d:tS(),grunt:"",nawoz:"",typ:"Azotowy",dawka:"",pow:"",uwagi:""}])};
   const updNawoz=(i,f,v)=>{setNawozy(p=>p.map((n,ni)=>ni===i?{...n,[f]:v}:n))};
   const delNawoz=i=>{logAudit("nawozy","Usunięto nawożenie #"+(i+1));setNawozy(p=>p.filter((_,ni)=>ni!==i))};
 
   // ═══ OPRYSKI ═══
   const[opryski,setOpryski]=useState([]);
-  const saveOpryski=async()=>{try{const ex=await api.get("/opryski");for(const o of opryski){if(ex.find(e=>e.id===o.id))await api.put("/opryski/"+o.id,o);else{const r=await api.post("/opryski",o);o.id=r.id}}for(const e of ex){if(!opryski.find(o=>o.id===e.id))await api.del("/opryski/"+e.id)}setToast("Opryski zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const saveOpryski=async()=>{try{const ex=await api.get("/opryski");for(const o of opryski){if(ex.find(e=>e.id===o.id))await api.put("/opryski/"+o.id,o);else{const r=await api.post("/opryski",o);o.id=r.id}}for(const e of ex){if(!opryski.find(o=>o.id===e.id))await api.del("/opryski/"+e.id)}const fresh=await api.get("/opryski");setOpryski(fresh||[]);setToast("Opryski zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addOprysk=()=>{logAudit("opryski","Dodano nowy oprysk");setOpryski(p=>[...p,{id:Date.now(),d:tS(),grunt:"",srodek:"",dawka:"",pow:"",cel:"Chwasty",faza:"",uwagi:""}])};
   const updOprysk=(i,f,v)=>setOpryski(p=>p.map((o,oi)=>oi===i?{...o,[f]:v}:o));
   const delOprysk=i=>{logAudit("opryski","Usunięto oprysk #"+(i+1));setOpryski(p=>p.filter((_,oi)=>oi!==i))};
 
   // ═══ PALIWA I SMARY ═══
   const[paliwa,setPaliwa]=useState([]);
-  const savePaliwa=async()=>{try{const ex=await api.get("/paliwa");for(const p of paliwa){if(ex.find(e=>e.id===p.id))await api.put("/paliwa/"+p.id,p);else{const r=await api.post("/paliwa",p);p.id=r.id}}for(const e of ex){if(!paliwa.find(p=>p.id===e.id))await api.del("/paliwa/"+e.id)}setToast("Paliwa zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const savePaliwa=async()=>{try{const ex=await api.get("/paliwa");for(const p of paliwa){if(ex.find(e=>e.id===p.id))await api.put("/paliwa/"+p.id,p);else{const r=await api.post("/paliwa",p);p.id=r.id}}for(const e of ex){if(!paliwa.find(p=>p.id===e.id))await api.del("/paliwa/"+e.id)}const fresh=await api.get("/paliwa");setPaliwa(fresh||[]);setToast("Paliwa zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addPaliwo=()=>{logAudit("paliwa","Dodano wpis paliwa/smaru");setPaliwa(p=>[...p,{id:Date.now(),d:tS(),typ:"ON",maszyna:"",litry:0,cena:0,km:"",uwagi:""}])};
   const updPaliwo=(i,f,v)=>setPaliwa(p=>p.map((o,oi)=>oi===i?{...o,[f]:v}:o));
   const delPaliwo=i=>{logAudit("paliwa","Usunięto wpis #"+(i+1));setPaliwa(p=>p.filter((_,oi)=>oi!==i))};
 
   // ═══ DOSTAWY ROŚLINNA ═══
   const[rDostawy,setRDostawy]=useState([]);
-  const saveRDostawy=async()=>{try{const ex=await api.get("/rdostawy");for(const d of rDostawy){if(ex.find(e=>e.id===d.id))await api.put("/rdostawy/"+d.id,d);else{const r=await api.post("/rdostawy",d);d.id=r.id}}for(const e of ex){if(!rDostawy.find(d=>d.id===e.id))await api.del("/rdostawy/"+e.id)}setToast("Dostawy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const saveRDostawy=async()=>{try{const ex=await api.get("/rdostawy");for(const d of rDostawy){if(ex.find(e=>e.id===d.id))await api.put("/rdostawy/"+d.id,d);else{const r=await api.post("/rdostawy",d);d.id=r.id}}for(const e of ex){if(!rDostawy.find(d=>d.id===e.id))await api.del("/rdostawy/"+e.id)}const fresh=await api.get("/rdostawy");setRDostawy(fresh||[]);setToast("Dostawy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addRDostawa=()=>{logAudit("dostawy","Dodano dostawę");setRDostawy(p=>[...p,{id:Date.now(),d:tS(),produkt:"",ilosc:0,jm:"t",cena:0,dostawca:"",fv:"",uwagi:""}])};
   const updRDostawa=(i,f,v)=>setRDostawy(p=>p.map((d,di)=>di===i?{...d,[f]:v}:d));
   const delRDostawa=i=>{logAudit("dostawy","Usunięto dostawę #"+(i+1));setRDostawy(p=>p.filter((_,di)=>di!==i))};
 
   // ═══ ZAKUPY RÓŻNE ═══
   const[zakupy,setZakupy]=useState([]);
-  const saveZakupy=async()=>{try{const ex=await api.get("/zakupy");for(const z of zakupy){if(ex.find(e=>e.id===z.id))await api.put("/zakupy/"+z.id,z);else{const r=await api.post("/zakupy",z);z.id=r.id}}for(const e of ex){if(!zakupy.find(z=>z.id===e.id))await api.del("/zakupy/"+e.id)}setToast("Zakupy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const saveZakupy=async()=>{try{const ex=await api.get("/zakupy");for(const z of zakupy){if(ex.find(e=>e.id===z.id))await api.put("/zakupy/"+z.id,z);else{const r=await api.post("/zakupy",z);z.id=r.id}}for(const e of ex){if(!zakupy.find(z=>z.id===e.id))await api.del("/zakupy/"+e.id)}const fresh=await api.get("/zakupy");setZakupy(fresh||[]);setToast("Zakupy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addZakup=()=>{logAudit("zakupy","Dodano zakup");setZakupy(p=>[...p,{id:Date.now(),d:tS(),produkt:"",cena:0,kto:user?.name||"",uwagi:""}])};
   const updZakup=(i,f,v)=>setZakupy(p=>p.map((z,zi)=>zi===i?{...z,[f]:v}:z));
   const delZakup=i=>{logAudit("zakupy","Usunięto zakup #"+(i+1));setZakupy(p=>p.filter((_,zi)=>zi!==i))};
@@ -665,7 +667,7 @@ function App(){
     {id:"inne",label:"Inne",icon:"📝",col:"#558b2f"}
   ];
   const[biogaz,setBiogaz]=useState([]);
-  const saveBiogaz=async()=>{try{const ex=await api.get("/biogaz");for(const b of biogaz){if(ex.find(e=>e.id===b.id))await api.put("/biogaz/"+b.id,b);else{const r=await api.post("/biogaz",b);b.id=r.id}}for(const e of ex){if(!biogaz.find(b=>b.id===e.id))await api.del("/biogaz/"+e.id)}setToast("Biogazownia zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const saveBiogaz=async()=>{try{const ex=await api.get("/biogaz");for(const b of biogaz){if(ex.find(e=>e.id===b.id))await api.put("/biogaz/"+b.id,b);else{const r=await api.post("/biogaz",b);b.id=r.id}}for(const e of ex){if(!biogaz.find(b=>b.id===e.id))await api.del("/biogaz/"+e.id)}const fresh=await api.get("/biogaz");setBiogaz(fresh||[]);setToast("Biogazownia zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addBiogaz=(kat)=>{logAudit("biogazownia","Dodano: "+kat);setBiogaz(p=>[{id:Date.now(),d:tS(),kat:kat,czynnosc:"",uwagi:"",kto:user?.name||""},...p])};
   const updBiogaz=(i,f,v)=>setBiogaz(p=>p.map((b,bi)=>bi===i?{...b,[f]:v}:b));
   const delBiogaz=i=>{logAudit("biogazownia","Usunięto wpis #"+(i+1));setBiogaz(p=>p.filter((_,bi)=>bi!==i))};
@@ -1593,25 +1595,25 @@ function App(){
         <div className="card">
           <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:22}}>🚜</span><div><div style={{fontSize:15,fontWeight:700}}>Maszyny</div><div style={{fontSize:10,color:"#8a7e72"}}>Ciagniki, ladowarki, inne maszyny</div></div></div>
-            <div style={{display:"flex",gap:8}}>{isAdmin&&<button className="btn btn-primary btn-sm" onClick={addCiagnik}>+ Dodaj maszyne</button>}<SaveBtn onClick={saveCiagniki} size="sm"/></div>
+            <div style={{display:"flex",gap:8}}>{isAdmin&&<button className="btn btn-primary btn-sm" onClick={function(){addCiagnik();setTimeout(function(){setSelMaszIdx(ciagniki.length)},50)}}>+ Dodaj maszyne</button>}<SaveBtn onClick={saveCiagniki} size="sm"/></div>
           </div>
           <div style={{padding:16}}>
-            {!isAdmin&&<div style={{background:"#fff3e0",borderRadius:8,padding:"8px 14px",fontSize:11,color:"#e65100",marginBottom:14}}>🔒 Tryb podgladu. Edycja dostepna dla administratora.</div>}
+            {!isAdmin&&<div style={{background:"#fff3e0",borderRadius:8,padding:"8px 14px",fontSize:11,color:"#e65100",marginBottom:14}}>Tryb podgladu. Edycja dostepna dla administratora.</div>}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:20}}>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{ciagniki.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Maszyn</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#e65100"}}>{ciagniki.filter(c=>c.przeglad&&dB(tS(),c.przeglad)<30).length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Przeglad &lt;30d</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#c62828"}}>{ciagniki.filter(c=>c.ubezp&&dB(tS(),c.ubezp)<30).length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Ubezp. &lt;30d</div></div>
             </div>
             <div style={{display:"flex",gap:4,marginBottom:16,borderBottom:"2px solid #e8e3db",paddingBottom:0}}>
-              <button className={"tab-btn"+(maszynyTab==="ciagniki"?" active":"")} onClick={function(){setMaszynyTab("ciagniki")}}>Ciagniki i ladowarki</button>
-              <button className={"tab-btn"+(maszynyTab==="inne"?" active":"")} onClick={function(){setMaszynyTab("inne")}}>Inne maszyny</button>
+              <button className={"tab-btn"+(maszynyTab==="ciagniki"?" active":"")} onClick={function(){setMaszynyTab("ciagniki");setSelMaszIdx(null)}}>Ciagniki i ladowarki</button>
+              <button className={"tab-btn"+(maszynyTab==="inne"?" active":"")} onClick={function(){setMaszynyTab("inne");setSelMaszIdx(null)}}>Inne maszyny</button>
             </div>
-            {ciagniki.filter(function(c){return maszynyTab==="ciagniki"?(!c.typ||c.typ==="ciagnik"||c.typ==="ladowarka"):(c.typ==="inne")}).length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak maszyn w tej kategorii.</div>:
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(380px,1fr))",gap:12}}>
-              {ciagniki.map(function(c,ci){var isCiag=(!c.typ||c.typ==="ciagnik"||c.typ==="ladowarka");var show=maszynyTab==="ciagniki"?isCiag:(c.typ==="inne");if(!show)return null;var przDays=c.przeglad?dB(tS(),c.przeglad):null;var ubDays=c.ubezp?dB(tS(),c.ubezp):null;return(<div key={ci} className="card" style={{padding:0,border:przDays!==null&&przDays<0?"2px solid #c62828":ubDays!==null&&ubDays<0?"2px solid #e65100":"1px solid #ddd6cc"}}>
+            {selMaszIdx!==null&&ciagniki[selMaszIdx]?(function(){var ci=selMaszIdx;var c=ciagniki[ci];var isCiag=(!c.typ||c.typ==="ciagnik"||c.typ==="ladowarka");var przDays=c.przeglad?dB(tS(),c.przeglad):null;var ubDays=c.ubezp?dB(tS(),c.ubezp):null;return(<div>
+              <button onClick={function(){setSelMaszIdx(null)}} className="btn btn-sm" style={{marginBottom:12,background:"#f0ebe3",border:"none",cursor:"pointer",padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:700}}>← Powrot do listy</button>
+              <div className="card" style={{padding:0,border:przDays!==null&&przDays<0?"2px solid #c62828":ubDays!==null&&ubDays<0?"2px solid #e65100":"1px solid #ddd6cc"}}>
                 <div style={{padding:"12px 16px",background:"#f8f5f0",borderBottom:"1px solid #e8e3db",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <span style={{fontSize:15,fontWeight:800,color:"#1a3328"}}>{c.nazwa||"Nowa maszyna"}</span>
-                  <button onClick={function(){return delCiagnik(ci)}} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>
+                  <div style={{display:"flex",gap:8}}>{isAdmin&&<button onClick={function(){delCiagnik(ci);setSelMaszIdx(null)}} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕ Usun</button>}</div>
                 </div>
                 <div style={{padding:"12px 16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                   <div style={{gridColumn:"span 2"}}><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Typ maszyny</div>
@@ -1633,11 +1635,24 @@ function App(){
                   {isAdmin?<textarea value={c.naprawy||""} onChange={function(e){return updCiagnik(ci,"naprawy",e.target.value)}} placeholder="Np. 2026-01-15 wymiana filtrow..." rows={3} style={{width:"100%",border:"1px solid #ef9a9a",borderRadius:6,padding:"6px 8px",fontSize:11,outline:"none",background:"#fff",fontFamily:"inherit",resize:"vertical",boxSizing:"border-box"}}/>:<span style={{fontSize:11,whiteSpace:"pre-wrap"}}>{c.naprawy||"---"}</span>}
                 </div>}
                 {(przDays!==null||ubDays!==null)&&<div style={{padding:"6px 16px 10px",display:"flex",gap:8}}>
-                  {przDays!==null&&<span style={{fontSize:10,fontWeight:700,color:przDays<0?"#c62828":przDays<30?"#e65100":"#2e7d32"}}>{przDays<0?"Przeglad "+Math.abs(przDays)+"d po terminie":przDays<30?"Przeglad za "+przDays+"d":"Przeglad za "+przDays+"d"}</span>}
-                  {ubDays!==null&&<span style={{fontSize:10,fontWeight:700,color:ubDays<0?"#c62828":ubDays<30?"#e65100":"#2e7d32"}}>{ubDays<0?"Ubezp. "+Math.abs(ubDays)+"d po":ubDays<30?"Ubezp. za "+ubDays+"d":"Ubezp. za "+ubDays+"d"}</span>}
+                  {przDays!==null&&<span style={{fontSize:10,fontWeight:700,color:przDays<0?"#c62828":przDays<30?"#e65100":"#2e7d32"}}>{przDays<0?"Przeglad "+Math.abs(przDays)+"d po terminie":"Przeglad za "+przDays+"d"}</span>}
+                  {ubDays!==null&&<span style={{fontSize:10,fontWeight:700,color:ubDays<0?"#c62828":ubDays<30?"#e65100":"#2e7d32"}}>{ubDays<0?"Ubezp. "+Math.abs(ubDays)+"d po":"Ubezp. za "+ubDays+"d"}</span>}
                 </div>}
-              </div>)})}
-            </div>}
+              </div>
+            </div>)})()
+            :<div>{(function(){var items=ciagniki.map(function(c,ci){return{c:c,ci:ci}}).filter(function(x){return maszynyTab==="ciagniki"?(!x.c.typ||x.c.typ==="ciagnik"||x.c.typ==="ladowarka"):(x.c.typ==="inne")});return items.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak maszyn w tej kategorii. Kliknij "+ Dodaj maszyne".</div>:
+            <div style={{overflowX:"auto"}}><table className="tbl"><thead><tr style={{background:"#f8f5f0"}}><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>#</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nazwa</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Typ</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Marka</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Rok</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nr rej.</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Przeglad</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Ubezp.</th>{isAdmin&&<th style={{padding:"10px 12px",fontSize:10,width:40}}></th>}</tr></thead>
+            <tbody>{items.map(function(x,i){var c=x.c;var ci=x.ci;var przDays=c.przeglad?dB(tS(),c.przeglad):null;var ubDays=c.ubezp?dB(tS(),c.ubezp):null;return(<tr key={ci} onClick={function(){setSelMaszIdx(ci)}} style={{cursor:"pointer",background:i%2===0?"#fff":"#faf8f5",borderLeft:przDays!==null&&przDays<0?"3px solid #c62828":ubDays!==null&&ubDays<0?"3px solid #e65100":"3px solid transparent"}}>
+              <td style={{padding:"8px 12px",fontSize:11,color:"#8a7e72"}}>{i+1}</td>
+              <td style={{padding:"8px 12px",fontSize:12,fontWeight:700,color:"#1a3328"}}>{c.nazwa||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{c.typ==="ladowarka"?"Ladowarka":c.typ==="inne"?"Inna":"Ciagnik"}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{c.marka||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{c.rok||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11,fontFamily:"monospace"}}>{c.rejestr||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{przDays!==null?<span style={{fontWeight:600,color:przDays<0?"#c62828":przDays<30?"#e65100":"#2e7d32"}}>{c.przeglad?fD(c.przeglad):""} ({przDays}d)</span>:"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{ubDays!==null?<span style={{fontWeight:600,color:ubDays<0?"#c62828":ubDays<30?"#e65100":"#2e7d32"}}>{c.ubezp?fD(c.ubezp):""} ({ubDays}d)</span>:"---"}</td>
+              {isAdmin&&<td style={{padding:"8px 12px",textAlign:"center"}}><button onClick={function(e){e.stopPropagation();delCiagnik(ci)}} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:13}}>✕</button></td>}
+            </tr>)})}</tbody></table></div>})()}</div>}
           </div>
         </div>
       </div>}
@@ -1646,71 +1661,82 @@ function App(){
       {rView==="grunty"&&<div>
         <div className="card">
           <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:22}}>🗺</span><div><div style={{fontSize:15,fontWeight:700}}>Grunty Rolne</div><div style={{fontSize:10,color:"#8a7e72"}}>Działki, obręby, gminy, geoportal</div></div></div>
-            <div style={{display:"flex",gap:8}}>{isAdmin&&<button className="btn btn-primary btn-sm" onClick={addGrunt}>+ Dodaj działkę</button>}<SaveBtn onClick={saveGrunty} size="sm"/></div>
+            <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:22}}>🗺</span><div><div style={{fontSize:15,fontWeight:700}}>Grunty Rolne</div><div style={{fontSize:10,color:"#8a7e72"}}>Dzialki, obreby, gminy, geoportal</div></div></div>
+            <div style={{display:"flex",gap:8}}>{isAdmin&&<button className="btn btn-primary btn-sm" onClick={function(){addGrunt();setTimeout(function(){setSelGruntIdx(grunty.length)},50)}}>+ Dodaj dzialke</button>}<SaveBtn onClick={saveGrunty} size="sm"/></div>
           </div>
           <div style={{padding:16}}>
-            {!isAdmin&&<div style={{background:"#fff3e0",borderRadius:8,padding:"8px 14px",fontSize:11,color:"#e65100",marginBottom:14}}>🔒 Tryb podglądu. Edycja dostępna dla administratora.</div>}
+            {!isAdmin&&<div style={{background:"#fff3e0",borderRadius:8,padding:"8px 14px",fontSize:11,color:"#e65100",marginBottom:14}}>Tryb podgladu. Edycja dostepna dla administratora.</div>}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:20}}>
-              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{grunty.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Działek</div></div>
+              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{grunty.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Dzialek</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{fN(grunty.reduce((s,g)=>s+(parseFloat(g.pow)||0),0),4)} ha</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Powierzchnia</div></div>
-              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1565c0"}}>{[...new Set(grunty.map(g=>g.obreb).filter(Boolean))].length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Obrębów</div></div>
+              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1565c0"}}>{[...new Set(grunty.map(g=>g.obreb).filter(Boolean))].length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Obrebow</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#6a1b9a"}}>{[...new Set(grunty.map(g=>g.gmina).filter(Boolean))].length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Gmin</div></div>
             </div>
-            {grunty.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak działek. Kliknij „+ Dodaj działkę".</div>:
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(380px,1fr))",gap:12}}>
-              {grunty.map((g,gi)=>(<div key={gi} className="card" style={{padding:0}}>
+            {selGruntIdx!==null&&grunty[selGruntIdx]?(function(){var gi=selGruntIdx;var g=grunty[gi];return(<div>
+              <button onClick={function(){setSelGruntIdx(null)}} className="btn btn-sm" style={{marginBottom:12,background:"#f0ebe3",border:"none",cursor:"pointer",padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:700}}>← Powrot do listy</button>
+              <div className="card" style={{padding:0}}>
                 <div style={{padding:"10px 16px",background:"#f8f5f0",borderBottom:"1px solid #e8e3db",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div style={{display:"flex",alignItems:"center",gap:8}}>
                     <span style={{fontSize:14,fontWeight:800,color:"#1a3328"}}>#{gi+1}</span>
-                    <span style={{fontSize:13,fontWeight:700,color:"#558b2f"}}>{g.nazwa||g.nr||"Nowa działka"}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:"#558b2f"}}>{g.nazwa||g.nr||"Nowa dzialka"}</span>
                     {g.pow&&<span style={{background:"#e8f5e9",color:"#2e7d32",padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700}}>{g.pow} ha</span>}
                   </div>
                   <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                    {g.teryt&&<button onClick={()=>{const t=g.teryt.trim().replace(/\s+/g,"");window.open("https://mapy.geoportal.gov.pl/?identifyParcel="+t,"_blank")}} style={{background:"#1565c0",color:"#fff",padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,border:"none",cursor:"pointer",display:"inline-flex",alignItems:"center",gap:4}}>🌐 Geoportal</button>}
-                    {isAdmin&&<button onClick={()=>delGrunt(gi)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}
+                    {g.teryt&&<button onClick={()=>{const t=g.teryt.trim().replace(/\s+/g,"");window.open("https://mapy.geoportal.gov.pl/?identifyParcel="+t,"_blank")}} style={{background:"#1565c0",color:"#fff",padding:"3px 10px",borderRadius:6,fontSize:10,fontWeight:700,border:"none",cursor:"pointer"}}>Geoportal</button>}
+                    {isAdmin&&<button onClick={()=>{delGrunt(gi);setSelGruntIdx(null)}} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}
                   </div>
                 </div>
                 <div style={{padding:"12px 16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                  <div style={{gridColumn:"span 2"}}><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Województwo</div>{isAdmin?<select value={g.woj||""} onChange={e=>{updGrunt(gi,"woj",e.target.value);updGrunt(gi,"powiat","");updGrunt(gi,"gmina","");updGrunt(gi,"obreb","")}} style={{width:"100%",border:"1px solid #9c27b0",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#f3e5f5",fontWeight:600,boxSizing:"border-box"}}><option value="">— wybierz —</option>{WOJE.map(w=><option key={w} value={w}>{w}</option>)}</select>:<span style={{fontSize:12}}>{g.woj||"—"}</span>}</div>
+                  <div style={{gridColumn:"span 2"}}><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Wojewodztwo</div>{isAdmin?<select value={g.woj||""} onChange={e=>{updGrunt(gi,"woj",e.target.value);updGrunt(gi,"powiat","");updGrunt(gi,"gmina","");updGrunt(gi,"obreb","")}} style={{width:"100%",border:"1px solid #9c27b0",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#f3e5f5",fontWeight:600,boxSizing:"border-box"}}><option value="">— wybierz —</option>{WOJE.map(w=><option key={w} value={w}>{w}</option>)}</select>:<span style={{fontSize:12}}>{g.woj||"—"}</span>}</div>
                   <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Powiat</div>{isAdmin?<select value={g.powiat||""} onChange={e=>{updGrunt(gi,"powiat",e.target.value);updGrunt(gi,"gmina","");updGrunt(gi,"obreb","")}} style={{width:"100%",border:"1px solid #9c27b0",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#f3e5f5",fontWeight:600,boxSizing:"border-box"}}><option value="">— powiat —</option>{getPowiaty(g.woj).map(p=><option key={p} value={p}>{p}</option>)}</select>:<span style={{fontSize:12}}>{g.powiat||"—"}</span>}</div>
                   <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Gmina</div>{isAdmin?<select value={g.gmina||""} onChange={e=>{const gm=e.target.value;updGrunt(gi,"gmina",gm);updGrunt(gi,"obreb","");if(gm)fetchObreby(gm)}} style={{width:"100%",border:"1px solid #9c27b0",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#f3e5f5",fontWeight:600,boxSizing:"border-box"}}><option value="">— gmina —</option>{getGminy(g.woj,g.powiat).map(gm=><option key={gm} value={gm}>{gm}</option>)}</select>:<span style={{fontSize:12}}>{g.gmina||"—"}</span>}</div>
-                  <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Obręb {obMap[g.gmina]&&<span style={{fontSize:7,color:"#558b2f",fontWeight:400}}>({obMap[g.gmina].length} z ULDK)</span>}</div>{isAdmin?(obMap[g.gmina]&&obMap[g.gmina].length>0?<select value={g.obreb||""} onChange={e=>updGrunt(gi,"obreb",e.target.value)} style={{width:"100%",border:"1px solid #558b2f",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#e8f5e9",fontWeight:600,boxSizing:"border-box"}}><option value="">— obręb —</option>{obMap[g.gmina].map((o,oi)=><option key={oi} value={o.nazwa}>{o.nazwa} ({o.teryt})</option>)}</select>:<EC val={g.obreb} w="100%" onChange={v=>updGrunt(gi,"obreb",v)}/>):<span style={{fontSize:12}}>{g.obreb||"—"}</span>}</div>
-                  <div><div style={{fontSize:8.5,color:"#e65100",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Nr działki</div>{isAdmin?<EC val={g.nr} w="100%" onChange={v=>updGrunt(gi,"nr",v)}/>:<span style={{fontSize:12,fontWeight:600}}>{g.nr||"—"}</span>}</div>
+                  <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Obreb</div>{isAdmin?(obMap[g.gmina]&&obMap[g.gmina].length>0?<select value={g.obreb||""} onChange={e=>updGrunt(gi,"obreb",e.target.value)} style={{width:"100%",border:"1px solid #558b2f",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#e8f5e9",fontWeight:600,boxSizing:"border-box"}}><option value="">— obreb —</option>{obMap[g.gmina].map((o,oi)=><option key={oi} value={o.nazwa}>{o.nazwa} ({o.teryt})</option>)}</select>:<EC val={g.obreb} w="100%" onChange={v=>updGrunt(gi,"obreb",v)}/>):<span style={{fontSize:12}}>{g.obreb||"—"}</span>}</div>
+                  <div><div style={{fontSize:8.5,color:"#e65100",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Nr dzialki</div>{isAdmin?<EC val={g.nr} w="100%" onChange={v=>updGrunt(gi,"nr",v)}/>:<span style={{fontSize:12,fontWeight:600}}>{g.nr||"—"}</span>}</div>
                   <div><div style={{fontSize:8.5,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Powierzchnia (ha)</div>{isAdmin?<EC val={g.pow} type="number" w="100%" onChange={v=>updGrunt(gi,"pow",v)}/>:<span style={{fontSize:12,fontWeight:700,color:"#558b2f"}}>{g.pow||"—"} ha</span>}</div>
                   <div><div style={{fontSize:8.5,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Nazwa potoczna</div>{isAdmin?<EC val={g.nazwa} w="100%" onChange={v=>updGrunt(gi,"nazwa",v)}/>:<span style={{fontSize:12,fontWeight:600}}>{g.nazwa||"—"}</span>}</div>
                 </div>
-                {/* TERYT SEARCH */}
                 <div style={{padding:"8px 16px",background:"#e3f2fd",borderTop:"1px solid #bbdefb",borderBottom:"1px solid #bbdefb"}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-                    <span style={{fontSize:8.5,color:"#1565c0",textTransform:"uppercase",letterSpacing:0.8,fontWeight:700}}>🌐 Identyfikator TERYT</span>
+                    <span style={{fontSize:8.5,color:"#1565c0",textTransform:"uppercase",letterSpacing:0.8,fontWeight:700}}>Identyfikator TERYT</span>
                     {g.teryt&&<span style={{fontSize:10,fontFamily:"JetBrains Mono,monospace",color:"#1565c0",fontWeight:700,background:"#fff",padding:"1px 6px",borderRadius:4}}>{g.teryt}</span>}
                   </div>
-                  {isAdmin?<div style={{display:"flex",gap:4,alignItems:"center"}}><input value={g.teryt||""} onChange={e=>updGrunt(gi,"teryt",e.target.value)} placeholder="wypełnij powyżej i kliknij Szukaj →" style={{flex:1,border:"2px solid #1565c0",borderRadius:6,padding:"4px 6px",fontSize:11,fontFamily:"JetBrains Mono,monospace",background:"#fff",outline:"none",boxSizing:"border-box"}}/>
-                  <button onClick={()=>lookupTeryt(gi)} disabled={g.tL} style={{background:g.tL?"#ccc":"#1565c0",color:"#fff",border:"none",borderRadius:6,padding:"5px 12px",fontSize:10,fontWeight:700,cursor:g.tL?"wait":"pointer",whiteSpace:"nowrap"}}>{g.tL?"⏳ Szukam...":"🔍 Szukaj TERYT"}</button></div>
+                  {isAdmin?<div style={{display:"flex",gap:4,alignItems:"center"}}><input value={g.teryt||""} onChange={e=>updGrunt(gi,"teryt",e.target.value)} placeholder="wypelnij powyzej i kliknij Szukaj" style={{flex:1,border:"2px solid #1565c0",borderRadius:6,padding:"4px 6px",fontSize:11,fontFamily:"JetBrains Mono,monospace",background:"#fff",outline:"none",boxSizing:"border-box"}}/>
+                  <button onClick={()=>lookupTeryt(gi)} disabled={g.tL} style={{background:g.tL?"#ccc":"#1565c0",color:"#fff",border:"none",borderRadius:6,padding:"5px 12px",fontSize:10,fontWeight:700,cursor:g.tL?"wait":"pointer",whiteSpace:"nowrap"}}>{g.tL?"Szukam...":"Szukaj TERYT"}</button></div>
                   :<span style={{fontSize:11,fontFamily:"monospace",color:"#1565c0",fontWeight:600}}>{g.teryt||"brak"}</span>}
-                  {!g.teryt&&isAdmin&&<div style={{fontSize:9,color:"#1565c0",marginTop:4}}>Wpisz powiat + gminę + obręb + nr działki → kliknij Szukaj. System odpyta bazę GUGiK (ULDK).</div>}
-                  {g.tE&&<div style={{fontSize:10,color:"#c62828",marginTop:4,fontWeight:600}}>⚠️ {g.tE}</div>}
+                  {g.tE&&<div style={{fontSize:10,color:"#c62828",marginTop:4,fontWeight:600}}>{g.tE}</div>}
                   {g.tR&&g.tR.length>0&&<div style={{marginTop:6,background:"#fff",border:"1px solid #90caf9",borderRadius:6,padding:8}}>
-                    <div style={{fontSize:10,fontWeight:700,marginBottom:4,color:"#1565c0"}}>Znaleziono {g.tR.length} — wybierz właściwą:</div>
+                    <div style={{fontSize:10,fontWeight:700,marginBottom:4,color:"#1565c0"}}>Znaleziono {g.tR.length} — wybierz:</div>
                     {g.tR.map((r,ri)=><button key={ri} onClick={()=>pickTeryt(gi,r)} style={{display:"block",width:"100%",textAlign:"left",background:ri%2?"#f5f9ff":"#fff",border:"1px solid #bbdefb",borderRadius:4,padding:"5px 8px",marginBottom:3,fontSize:10,cursor:"pointer",fontFamily:"JetBrains Mono,monospace"}}><b style={{color:"#1565c0"}}>{r.teryt}</b> <span style={{color:"#555"}}>— {[r.obreb,r.gmina,r.powiat,r.woj].filter(Boolean).join(" · ")}</span></button>)}
                   </div>}
                 </div>
-                {/* OWNER & NOTES */}
                 <div style={{padding:"8px 16px 12px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                  <div style={{gridColumn:"span 2"}}><div style={{fontSize:8.5,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Właściciel</div>{isAdmin?<EC val={g.wlasciciel} w="100%" onChange={v=>updGrunt(gi,"wlasciciel",v)}/>:<span style={{fontSize:12}}>{g.wlasciciel||"—"}</span>}</div>
+                  <div style={{gridColumn:"span 2"}}><div style={{fontSize:8.5,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Wlasciciel</div>{isAdmin?<EC val={g.wlasciciel} w="100%" onChange={v=>updGrunt(gi,"wlasciciel",v)}/>:<span style={{fontSize:12}}>{g.wlasciciel||"—"}</span>}</div>
                   <div style={{gridColumn:"span 2"}}><div style={{fontSize:8.5,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Uwagi</div>{isAdmin?<EC val={g.uwagi} w="100%" onChange={v=>updGrunt(gi,"uwagi",v)}/>:<span style={{fontSize:12,color:"#5a6b5c",fontStyle:"italic"}}>{g.uwagi||"—"}</span>}</div>
                   <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Nr KW</div>{isAdmin?<EC val={g.kw||""} w="100%" onChange={v=>updGrunt(gi,"kw",v)}/>:<span style={{fontSize:11,fontFamily:"monospace",fontWeight:600}}>{g.kw||"—"}</span>}</div>
                   <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Obciazenie</div>{isAdmin?<select value={g.obciazona||"nie"} onChange={e=>updGrunt(gi,"obciazona",e.target.value)} style={{width:"100%",border:"1px solid #ce93d8",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#fff",fontWeight:600,boxSizing:"border-box"}}><option value="nie">Nie</option><option value="tak">Tak</option></select>:<span style={{fontSize:11,fontWeight:700,color:g.obciazona==="tak"?"#c62828":"#2e7d32"}}>{g.obciazona==="tak"?"TAK":"Nie"}</span>}</div>
                   {g.obciazona==="tak"&&<div><div style={{fontSize:8.5,color:"#c62828",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Bank</div>{isAdmin?<EC val={g.bankNazwa||""} w="100%" onChange={v=>updGrunt(gi,"bankNazwa",v)}/>:<span style={{fontSize:11}}>{g.bankNazwa||"—"}</span>}</div>}
                   {g.obciazona==="tak"&&<div><div style={{fontSize:8.5,color:"#c62828",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Kwota (zl)</div>{isAdmin?<EC val={g.bankKwota||""} type="number" w="100%" onChange={v=>updGrunt(gi,"bankKwota",v)}/>:<span style={{fontSize:11,fontWeight:700,color:"#c62828"}}>{g.bankKwota?fN(g.bankKwota,2)+" zl":"—"}</span>}</div>}
                 </div>
-              </div>))}
-            </div>}
+              </div>
+            </div>)})()
+            :<div>{grunty.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak dzialek. Kliknij "+ Dodaj dzialke".</div>:
+            <div><div style={{overflowX:"auto"}}><table className="tbl"><thead><tr style={{background:"#f8f5f0"}}><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>#</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nr dzialki</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nazwa</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Obreb</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Gmina</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"right"}}>Pow (ha)</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Wlasciciel</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"center"}}>Obciaz.</th>{isAdmin&&<th style={{padding:"10px 12px",fontSize:10,width:40}}></th>}</tr></thead>
+            <tbody>{grunty.map(function(g,gi){return(<tr key={gi} onClick={function(){setSelGruntIdx(gi)}} style={{cursor:"pointer",background:gi%2===0?"#fff":"#faf8f5"}}>
+              <td style={{padding:"8px 12px",fontSize:11,color:"#8a7e72"}}>{gi+1}</td>
+              <td style={{padding:"8px 12px",fontSize:11,fontWeight:600,fontFamily:"monospace"}}>{g.nr||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:12,fontWeight:700,color:"#558b2f"}}>{g.nazwa||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{g.obreb||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{g.gmina||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11,fontWeight:700,textAlign:"right",color:"#2e7d32"}}>{g.pow||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{g.wlasciciel||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:11,textAlign:"center"}}>{g.obciazona==="tak"?<span style={{color:"#c62828",fontWeight:700}}>TAK</span>:<span style={{color:"#2e7d32"}}>Nie</span>}</td>
+              {isAdmin&&<td style={{padding:"8px 12px",textAlign:"center"}}><button onClick={function(e){e.stopPropagation();delGrunt(gi)}} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:13}}>✕</button></td>}
+            </tr>)})}</tbody></table></div>
             {grunty.length>0&&<div style={{marginTop:16,background:"#f8f5f0",borderRadius:10,padding:"12px 18px",border:"1px solid #e8e3db",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:12,fontWeight:700}}>Σ {grunty.length} działek • {fN(grunty.reduce((s,g)=>s+(parseFloat(g.pow)||0),0),4)} ha łącznie</span>
-              <span style={{fontSize:10,color:"#8a7e72"}}>Obręby: {[...new Set(grunty.map(g=>g.obreb).filter(Boolean))].join(", ")||"—"}</span>
+              <span style={{fontSize:12,fontWeight:700}}>Suma: {grunty.length} dzialek • {fN(grunty.reduce((s,g)=>s+(parseFloat(g.pow)||0),0),4)} ha lacznie</span>
+              <span style={{fontSize:10,color:"#8a7e72"}}>Obreby: {[...new Set(grunty.map(g=>g.obreb).filter(Boolean))].join(", ")||"—"}</span>
             </div>}
+            </div>}</div>}
           </div>
         </div>
       </div>}
