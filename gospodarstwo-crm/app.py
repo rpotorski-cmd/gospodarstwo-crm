@@ -31,7 +31,7 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 # Seed default data on first run
-print("🌱 Sprawdzanie danych początkowych...")
+print("Sprawdzanie danych poczatkowych...")
 seed()
 
 # Routes
@@ -52,7 +52,6 @@ if os.path.exists(static_dir):
 
 @app.get("/api/permissions")
 async def get_permissions():
-    """Return the full permission matrix for frontend role-checking"""
     return MODULE_PERMS
 
 
@@ -66,4 +65,5 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    port = int(os.environ.get("PORT", 8001))
+    uvicorn.run(app, host="0.0.0.0", port=port)
