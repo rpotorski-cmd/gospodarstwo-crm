@@ -636,6 +636,7 @@ function App(){
   const getRecNrs=(r)=>(r.grunt||"").split(",").filter(Boolean);
   const getRecNames=(r)=>{const nrs=getRecNrs(r);return nrs.map(nr=>{const g=grunty.find(g2=>g2.nr===nr);return g?g.nazwa:nr}).filter(Boolean)};
   const getRecGruntyInfo=(r)=>{const nrs=getRecNrs(r);return nrs.map(nr=>grunty.find(g2=>g2.nr===nr)).filter(Boolean)};
+  const getRecTeryts=(r)=>{const nrs=getRecNrs(r);return nrs.map(nr=>{const g=grunty.find(g2=>g2.nr===nr);return g?g.teryt:null}).filter(Boolean)};
   const toggleGruntInNawoz=(ni,nr)=>{setNawozy(p=>p.map((n,i)=>{if(i!==ni)return n;const curr=getRecNrs(n);const idx=curr.indexOf(nr);if(idx>=0)curr.splice(idx,1);else curr.push(nr);const totalPow=curr.reduce((s,n2)=>{const g=grunty.find(g2=>g2.nr===n2);return s+(g?parseFloat(g.pow)||0:0)},0);return{...n,grunt:curr.join(","),pow:totalPow?String(totalPow):""}}))}; 
   const toggleGruntInOprysk=(oi,nr)=>{setOpryski(p=>p.map((o,i)=>{if(i!==oi)return o;const curr=getRecNrs(o);const idx=curr.indexOf(nr);if(idx>=0)curr.splice(idx,1);else curr.push(nr);const totalPow=curr.reduce((s,n2)=>{const g=grunty.find(g2=>g2.nr===n2);return s+(g?parseFloat(g.pow)||0:0)},0);return{...o,grunt:curr.join(","),pow:totalPow?String(totalPow):""}}))};
   const[uprDropOpen,setUprDropOpen]=useState(null);
@@ -1846,8 +1847,8 @@ function App(){
             <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj nawożenia (działka, nawóz, właściciel, obręb)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {nawozy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak nawożeń.</div>:
             <table className="tbl">
-              <thead><tr>{["#","Data","Działki","Nazwa","Nawóz","Typ","Dawka (kg/ha)","Pow. (ha)","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{nawozy.map((n,ni)=>({n,ni})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var gInfo=getRecGruntyInfo(x.n);var owners=gInfo.map(g=>g.wlasciciel||"");var obreby=gInfo.map(g=>g.obreb||"");return[...getRecNrs(x.n),...getRecNames(x.n),...owners,...obreby,x.n.nawoz,x.n.typ,x.n.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({n,ni})=>{var nrs=getRecNrs(n);var names=getRecNames(n);return(<tr key={ni}>
+              <thead><tr>{["#","Data","Działki","Nazwa","Nawóz","Typ","Dawka (kg/ha)","Pow. (ha)","Uwagi","🗺",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
+              <tbody>{nawozy.map((n,ni)=>({n,ni})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var gInfo=getRecGruntyInfo(x.n);var owners=gInfo.map(g=>g.wlasciciel||"");var obreby=gInfo.map(g=>g.obreb||"");return[...getRecNrs(x.n),...getRecNames(x.n),...owners,...obreby,x.n.nawoz,x.n.typ,x.n.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({n,ni})=>{var nrs=getRecNrs(n);var names=getRecNames(n);var teryts=getRecTeryts(n);return(<tr key={ni}>
                 <td style={{color:"#8a7e72"}}>{ni+1}</td>
                 <td><EC val={n.d} type="date" w="110px" onChange={v=>updNawoz(ni,"d",v)}/></td>
                 <td style={{minWidth:140}}><div>
@@ -1862,6 +1863,7 @@ function App(){
                 <td style={{textAlign:"center"}}><EC val={n.dawka} w="70px" onChange={v=>updNawoz(ni,"dawka",v)}/></td>
                 <td style={{textAlign:"center",minWidth:60}}>{(()=>{var gInfo=getRecGruntyInfo(n);var autoSum=gInfo.reduce((s,g)=>s+(parseFloat(g.pow)||0),0);if(gInfo.length>0&&autoSum>0)return<div title={gInfo.map(g=>g.nr+": "+g.pow+" ha").join("\n")} style={{cursor:"help"}}><span style={{fontSize:12,fontWeight:800,color:"#558b2f"}}>{fN(autoSum,2)}</span><span style={{fontSize:8,color:"#8a7e72",marginLeft:1}}>ha</span></div>;return <EC val={n.pow} type="number" w="55px" onChange={v=>updNawoz(ni,"pow",v)}/>})()}</td>
                 <td><EC val={n.uwagi} w="120px" onChange={v=>updNawoz(ni,"uwagi",v)}/></td>
+                <td style={{textAlign:"center"}}>{teryts.length>0&&<button onClick={()=>window.open("/api/geoportal?teryt="+encodeURIComponent(teryts.join(",")),"_blank")} style={{background:"#1565c0",color:"#fff",padding:"3px 8px",borderRadius:5,fontSize:9,fontWeight:700,border:"none",cursor:"pointer",whiteSpace:"nowrap"}}>🗺{nrs.length>1?" ("+nrs.length+")":""}</button>}</td>
                 <td>{isAdmin&&<button onClick={()=>delNawoz(ni)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>)})}</tbody>
             </table>}
@@ -1885,8 +1887,8 @@ function App(){
             {opryski.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak oprysków.</div>:<div>
             <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj oprysku (środek, działka, właściciel, cel)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <table className="tbl">
-              <thead><tr>{["#","Data","Działki","Nazwa","Środek","Dawka","Pow.(ha)","Cel","Faza","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{opryski.map((o,oi)=>({o,oi})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var gInfo=getRecGruntyInfo(x.o);var owners=gInfo.map(g=>g.wlasciciel||"");var obreby=gInfo.map(g=>g.obreb||"");return[...getRecNrs(x.o),...getRecNames(x.o),...owners,...obreby,x.o.srodek,x.o.cel,x.o.faza,x.o.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({o,oi})=>{var nrs=getRecNrs(o);var names=getRecNames(o);return(<tr key={oi}>
+              <thead><tr>{["#","Data","Działki","Nazwa","Środek","Dawka","Pow.(ha)","Cel","Faza","Uwagi","🗺",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
+              <tbody>{opryski.map((o,oi)=>({o,oi})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var gInfo=getRecGruntyInfo(x.o);var owners=gInfo.map(g=>g.wlasciciel||"");var obreby=gInfo.map(g=>g.obreb||"");return[...getRecNrs(x.o),...getRecNames(x.o),...owners,...obreby,x.o.srodek,x.o.cel,x.o.faza,x.o.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({o,oi})=>{var nrs=getRecNrs(o);var names=getRecNames(o);var teryts=getRecTeryts(o);return(<tr key={oi}>
                 <td style={{color:"#8a7e72"}}>{oi+1}</td>
                 <td>{<EC val={o.d} type="date" w="110px" onChange={v=>updOprysk(oi,"d",v)}/>}</td>
                 <td style={{minWidth:140}}><div>
@@ -1902,6 +1904,7 @@ function App(){
                 <td>{<select value={o.cel} onChange={e=>updOprysk(oi,"cel",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none"}}>{["Chwasty","Choroby","Szkodniki","Regulator","Desykacja","Inne"].map(c3=><option key={c3} value={c3}>{c3}</option>)}</select>}</td>
                 <td>{<EC val={o.faza} w="80px" onChange={v=>updOprysk(oi,"faza",v)}/>}</td>
                 <td>{<EC val={o.uwagi} w="100px" onChange={v=>updOprysk(oi,"uwagi",v)}/>}</td>
+                <td style={{textAlign:"center"}}>{teryts.length>0&&<button onClick={()=>window.open("/api/geoportal?teryt="+encodeURIComponent(teryts.join(",")),"_blank")} style={{background:"#1565c0",color:"#fff",padding:"3px 8px",borderRadius:5,fontSize:9,fontWeight:700,border:"none",cursor:"pointer",whiteSpace:"nowrap"}}>🗺{nrs.length>1?" ("+nrs.length+")":""}</button>}</td>
                 <td>{isAdmin&&<button onClick={()=>delOprysk(oi)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>)})}</tbody>
             </table></div>}
