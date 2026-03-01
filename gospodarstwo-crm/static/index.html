@@ -547,7 +547,7 @@ function App(){
 
   const[grWoj,setGrWoj]=useState("warmińsko-mazurskie");
 
-  const addGrunt=()=>{logAudit("grunty","Dodano nowy grunt");setGrunty(p=>[...p,{id:Date.now(),nr:"",teryt:"",obreb:"",pow:"",gmina:"",powiat:"",woj:grWoj,nazwa:"",wlasciciel:"",uwagi:"",tL:false,tE:"",tR:null,kw:"",obciazona:"nie",bankNazwa:"",bankKwota:""}])};
+  const addGrunt=()=>{logAudit("grunty","Dodano nowy grunt");setGrunty(p=>[...p,{id:Date.now(),nr:"",teryt:"",obreb:"",pow:"",gmina:"",powiat:"",woj:grWoj,nazwa:"",wlasciciel:"",uwagi:"",tL:false,tE:"",tR:null,kw:"",obciazona:"nie",bankNazwa:"",bankKwota:"",umowa:"",terminUmowy:"",doplaty:""}])};
 
   const lookupTeryt=async(gi)=>{
     const g=grunty[gi];
@@ -1716,11 +1716,15 @@ function App(){
                   <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Obciazenie</div>{isAdmin?<select value={g.obciazona||"nie"} onChange={e=>updGrunt(gi,"obciazona",e.target.value)} style={{width:"100%",border:"1px solid #ce93d8",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#fff",fontWeight:600,boxSizing:"border-box"}}><option value="nie">Nie</option><option value="tak">Tak</option></select>:<span style={{fontSize:11,fontWeight:700,color:g.obciazona==="tak"?"#c62828":"#2e7d32"}}>{g.obciazona==="tak"?"TAK":"Nie"}</span>}</div>
                   {g.obciazona==="tak"&&<div><div style={{fontSize:8.5,color:"#c62828",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Bank</div>{isAdmin?<EC val={g.bankNazwa||""} w="100%" onChange={v=>updGrunt(gi,"bankNazwa",v)}/>:<span style={{fontSize:11}}>{g.bankNazwa||"—"}</span>}</div>}
                   {g.obciazona==="tak"&&<div><div style={{fontSize:8.5,color:"#c62828",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Kwota (zl)</div>{isAdmin?<EC val={g.bankKwota||""} type="number" w="100%" onChange={v=>updGrunt(gi,"bankKwota",v)}/>:<span style={{fontSize:11,fontWeight:700,color:"#c62828"}}>{g.bankKwota?fN(g.bankKwota,2)+" zl":"—"}</span>}</div>}
+                  <div style={{gridColumn:"span 2",borderTop:"1px solid #e8e3db",paddingTop:8,marginTop:4}}><div style={{fontSize:9,fontWeight:800,color:"#2e7d32",textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>Umowa / dzierzawa</div></div>
+                  <div><div style={{fontSize:8.5,color:"#2e7d32",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Umowa</div>{isAdmin?<EC val={g.umowa||""} w="100%" onChange={v=>updGrunt(gi,"umowa",v)}/>:<span style={{fontSize:11}}>{g.umowa||"—"}</span>}</div>
+                  <div><div style={{fontSize:8.5,color:"#2e7d32",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Termin umowy</div>{isAdmin?<EC val={g.terminUmowy||""} type="date" w="100%" onChange={v=>updGrunt(gi,"terminUmowy",v)}/>:<span style={{fontSize:11}}>{g.terminUmowy?fD(g.terminUmowy):"—"}</span>}</div>
+                  <div><div style={{fontSize:8.5,color:"#2e7d32",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Doplaty</div>{isAdmin?<EC val={g.doplaty||""} w="100%" onChange={v=>updGrunt(gi,"doplaty",v)}/>:<span style={{fontSize:11}}>{g.doplaty||"—"}</span>}</div>
                 </div>
               </div>
             </div>)})()
             :<div>{grunty.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak dzialek. Kliknij "+ Dodaj dzialke".</div>:
-            <div><div style={{overflowX:"auto"}}><table className="tbl"><thead><tr style={{background:"#f8f5f0"}}><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>#</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nr dzialki</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nazwa</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Obreb</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Gmina</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"right"}}>Pow (ha)</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Wlasciciel</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"center"}}>Obciaz.</th>{isAdmin&&<th style={{padding:"10px 12px",fontSize:10,width:40}}></th>}</tr></thead>
+            <div><div style={{overflowX:"auto"}}><table className="tbl"><thead><tr style={{background:"#f8f5f0"}}><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>#</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nr dzialki</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nazwa</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Obreb</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Gmina</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"right"}}>Pow (ha)</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Wlasciciel</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"center"}}>Obciaz.</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Umowa</th>{isAdmin&&<th style={{padding:"10px 12px",fontSize:10,width:40}}></th>}</tr></thead>
             <tbody>{grunty.map(function(g,gi){return(<tr key={gi} onClick={function(){setSelGruntIdx(gi)}} style={{cursor:"pointer",background:gi%2===0?"#fff":"#faf8f5"}}>
               <td style={{padding:"8px 12px",fontSize:11,color:"#8a7e72"}}>{gi+1}</td>
               <td style={{padding:"8px 12px",fontSize:11,fontWeight:600,fontFamily:"monospace"}}>{g.nr||"---"}</td>
@@ -1730,6 +1734,7 @@ function App(){
               <td style={{padding:"8px 12px",fontSize:11,fontWeight:700,textAlign:"right",color:"#2e7d32"}}>{g.pow||"---"}</td>
               <td style={{padding:"8px 12px",fontSize:11}}>{g.wlasciciel||"---"}</td>
               <td style={{padding:"8px 12px",fontSize:11,textAlign:"center"}}>{g.obciazona==="tak"?<span style={{color:"#c62828",fontWeight:700}}>TAK</span>:<span style={{color:"#2e7d32"}}>Nie</span>}</td>
+              <td style={{padding:"8px 12px",fontSize:11}}>{g.umowa||"---"}</td>
               {isAdmin&&<td style={{padding:"8px 12px",textAlign:"center"}}><button onClick={function(e){e.stopPropagation();delGrunt(gi)}} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:13}}>✕</button></td>}
             </tr>)})}</tbody></table></div>
             {grunty.length>0&&<div style={{marginTop:16,background:"#f8f5f0",borderRadius:10,padding:"12px 18px",border:"1px solid #e8e3db",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
