@@ -79,14 +79,14 @@ async def geoportal_redirect(teryt: str = ""):
     center_lat, center_lng = 53.168, 19.806
     debug_info = ""
     try:
-        url = "https://uldk.gugik.gov.pl/?request=GetParcelById&id=" + urllib.parse.quote(teryt) + "&result=geom_wkt&srid=4326"
+        url = "https://uldk.gugik.gov.pl/?request=GetParcelById&id=" + teryt + "&result=geom_wkt&srid=4326"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         resp = urllib.request.urlopen(req, timeout=10)
         txt = resp.read().decode("utf-8", "ignore").strip()
+        debug_info = "URL:" + url + " RAW:" + txt[:500].replace("<","&lt;").replace(">","&gt;").replace('"',"'")
         # ULDK returns: "0\nPOLYGON((lng lat, lng lat, ...))" - first line is status
         lines = txt.split("\n")
         wkt = lines[-1].strip() if len(lines) > 1 else txt.strip()
-        debug_info = wkt[:200]
         # Parse POLYGON or MULTIPOLYGON
         ring = re.search(r'\(\(([^)]+)\)', wkt)
         if ring:
@@ -133,6 +133,7 @@ if(coords.length>2){{
 }}
 </script>
 <!-- debug: {debug_info} -->
+<div style="position:absolute;bottom:5px;left:5px;z-index:1000;background:rgba(255,255,255,0.9);padding:4px 8px;font:10px monospace;max-width:90%;word-break:break-all;border-radius:4px">DEBUG: {debug_info}</div>
 </body></html>"""
     return HTMLResponse(html)
 
