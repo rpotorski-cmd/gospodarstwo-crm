@@ -1,240 +1,319 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
-from database import get_db
-from models import (Ciagnik, Grunt, Uprawa, Nawoz, Oprysk, Paliwo,
-                    RDostawa, Zakup, Biogaz, Dokument, Akcyza, AuditLog, User)
-from auth import get_current_user
-from config import can_read, can_write
-
-router = APIRouter(prefix="/api", tags=["roslinna"])
+"""Seed initial data from HTML constants into database"""
+from database import SessionLocal
+from models import User, Stock, Ubojnia, Akcyza, Paszarnia, Silosy, CustomElement, Grunt
+from auth import hash_password
 
 
-def check_read(user, mod):
-    if not can_read(user.role, mod):
-        raise HTTPException(status_code=403, detail="Brak uprawnien")
+USERS = [
+    {"email": "r.potorski@kabanek.pl", "pass": "Treder02@", "name": "Robert Potorski", "role": "admin"},
+    {"email": "i.staszynska@kabanek.pl", "pass": "KabanekOsowka", "name": "Iwona Staszyńska", "role": "user"},
+    {"email": "k.potorska@kabanek.pl", "pass": "Nowehaslo123", "name": "Kinga Potorska", "role": "user"},
+    {"email": "zootechnik", "pass": "osowka", "name": "Zootechnik", "role": "zoo"},
+]
 
-def check_write(user, mod):
-    if not can_write(user.role, mod):
-        raise HTTPException(status_code=403, detail="Brak uprawnien")
+MEDS = [
+    {"name": "Denaturat", "unit": "l", "defPrice": 8.50, "defDose": "500ml/1000l wody"},
+    {"name": "Wrzodex Premium", "unit": "kg", "defPrice": 18.00, "defDose": "2kg/t paszy"},
+    {"name": "Zakwaszacz pH Opti", "unit": "kg", "defPrice": 4.50, "defDose": "3kg/t paszy"},
+    {"name": "Zakwaszacz Green Dry", "unit": "kg", "defPrice": 5.20, "defDose": "2-4kg/t paszy"},
+    {"name": "Probiotyk", "unit": "kg", "defPrice": 45.00, "defDose": "0.5kg/t paszy"},
+    {"name": "Panacur", "unit": "g", "defPrice": 0.85, "defDose": "5mg/kg m.c."},
+    {"name": "Amoksycylina", "unit": "g", "defPrice": 0.42, "defDose": "20mg/kg m.c./dzień"},
+    {"name": "Tiamulin", "unit": "ml", "defPrice": 0.38, "defDose": "6ml/10l wody"},
+    {"name": "Linkomycyna", "unit": "g", "defPrice": 0.56, "defDose": "10mg/kg m.c."},
+    {"name": "Enrofloksacyna", "unit": "ml", "defPrice": 0.65, "defDose": "2.5mg/kg m.c."},
+    {"name": "Tylozyna", "unit": "g", "defPrice": 0.48, "defDose": "5-10mg/kg m.c."},
+    {"name": "Fenbendazol", "unit": "g", "defPrice": 0.72, "defDose": "5mg/kg m.c."},
+    {"name": "Ivermektyna", "unit": "ml", "defPrice": 1.20, "defDose": "0.3mg/kg m.c."},
+    {"name": "Witaminy AD3E", "unit": "ml", "defPrice": 0.18, "defDose": "1ml/l wody"},
+    {"name": "Elektrolity", "unit": "g", "defPrice": 0.12, "defDose": "2g/l wody"},
+    {"name": "Inne", "unit": "szt", "defPrice": 0, "defDose": ""},
+]
 
-def audit(db, user, area, action):
-    db.add(AuditLog(user_name=user.name, email=user.email, area=area, action=action))
-    db.commit()
+CAUSES = [
+    {"name": "APP", "color": "#c62828"},
+    {"name": "Beztlen", "color": "#4a148c"},
+    {"name": "Krwotoczny", "color": "#b71c1c"},
+    {"name": "Wirusówka", "color": "#e65100"},
+    {"name": "Przepuklina", "color": "#5d4037"},
+    {"name": "Wrzody żołądka", "color": "#bf360c"},
+    {"name": "Streptokokoza", "color": "#880e4f"},
+    {"name": "Glässer", "color": "#1a237e"},
+    {"name": "Dyzenteria", "color": "#004d40"},
+    {"name": "Adenomatoza", "color": "#33691e"},
+    {"name": "Inne — nieznana", "color": "#616161"},
+    {"name": "Inne — wypadek", "color": "#455a64"},
+]
+
+FEED_TYPES = ["Starter", "Grower", "Finiszer"]
+UBOJNIE = ["Rytel", "Somianka", "Staropolska", "Tetragon", "Zakrzewscy", "Goodvalley", "Skiba"]
+BUFORY = ["Pszenżyto", "Jęczmień", "Wysłodki"]
+
+BIOGAZ_CATS = ["silniki", "pompy", "mieszadła", "dozowanie", "inne"]
+DOC_CATS = ["dzierżawa", "BDO", "pozwolenie", "ubezpieczenie", "badania", "inne"]
+NAWOZ_TYPES = ["Azotowy", "Fosforowy", "Potasowy", "Wieloskładnikowy", "Wapno", "Gnojowica", "Obornik", "Inny"]
+OPRYSK_TARGETS = ["Chwasty", "Choroby", "Szkodniki", "Regulator", "Inne"]
+PALIWO_TYPES = ["ON", "AdBlue", "Olej hydrauliczny", "Olej silnikowy", "Smar", "Benzyna"]
+
+TODOS_DEF = [
+    {"name": "Szczepienie Cirko", "icon": "💉", "cat": "szczepienie", "desc": "PCV2"},
+    {"name": "Szczepienie Myko", "icon": "💉", "cat": "szczepienie", "desc": "Mycoplasma hyopneumoniae"},
+    {"name": "Szczepienie APP", "icon": "💉", "cat": "szczepienie", "desc": "Actinobacillus pleuropneumoniae"},
+    {"name": "Szczepienie Lawsonia", "icon": "💉", "cat": "szczepienie", "desc": "Lawsonia intracellularis"},
+    {"name": "Szczepienie PRRS", "icon": "💉", "cat": "szczepienie", "desc": "PRRS — jak najszybciej po wstawieniu"},
+    {"name": "Odrobaczanie", "icon": "🔬", "cat": "profilaktyka", "desc": "Panacur / Fenbendazol"},
+    {"name": "Dezynfekcja komory", "icon": "🧹", "cat": "higiena", "desc": "Przed wstawieniem"},
+    {"name": "Deratyzacja", "icon": "🐀", "cat": "higiena", "desc": "Kontrola gryzoni"},
+    {"name": "Przegląd wentylacji", "icon": "🌀", "cat": "technika", "desc": "Sprawdzenie i regulacja"},
+    {"name": "Kontrola poideł", "icon": "💧", "cat": "technika", "desc": "Przepływ i czystość"},
+    {"name": "Ważenie kontrolne", "icon": "⚖️", "cat": "kontrola", "desc": "Wyrywkowe ważenie"},
+]
+
+AKC_DEF = [
+    {"nazwa": "GR Janina Potorska", "typ": "Rolnik RR", "col": "#6a1b9a"},
+    {"nazwa": "GR Kinga Potorska", "typ": "Rolnik RR", "col": "#c62828"},
+    {"nazwa": "GR Mieczysław Potorski", "typ": "VAT", "col": "#1565c0"},
+    {"nazwa": "GR Robert Potorski", "typ": "VAT", "col": "#2e7d32"},
+]
+
+SILOSY_DEF = [
+    {"id": 1, "nazwa": "Silos 1", "poj": 400},
+    {"id": 2, "nazwa": "Silos 2", "poj": 400},
+    {"id": 3, "nazwa": "Silos 3", "poj": 400},
+    {"id": 4, "nazwa": "Silos 4", "poj": 400},
+]
 
 
-# GENERIC CRUD HELPER
-def make_crud(model_cls, module_name, fields, audit_area):
+GRUNTY_DATA = [
+    {"kw":"PL2M/00018295/2","nr":"419/3","obreb":"Osówka","pow":"0.3608","nazwa":"chlewnia nr 1","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.419/3"},
+    {"kw":"PL2M/00018295/2","nr":"419/5","obreb":"Osówka","pow":"0.3464","nazwa":"chlewnia nr 1","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.419/5"},
+    {"kw":"PL2M/00018295/2","nr":"419/6","obreb":"Osówka","pow":"0.6715","nazwa":"chlewnia nr 2","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.419/6"},
+    {"kw":"PL2M/00018295/2","nr":"419/7","obreb":"Osówka","pow":"0.3541","nazwa":"biogazownia","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.419/7"},
+    {"kw":"PL2M/00018295/2","nr":"419/8","obreb":"Osówka","pow":"0.4138","nazwa":"chlewnia nr 2","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.419/8"},
+    {"kw":"PL2M/00023274/7","nr":"420/3","obreb":"Osówka","pow":"0.6838","nazwa":"chlewnia nr 3","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.420/4"},
+    {"kw":"PL2M/00023274/7","nr":"420/4","obreb":"Osówka","pow":"0.3039","nazwa":"chlewnia nr 3","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.420/3"},
+    {"kw":"PL2M/00022502/8","nr":"383/2","obreb":"Osówka","pow":"0.3648","nazwa":"chlewnia \"stara\" + magazyn","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.383/2"},
+    {"kw":"PL2M/00022502/8","nr":"383/4","obreb":"Osówka","pow":"0.0143","nazwa":"Gospodarstwo","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.383/4"},
+    {"kw":"PL2M/00013168/8","nr":"100","obreb":"Zielona","pow":"2.5219","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0021.100"},
+    {"kw":"PL2M/00021112/0","nr":"385/1","obreb":"Osówka","pow":"0.5115","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.385/1"},
+    {"kw":"PL2M/00021875/6","nr":"275","obreb":"Osówka","pow":"1.7244","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.275"},
+    {"kw":"PL2M/00021875/6","nr":"278","obreb":"Osówka","pow":"4.2259","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.278"},
+    {"kw":"PL2M/00021875/6","nr":"292","obreb":"Osówka","pow":"1.2293","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.292"},
+    {"kw":"PL2M/00021875/6","nr":"293","obreb":"Osówka","pow":"1.6435","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.293"},
+    {"kw":"PL2M/00021875/6","nr":"311","obreb":"Osówka","pow":"1.1415","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.311"},
+    {"kw":"PL2M/00022502/8","nr":"51/1","obreb":"Osówka","pow":"3.186","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.51/1"},
+    {"kw":"PL2M/00022502/8","nr":"327","obreb":"Wiadrowo","pow":"2.5489","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143706_5.0023.327"},
+    {"kw":"PL2M/00020249/2","nr":"305","obreb":"Osówka","pow":"2.9971","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.306"},
+    {"kw":"PL2M/00020249/2","nr":"306","obreb":"Osówka","pow":"2.1001","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.305"},
+    {"kw":"PL2M/00018295/2","nr":"397","obreb":"Osówka","pow":"2.7969","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.397"},
+    {"kw":"PL2M/00018295/2","nr":"398","obreb":"Osówka","pow":"1.3746","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.398"},
+    {"kw":"PL2M/00018295/2","nr":"385/2","obreb":"Osówka","pow":"0.4904","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.385/2"},
+    {"kw":"PL2M/00018295/2","nr":"39","obreb":"Osówka","pow":"3.6574","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.39"},
+    {"kw":"PL2M/00018295/2","nr":"384/4","obreb":"Osówka","pow":"0.9495","nazwa":"Grunty Orne + panele","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.384/4"},
+    {"kw":"PL2M/00025112/8","nr":"421","obreb":"Osówka","pow":"3.5898","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.421"},
+    {"kw":"PL2M/00024974/1","nr":"196","obreb":"Osówka","pow":"1.4505","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0021.196"},
+    {"kw":"PL2M/00024903/3","nr":"138","obreb":"Zielona","pow":"1.3472","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0021.138"},
+    {"kw":"PL2M/00024903/3","nr":"139","obreb":"Zielona","pow":"0.7481","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0021.139"},
+    {"kw":"PL2M/00004230/8","nr":"300/2","obreb":"Osówka","pow":"1.4009","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.300/2"},
+    {"kw":"PL2M/00004230/8","nr":"300/1","obreb":"Osówka","pow":"0.2997","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.300/1"},
+    {"kw":"PL2M/00004230/8","nr":"3","obreb":"Osówka","pow":"2.5214","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.3"},
+    {"kw":"PL2M/00004230/8","nr":"20","obreb":"Zielona","pow":"4.5447","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":""},
+    {"kw":"PL2M/00004230/8","nr":"661/2","obreb":"Straszewy","pow":"0.9224","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0027.661/2"},
+    {"kw":"PL2M/00003965/2","nr":"266;","obreb":"Osówka","pow":"0.5729","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.266"},
+    {"kw":"PL2M/00003965/2","nr":"267/1","obreb":"Osówka","pow":"2.3814","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.267/1"},
+    {"kw":"PL2M/00003965/2","nr":"25","obreb":"Żelaźnia","pow":"7.4847","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0037.25"},
+    {"kw":"PL2M/00013615/7","nr":"128","obreb":"Zielona","pow":"1.9241","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0021.128"},
+    {"kw":"PL2M/00013615/7","nr":"126","obreb":"Zielona","pow":"1.4643","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0021.126"},
+    {"kw":"PL2M/00013615/7","nr":"85","obreb":"Zielona","pow":"1.2975","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0021.85"},
+    {"kw":"PL2M/00013615/7","nr":"84","obreb":"ZIelona","pow":"1.6979","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0021.84"},
+    {"kw":"PL2M/00010047/3","nr":"68","obreb":"Lisiny","pow":"2.5","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0013.68"},
+    {"kw":"PL2M/00024697/5","nr":"270","obreb":"Osówka","pow":"2.5892","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.270"},
+    {"kw":"PL2M/00024697/5","nr":"413","obreb":"Osówka","pow":"2.6327","nazwa":"Zadrzewione","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.413"},
+    {"kw":"PL2M/00025145/8","nr":"66","obreb":"Osówka","pow":"1.1908","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.66"},
+    {"kw":"PL2M/00025145/8","nr":"128/1","obreb":"Osówka","pow":"1.491","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.128/1"},
+    {"kw":"PL2M/00025145/8","nr":"130","obreb":"Osówka","pow":"1.5827","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.130"},
+    {"kw":"PL2M/00025145/8","nr":"132/2","obreb":"Osówka","pow":"0.5259","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.132/2"},
+    {"kw":"PL2M/00025145/8","nr":"391","obreb":"Osówka","pow":"3.8071","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.391"},
+    {"kw":"PL2M/00025145/8","nr":"425","obreb":"Osówka","pow":"1.5553","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.425"},
+    {"kw":"PL2M/00026206/1","nr":"392/2","obreb":"Osówka","pow":"2.0624","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.392/2"},
+    {"kw":"PL2M/00026407/0","nr":"276","obreb":"Osówka","pow":"1.8173","nazwa":"Grunty orne","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.276"},
+    {"kw":"PL2M/00007567/0","nr":"133","obreb":"Sarnowo","pow":"2.4591","nazwa":"chlewnie Sarnowo","wlasciciel":"Robert Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0019.133"},
+    {"kw":"PL2M/00023781/4","nr":"420/5","obreb":"Osówka","pow":"0.3777","nazwa":"chlewnia nr 4","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.420/5"},
+    {"kw":"PL2M/00023781/4","nr":"420/6","obreb":"Osówka","pow":"0.3069","nazwa":"chlewnia nr 4","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.420/6"},
+    {"kw":"PL2M/00023443/3","nr":"388/1","obreb":"Osówka","pow":"1.3015","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.388/1"},
+    {"kw":"PL2M/00023443/3","nr":"422","obreb":"Osówka","pow":"1.0016","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.422"},
+    {"kw":"PL2M/00023389/6","nr":"63","obreb":"Lisiny","pow":"2","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":""},
+    {"kw":"PL2M/00023379/3","nr":"282","obreb":"Wiadrowo","pow":"2.5601","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":""},
+    {"kw":"PL2M/00010826/8","nr":"15","obreb":"Osówka","pow":"6.2806","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.15"},
+    {"kw":"PL2M/00020298/0","nr":"129","obreb":"Niedziałki","pow":"11.76","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.129"},
+    {"kw":"PL2M/00020298/0","nr":"147","obreb":"Niedziałki","pow":"6.99","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.147"},
+    {"kw":"PL2M/00011747/7","nr":"149","obreb":"Niedziałki","pow":"2.3","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.149"},
+    {"kw":"PL2M/00011747/7","nr":"157","obreb":"Niedziałki","pow":"7.23","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.157"},
+    {"kw":"PL2M/00011747/7","nr":"156","obreb":"Niedziałki","pow":"4.67","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.156"},
+    {"kw":"PL2M/00011747/7","nr":"155/3","obreb":"Niedziałki","pow":"2.4","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.155/3"},
+    {"kw":"PL2M/00011747/7","nr":"141","obreb":"Niedziałki","pow":"20.56","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.141"},
+    {"kw":"PL2M/00011747/7","nr":"153","obreb":"Niedziałki","pow":"17.49","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.153"},
+    {"kw":"PL2M/00022236/2","nr":"155/1","obreb":"Niedziałki","pow":"0.3","nazwa":"Grunty orne","wlasciciel":"Kinga Potorska","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143702_2.0015.155/1"},
+    {"kw":"PL2M/00004722/4","nr":"383/3","obreb":"Osówka","pow":"0.4638","nazwa":"Gospodarstwo","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.383/3"},
+    {"kw":"PL2M/00004722/4","nr":"166","obreb":"Osówka","pow":"0.586","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.166"},
+    {"kw":"PL2M/00004722/4","nr":"190","obreb":"Osówka","pow":"2.189","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.190"},
+    {"kw":"PL2M/00004722/4","nr":"363","obreb":"Osówka","pow":"0.5134","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.363"},
+    {"kw":"PL2M/00004722/4","nr":"377","obreb":"Osówka","pow":"2.2056","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.377"},
+    {"kw":"PL2M/00004722/4","nr":"400","obreb":"Osówka","pow":"3.3109","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.400"},
+    {"kw":"PL2M/00004722/4","nr":"204/1","obreb":"Osówka","pow":"3.9868","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.204/1"},
+    {"kw":"PL2M/00004722/4","nr":"204/2","obreb":"Osówka","pow":"0.3301","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.204/2"},
+    {"kw":"PL2M/00008614/2","nr":"272","obreb":"Osówka","pow":"1.6339","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.272"},
+    {"kw":"PL2M/00008614/2","nr":"375","obreb":"Osówka","pow":"4.3152","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.375"},
+    {"kw":"PL2M/00008614/2","nr":"274/2","obreb":"Osówka","pow":"2.1496","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.274/2"},
+    {"kw":"PL2M/00008614/2","nr":"274/1","obreb":"Osówka","pow":"0.2261","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.274/1"},
+    {"kw":"PL2M/00011105/5","nr":"374","obreb":"Osówka","pow":"7.4166","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.374"},
+    {"kw":"PL2M/00011105/5","nr":"205","obreb":"Osówka","pow":"2.3457","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.205"},
+    {"kw":"PL2M/00011105/5","nr":"357/2","obreb":"Osówka","pow":"0.1261","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.357/2"},
+    {"kw":"PL2M/00011105/5","nr":"358","obreb":"Osówka","pow":"0.3765","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.358"},
+    {"kw":"PL2M/00011105/5","nr":"273","obreb":"Osówka","pow":"1.8378","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.273"},
+    {"kw":"PL2M/00012670/3","nr":"430","obreb":"Osówka","pow":"49.2138","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.430"},
+    {"kw":"PL2M/00012670/3","nr":"431","obreb":"Osówka","pow":"1.9075","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.431"},
+    {"kw":"PL2M/00012670/3","nr":"432","obreb":"Osówka","pow":"4.687","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.432"},
+    {"kw":"PL2M/00026199/8","nr":"215","obreb":"Osówka","pow":"1.7063","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.215"},
+    {"kw":"PL2M/00026199/8","nr":"283","obreb":"Osówka","pow":"1.6087","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.283"},
+    {"kw":"PL2M/00026199/8","nr":"412","obreb":"Osówka","pow":"2.7166","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.412"},
+    {"kw":"PL2M/00026199/8","nr":"384/1","obreb":"Osówka","pow":"0.1249","nazwa":"Grunty orne","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_5.0019.384/1"},
+    {"kw":"PL2M/00004722/4","nr":"383/3","obreb":"Osówka","pow":"0.4638","nazwa":"Gospodarstwo","wlasciciel":"Mieczysław Potorski","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":"143703_2.0019.383/3"},
+    {"kw":"NS1Z/00066241/9","nr":"29a/5","obreb":"Kościelisko","pow":"0.0028","nazwa":"Miejsce postojowe nr 1","wlasciciel":"Fundacja Rodzinna","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":""},
+    {"kw":"NS1Z/00012350/3","nr":"2958","obreb":"Kościelisko","pow":"0.0876","nazwa":"Mieszkanie nr 1","wlasciciel":"Fundacja Rodzinna","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":""},
+    {"kw":"NS1Z/00012350/3","nr":"2958/1","obreb":"Kościelisko","pow":"0.0876","nazwa":"Mieszkanie nr 2","wlasciciel":"Fundacja Rodzinna","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":""},
+    {"kw":"NS1Z/00066242/6","nr":"29a/6","obreb":"Kościelisko","pow":"0.0026","nazwa":"Miejsce postojowe nr 2","wlasciciel":"Fundacja Rodzinna","umowa":"","termin_umowy":"","doplaty":"","uwagi":"","teryt":""},
+]
 
-    async def list_all(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-        check_read(user, module_name)
-        items = db.query(model_cls).order_by(model_cls.id).all()
-        result = []
-        for item in items:
-            d = {"id": item.id}
-            for f in fields:
-                val = getattr(item, f["db"], None)
-                d[f["js"]] = val if val is not None else f.get("default", "")
-            result.append(d)
-        return result
+def seed():
+    db = SessionLocal()
+    try:
+        # Users
+        if db.query(User).count() == 0:
+            for u in USERS:
+                db.add(User(
+                    email=u["email"], name=u["name"],
+                    password_hash=hash_password(u["pass"]), role=u["role"]
+                ))
+            print(f"  ✓ {len(USERS)} użytkowników")
 
-    async def create(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-        check_write(user, module_name)
-        data = await request.json()
-        item = model_cls()
-        for f in fields:
-            if f["js"] in data:
-                setattr(item, f["db"], data[f["js"]])
-        db.add(item)
+        # Stock (medication inventory)
+        if db.query(Stock).count() == 0:
+            for m in MEDS:
+                db.add(Stock(name=m["name"], unit=m["unit"], qty=0, min_qty=0))
+            print(f"  ✓ {len(MEDS)} leków w magazynie")
+
+        # Ubojnie
+        if db.query(Ubojnia).count() == 0:
+            for name in UBOJNIE:
+                db.add(Ubojnia(name=name))
+            print(f"  ✓ {len(UBOJNIE)} ubojni")
+
+        # Akcyza
+        if db.query(Akcyza).count() == 0:
+            for a in AKC_DEF:
+                db.add(Akcyza(nazwa=a["nazwa"], typ=a["typ"], col=a["col"], ha=0, swin=0))
+            print(f"  ✓ {len(AKC_DEF)} podmiotów akcyzy")
+
+        # Paszarnia (singleton)
+        if db.query(Paszarnia).count() == 0:
+            db.add(Paszarnia(data={"log": [], "bufory": BUFORY}))
+            print("  ✓ Paszarnia")
+
+        # Silosy (singleton)
+        if db.query(Silosy).count() == 0:
+            db.add(Silosy(data={"silosy": SILOSY_DEF, "log": []}))
+            print("  ✓ Silosy")
+
+        # ═══ CUSTOM ELEMENTS (admin-managed lists) ═══
+        if db.query(CustomElement).count() == 0:
+            count = 0
+
+            # Medications
+            for i, m in enumerate(MEDS):
+                db.add(CustomElement(
+                    category="meds", name=m["name"], unit=m["unit"],
+                    def_price=m["defPrice"], def_dose=m["defDose"], sort_order=i
+                ))
+                count += 1
+
+            # Death causes
+            for i, c in enumerate(CAUSES):
+                db.add(CustomElement(
+                    category="causes", name=c["name"], color=c["color"], sort_order=i
+                ))
+                count += 1
+
+            # Feed types
+            for i, ft in enumerate(FEED_TYPES):
+                db.add(CustomElement(category="feed_types", name=ft, sort_order=i))
+                count += 1
+
+            # Ubojnie
+            for i, u in enumerate(UBOJNIE):
+                db.add(CustomElement(category="ubojnie", name=u, sort_order=i))
+                count += 1
+
+            # Feed mill buffers
+            for i, b in enumerate(BUFORY):
+                db.add(CustomElement(category="bufory", name=b, sort_order=i))
+                count += 1
+
+            # Biogas categories
+            for i, bc in enumerate(BIOGAZ_CATS):
+                db.add(CustomElement(category="biogaz_cats", name=bc, sort_order=i))
+                count += 1
+
+            # Document categories
+            for i, dc in enumerate(DOC_CATS):
+                db.add(CustomElement(category="doc_cats", name=dc, sort_order=i))
+                count += 1
+
+            # Fertilizer types
+            for i, nt in enumerate(NAWOZ_TYPES):
+                db.add(CustomElement(category="nawoz_types", name=nt, sort_order=i))
+                count += 1
+
+            # Spraying targets
+            for i, ot in enumerate(OPRYSK_TARGETS):
+                db.add(CustomElement(category="oprysk_targets", name=ot, sort_order=i))
+                count += 1
+
+            # Fuel types
+            for i, pt in enumerate(PALIWO_TYPES):
+                db.add(CustomElement(category="paliwo_types", name=pt, sort_order=i))
+                count += 1
+
+            # Default TODO items
+            for i, t in enumerate(TODOS_DEF):
+                db.add(CustomElement(
+                    category="todos_def", name=t["name"], icon=t["icon"],
+                    extra={"cat": t["cat"], "desc": t["desc"]}, sort_order=i
+                ))
+                count += 1
+
+            print(f"  ✓ {count} elementów konfiguracyjnych (admin)")
+
+
+        # Grunty (z Excela)
+        if db.query(Grunt).count() == 0:
+            for g in GRUNTY_DATA:
+                db.add(Grunt(
+                    kw=g["kw"], nr=g["nr"], obreb=g["obreb"], pow=g["pow"],
+                    nazwa=g["nazwa"], wlasciciel=g["wlasciciel"],
+                    umowa=g.get("umowa",""), termin_umowy=g.get("termin_umowy",""),
+                    doplaty=g.get("doplaty",""), uwagi=g["uwagi"], teryt=g["teryt"]
+                ))
+            print(f"  ✓ {len(GRUNTY_DATA)} działek z rejestru")
+
         db.commit()
-        db.refresh(item)
-        audit(db, user, audit_area, f"Dodano #{item.id}")
-        return {"id": item.id}
-
-    async def update(item_id: int, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-        check_write(user, module_name)
-        data = await request.json()
-        item = db.query(model_cls).filter(model_cls.id == item_id).first()
-        if not item:
-            raise HTTPException(status_code=404)
-        for f in fields:
-            if f["js"] in data:
-                setattr(item, f["db"], data[f["js"]])
-        db.commit()
-        return {"ok": True}
-
-    async def delete(item_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-        check_write(user, module_name)
-        item = db.query(model_cls).filter(model_cls.id == item_id).first()
-        if not item:
-            raise HTTPException(status_code=404)
-        db.delete(item)
-        db.commit()
-        audit(db, user, audit_area, f"Usunieto #{item_id}")
-        return {"ok": True}
-
-    return list_all, create, update, delete
+        print("  ✓ Seed zakończony")
+    except Exception as e:
+        db.rollback()
+        print(f"  ✗ Błąd seed: {e}")
+    finally:
+        db.close()
 
 
-# CIAGNIKI / MASZYNY
-_c_fields = [
-    {"js":"typ","db":"typ","default":"ciagnik"}, {"js":"nazwa","db":"nazwa","default":""},
-    {"js":"marka","db":"marka","default":""}, {"js":"rok","db":"rok","default":""},
-    {"js":"moc","db":"moc","default":""}, {"js":"rejestr","db":"rejestr","default":""},
-    {"js":"przeglad","db":"przeglad","default":""}, {"js":"ubezp","db":"ubezp","default":""},
-    {"js":"uwagi","db":"uwagi","default":""}, {"js":"olejSilnik","db":"olej_silnik","default":""},
-    {"js":"olejSkrzynia","db":"olej_skrzynia","default":""}, {"js":"olejMostP","db":"olej_most_p","default":""},
-    {"js":"olejMostT","db":"olej_most_t","default":""}, {"js":"naprawy","db":"naprawy","default":""},
-]
-_cl, _cc, _cu, _cd = make_crud(Ciagnik, "ciagniki", _c_fields, "maszyny")
-router.get("/ciagniki")(_cl)
-router.post("/ciagniki")(_cc)
-router.put("/ciagniki/{item_id}")(_cu)
-router.delete("/ciagniki/{item_id}")(_cd)
-
-
-# GRUNTY
-_g_fields = [
-    {"js":"nr","db":"nr"}, {"js":"teryt","db":"teryt"}, {"js":"obreb","db":"obreb"},
-    {"js":"pow","db":"pow"}, {"js":"gmina","db":"gmina"}, {"js":"powiat","db":"powiat"},
-    {"js":"woj","db":"woj","default":"warminsko-mazurskie"}, {"js":"nazwa","db":"nazwa"},
-    {"js":"wlasciciel","db":"wlasciciel"}, {"js":"uwagi","db":"uwagi"},
-    {"js":"kw","db":"kw"}, {"js":"obciazona","db":"obciazona","default":"nie"},
-    {"js":"bankNazwa","db":"bank_nazwa"}, {"js":"bankKwota","db":"bank_kwota"},
-]
-_gl, _gc, _gu, _gd = make_crud(Grunt, "grunty", _g_fields, "grunty")
-router.get("/grunty")(_gl)
-router.post("/grunty")(_gc)
-router.put("/grunty/{item_id}")(_gu)
-router.delete("/grunty/{item_id}")(_gd)
-
-
-# UPRAWY
-_u_fields = [
-    {"js":"grunt","db":"grunt"}, {"js":"roslina","db":"roslina"}, {"js":"odmiana","db":"odmiana"},
-    {"js":"pow","db":"pow"}, {"js":"dataS","db":"data_s"}, {"js":"dataZ","db":"data_z"},
-    {"js":"plon","db":"plon"}, {"js":"uwagi","db":"uwagi"},
-]
-_ul, _uc2, _uu, _ud = make_crud(Uprawa, "uprawy", _u_fields, "uprawy")
-router.get("/uprawy")(_ul)
-router.post("/uprawy")(_uc2)
-router.put("/uprawy/{item_id}")(_uu)
-router.delete("/uprawy/{item_id}")(_ud)
-
-
-# NAWOZY
-_n_fields = [
-    {"js":"d","db":"d"}, {"js":"grunt","db":"grunt"}, {"js":"nawoz","db":"nawoz"},
-    {"js":"typ","db":"typ","default":"Azotowy"}, {"js":"dawka","db":"dawka"},
-    {"js":"pow","db":"pow"}, {"js":"uwagi","db":"uwagi"},
-]
-_nl, _nc, _nu, _nd = make_crud(Nawoz, "nawozy", _n_fields, "nawozy")
-router.get("/nawozy")(_nl)
-router.post("/nawozy")(_nc)
-router.put("/nawozy/{item_id}")(_nu)
-router.delete("/nawozy/{item_id}")(_nd)
-
-
-# OPRYSKI
-_o_fields = [
-    {"js":"d","db":"d"}, {"js":"grunt","db":"grunt"}, {"js":"srodek","db":"srodek"},
-    {"js":"dawka","db":"dawka"}, {"js":"pow","db":"pow"},
-    {"js":"cel","db":"cel","default":"Chwasty"}, {"js":"faza","db":"faza"},
-    {"js":"uwagi","db":"uwagi"},
-]
-_ol, _oc, _ou, _od = make_crud(Oprysk, "opryski", _o_fields, "opryski")
-router.get("/opryski")(_ol)
-router.post("/opryski")(_oc)
-router.put("/opryski/{item_id}")(_ou)
-router.delete("/opryski/{item_id}")(_od)
-
-
-# PALIWA
-_p_fields = [
-    {"js":"d","db":"d"}, {"js":"typ","db":"typ","default":"ON"}, {"js":"maszyna","db":"maszyna"},
-    {"js":"litry","db":"litry","default":0}, {"js":"cena","db":"cena","default":0},
-    {"js":"km","db":"km"}, {"js":"uwagi","db":"uwagi"},
-]
-_pl, _pc2, _pu, _pd = make_crud(Paliwo, "paliwa", _p_fields, "paliwa")
-router.get("/paliwa")(_pl)
-router.post("/paliwa")(_pc2)
-router.put("/paliwa/{item_id}")(_pu)
-router.delete("/paliwa/{item_id}")(_pd)
-
-
-# DOSTAWY ROSLINNA
-_rd_fields = [
-    {"js":"d","db":"d"}, {"js":"produkt","db":"produkt"}, {"js":"ilosc","db":"ilosc","default":0},
-    {"js":"jm","db":"jm","default":"t"}, {"js":"cena","db":"cena","default":0},
-    {"js":"dostawca","db":"dostawca"}, {"js":"fv","db":"fv"}, {"js":"uwagi","db":"uwagi"},
-]
-_rdl, _rdc, _rdu, _rdd = make_crud(RDostawa, "rdostawy", _rd_fields, "dostawy")
-router.get("/rdostawy")(_rdl)
-router.post("/rdostawy")(_rdc)
-router.put("/rdostawy/{item_id}")(_rdu)
-router.delete("/rdostawy/{item_id}")(_rdd)
-
-
-# ZAKUPY
-_z_fields = [
-    {"js":"d","db":"d"}, {"js":"produkt","db":"produkt"},
-    {"js":"cena","db":"cena","default":0}, {"js":"kto","db":"kto"}, {"js":"uwagi","db":"uwagi"},
-]
-_zl, _zc, _zu, _zd = make_crud(Zakup, "zakupy", _z_fields, "zakupy")
-router.get("/zakupy")(_zl)
-router.post("/zakupy")(_zc)
-router.put("/zakupy/{item_id}")(_zu)
-router.delete("/zakupy/{item_id}")(_zd)
-
-
-# BIOGAZOWNIA
-_b_fields = [
-    {"js":"d","db":"d"}, {"js":"kat","db":"kat","default":"inne"},
-    {"js":"czynnosc","db":"czynnosc"}, {"js":"uwagi","db":"uwagi"}, {"js":"kto","db":"kto"},
-]
-_bl, _bc, _bu, _bd = make_crud(Biogaz, "biogaz", _b_fields, "biogazownia")
-router.get("/biogaz")(_bl)
-router.post("/biogaz")(_bc)
-router.put("/biogaz/{item_id}")(_bu)
-router.delete("/biogaz/{item_id}")(_bd)
-
-
-# DOKUMENTY
-_d_fields = [
-    {"js":"kat","db":"kat","default":"inne"}, {"js":"nazwa","db":"nazwa"},
-    {"js":"nr","db":"nr"}, {"js":"podmiot","db":"podmiot"},
-    {"js":"dataOd","db":"data_od"}, {"js":"dataDo","db":"data_do"},
-    {"js":"grunt","db":"grunt"}, {"js":"uwagi","db":"uwagi"},
-    {"js":"status","db":"status","default":"aktywny"},
-    {"js":"fileName","db":"file_name","default":""},
-    {"js":"fileSize","db":"file_size","default":0},
-    {"js":"fileMime","db":"file_mime","default":""},
-]
-_dl, _dc, _du2, _dd = make_crud(Dokument, "dokumenty", _d_fields, "dokumenty")
-router.get("/dokumenty")(_dl)
-router.post("/dokumenty")(_dc)
-router.put("/dokumenty/{item_id}")(_du2)
-router.delete("/dokumenty/{item_id}")(_dd)
-
-
-# AKCYZA
-
-@router.get("/akcyza")
-async def list_akcyza(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    check_read(user, "akcyza")
-    items = db.query(Akcyza).order_by(Akcyza.id).all()
-    return [{"id": a.id, "nazwa": a.nazwa, "typ": a.typ, "col": a.col, "ha": a.ha, "swin": a.swin} for a in items]
-
-
-@router.put("/akcyza/{aid}")
-async def update_akcyza(aid: int, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    check_write(user, "akcyza")
-    data = await request.json()
-    a = db.query(Akcyza).filter(Akcyza.id == aid).first()
-    if not a:
-        raise HTTPException(status_code=404)
-    if "ha" in data: a.ha = float(data["ha"])
-    if "swin" in data: a.swin = float(data["swin"])
-    if "nazwa" in data: a.nazwa = data["nazwa"]
-    if "typ" in data: a.typ = data["typ"]
-    db.commit()
-    return {"ok": True}
+if __name__ == "__main__":
+    seed()
