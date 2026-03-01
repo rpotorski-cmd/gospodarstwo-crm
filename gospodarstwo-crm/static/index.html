@@ -458,6 +458,7 @@ function App(){
   const saveCiagniki=async()=>{try{const ex=await api.get("/ciagniki");for(const c of ciagniki){if(ex.find(e=>e.id===c.id))await api.put("/ciagniki/"+c.id,c);else{const r=await api.post("/ciagniki",c);c.id=r.id}}for(const e of ex){if(!ciagniki.find(c=>c.id===e.id))await api.del("/ciagniki/"+e.id)}const fresh=await api.get("/ciagniki");setCiagniki(fresh||[]);setToast("Maszyny zapisane");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addCiagnik=()=>{logAudit("maszyny","Dodano maszyne");setCiagniki(p=>[...p,{id:Date.now(),typ:"ciagnik",nazwa:"",marka:"",rok:"",moc:"",rejestr:"",przeglad:"",ubezp:"",uwagi:"",olejSilnik:"",olejSkrzynia:"",olejMostP:"",olejMostT:"",naprawy:""}])};
   const[maszynyTab,setMaszynyTab]=useState("ciagniki");
+  const[rFilter,setRFilter]=useState("");
   const updCiagnik=(i,f,v)=>{setCiagniki(p=>p.map((c,ci)=>ci===i?{...c,[f]:v}:c))};
   const delCiagnik=i=>{logAudit("maszyny","Usunieto maszyne: "+(ciagniki[i]?.nazwa||"#"+(i+1)));setCiagniki(p=>p.filter((_,ci)=>ci!==i))};
 
@@ -794,7 +795,7 @@ function App(){
         <img src={LOGO} style={{width:40,height:40,borderRadius:8}}/>
         <div><div style={{fontSize:16,fontWeight:800,color:"#fff"}}>{dept==="tuczarnie"?"🐷 Kabanek Tuczarnie":"🌾 Produkcja Roślinna"}</div><div style={{fontSize:9,color:"#b8c4ba",letterSpacing:1.5}}>CRM</div></div>
       </div>
-      <nav style={{display:"flex",gap:2}}>{dept==="tuczarnie"?navs.map(n=><button key={n.id} className={`nav-btn${view===n.id?" active":""}`} onClick={()=>setView(n.id)}><span>{n.icon}</span>{n.label}</button>):[{id:"ciagniki",label:"Maszyny",icon:"🚜"},{id:"grunty",label:"Grunty",icon:"🗺"},{id:"uprawy",label:"Uprawy",icon:"🌱"},{id:"nawozy",label:"Nawozy",icon:"🧪"},{id:"opryski",label:"Opryski",icon:"🧴"},{id:"rdostawy",label:"Dostawy",icon:"📦"},{id:"paliwa",label:"Paliwa",icon:"⛽"},{id:"zakupy",label:"Zakupy różne",icon:"🛒"},{id:"biogaz",label:"Biogazownia",icon:"🔥"},{id:"dokumenty",label:"Dokumenty",icon:"📂"},{id:"rhistoria",label:"Historia",icon:"📋"}].concat(isAdmin?[{id:"uzytkownicy",label:"Użytkownicy",icon:"👥"},{id:"konfiguracja",label:"Konfiguracja",icon:"⚙️"}]:[]).map(n=><button key={n.id} className={`nav-btn${rView===n.id?" active":""}`} onClick={()=>{setRView(n.id);if(n.id==="uzytkownicy")loadUsers()}}><span>{n.icon}</span>{n.label}</button>)}</nav>
+      <nav style={{display:"flex",gap:2}}>{dept==="tuczarnie"?navs.map(n=><button key={n.id} className={`nav-btn${view===n.id?" active":""}`} onClick={()=>setView(n.id)}><span>{n.icon}</span>{n.label}</button>):[{id:"ciagniki",label:"Maszyny",icon:"🚜"},{id:"grunty",label:"Grunty",icon:"🗺"},{id:"uprawy",label:"Uprawy",icon:"🌱"},{id:"nawozy",label:"Nawozy",icon:"🧪"},{id:"opryski",label:"Opryski",icon:"🧴"},{id:"rdostawy",label:"Dostawy",icon:"📦"},{id:"paliwa",label:"Paliwa",icon:"⛽"},{id:"zakupy",label:"Zakupy różne",icon:"🛒"},{id:"biogaz",label:"Biogazownia",icon:"🔥"},{id:"dokumenty",label:"Dokumenty",icon:"📂"},{id:"rhistoria",label:"Historia",icon:"📋"}].concat(isAdmin?[{id:"uzytkownicy",label:"Użytkownicy",icon:"👥"},{id:"konfiguracja",label:"Konfiguracja",icon:"⚙️"}]:[]).map(n=><button key={n.id} className={`nav-btn${rView===n.id?" active":""}`} onClick={()=>{setRView(n.id);setRFilter("");if(n.id==="uzytkownicy")loadUsers()}}><span>{n.icon}</span>{n.label}</button>)}</nav>
       <div style={{display:"flex",alignItems:"center",gap:10}}>
         {dept==="tuczarnie"&&dirty&&<span style={{fontSize:10,color:"#fbbf24",fontWeight:600}}>● Niezapisane</span>}
         {dept==="tuczarnie"&&!dirty&&lastSave&&<span style={{fontSize:10,color:"#a5d6a7"}}>✓</span>}
@@ -1194,12 +1195,13 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:22,fontWeight:800,color:"#e65100"}}>{stock.filter(s=>s.qty>0&&s.minQty>0&&s.qty<=s.minQty).length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Niski stan</div></div>
               <div className="kpi-card"><div style={{fontSize:22,fontWeight:800,color:"#c62828"}}>{stock.filter(s=>s.qty===0).length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Brak na stanie</div></div>
             </div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj leku (nazwa, notatka)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <table className="tbl">
               <thead><tr>{["#","Lek","Jdn.","Stan (l/kg)","Min (l/kg)","Status","Ost. dostawa","Cena ref.","Dawkowanie ref.","Notatka",""].map((h,i)=><th key={i} style={{textAlign:i>2?"center":"left"}}>{h}</th>)}</tr></thead>
-              <tbody>{stock.map((s,si)=>{const med=dynMEDS.find(m=>m.name===s.name);const low=s.qty>0&&s.minQty>0&&s.qty<=s.minQty;const empty=s.qty===0;return(<tr key={si} style={{background:empty?"#ffebee11":low?"#fff3e011":"transparent"}}>
+              <tbody>{stock.filter((s)=>{if(!rFilter)return true;var q=rFilter.toLowerCase();return[s.name,s.note,s.unit].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map((s,si)=>{const med=dynMEDS.find(m=>m.name===s.name);const low=s.qty>0&&s.minQty>0&&s.qty<=s.minQty;const empty=s.qty===0;return(<tr key={si} style={{background:empty?"#ffebee11":low?"#fff3e011":"transparent"}}>
                 <td style={{color:"#8a7e72",textAlign:"center"}}>{si+1}</td>
-                <td style={{fontWeight:600}}>{s.name}</td>
-                <td style={{color:"#8a7e72"}}>{s.unit}</td>
+                <td style={{fontWeight:600}}>{isAdmin?<EC val={s.name||""} w="200px" onChange={v=>updStock(si,"name",v)}/>:s.name}</td>
+                <td style={{color:"#8a7e72"}}>{isAdmin?<EC val={s.unit||""} w="50px" onChange={v=>updStock(si,"unit",v)}/>:s.unit}</td>
                 <td style={{textAlign:"center"}}><input type="number" step="1" min="0" value={s.qty||0} onChange={e=>updStock(si,"qty",parseInt(e.target.value)||0)} className="edit-input" style={{width:60,textAlign:"center"}}/></td>
                 <td style={{textAlign:"center"}}><input type="number" step="1" min="0" value={s.minQty||0} onChange={e=>updStock(si,"minQty",parseInt(e.target.value)||0)} className="edit-input" style={{width:50,textAlign:"center"}}/></td>
                 <td style={{textAlign:"center"}}>{empty?<span style={{color:"#c62828",fontWeight:700,fontSize:10}}>⛔ BRAK</span>:low?<span style={{color:"#e65100",fontWeight:700,fontSize:10}}>⚠️ NISKI</span>:<span style={{color:"#2e7d32",fontWeight:600,fontSize:10}}>✓ OK</span>}</td>
@@ -1612,6 +1614,7 @@ function App(){
               <button className={"tab-btn"+(maszynyTab==="ciagniki"?" active":"")} onClick={function(){setMaszynyTab("ciagniki");setSelMaszIdx(null)}}>Ciagniki i ladowarki</button>
               <button className={"tab-btn"+(maszynyTab==="inne"?" active":"")} onClick={function(){setMaszynyTab("inne");setSelMaszIdx(null)}}>Inne maszyny</button>
             </div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj maszyny (nazwa, marka, nr rej.)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {selMaszIdx!==null&&ciagniki[selMaszIdx]?(function(){var ci=selMaszIdx;var c=ciagniki[ci];var isCiag=(!c.typ||c.typ==="ciagnik"||c.typ==="ladowarka");var przDays=c.przeglad?dB(tS(),c.przeglad):null;var ubDays=c.ubezp?dB(tS(),c.ubezp):null;return(<div>
               <button onClick={function(){setSelMaszIdx(null)}} className="btn btn-sm" style={{marginBottom:12,background:"#f0ebe3",border:"none",cursor:"pointer",padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:700}}>← Powrot do listy</button>
               <div className="card" style={{padding:0,border:przDays!==null&&przDays<0?"2px solid #c62828":ubDays!==null&&ubDays<0?"2px solid #e65100":"1px solid #ddd6cc"}}>
@@ -1644,7 +1647,7 @@ function App(){
                 </div>}
               </div>
             </div>)})()
-            :<div>{(function(){var items=ciagniki.map(function(c,ci){return{c:c,ci:ci}}).filter(function(x){return maszynyTab==="ciagniki"?(!x.c.typ||x.c.typ==="ciagnik"||x.c.typ==="ladowarka"):(x.c.typ==="inne")});return items.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak maszyn w tej kategorii. Kliknij "+ Dodaj maszyne".</div>:
+            :<div>{(function(){var items=ciagniki.map(function(c,ci){return{c:c,ci:ci}}).filter(function(x){return maszynyTab==="ciagniki"?(!x.c.typ||x.c.typ==="ciagnik"||x.c.typ==="ladowarka"):(x.c.typ==="inne")}).filter(function(x){if(!rFilter)return true;var q=rFilter.toLowerCase();return[x.c.nazwa,x.c.marka,x.c.rejestr,x.c.rok,x.c.uwagi].filter(Boolean).some(function(v){return v.toLowerCase().includes(q)})});return items.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak maszyn w tej kategorii. Kliknij "+ Dodaj maszyne".</div>:
             <div style={{overflowX:"auto"}}><table className="tbl"><thead><tr style={{background:"#f8f5f0"}}><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>#</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nazwa</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Typ</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Marka</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Rok</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nr rej.</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Przeglad</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Ubezp.</th>{isAdmin&&<th style={{padding:"10px 12px",fontSize:10,width:40}}></th>}</tr></thead>
             <tbody>{items.map(function(x,i){var c=x.c;var ci=x.ci;var przDays=c.przeglad?dB(tS(),c.przeglad):null;var ubDays=c.ubezp?dB(tS(),c.ubezp):null;return(<tr key={ci} onClick={function(){setSelMaszIdx(ci)}} style={{cursor:"pointer",background:i%2===0?"#fff":"#faf8f5",borderLeft:przDays!==null&&przDays<0?"3px solid #c62828":ubDays!==null&&ubDays<0?"3px solid #e65100":"3px solid transparent"}}>
               <td style={{padding:"8px 12px",fontSize:11,color:"#8a7e72"}}>{i+1}</td>
@@ -1676,6 +1679,7 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1565c0"}}>{[...new Set(grunty.map(g=>g.obreb).filter(Boolean))].length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Obrebow</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#6a1b9a"}}>{[...new Set(grunty.map(g=>g.gmina).filter(Boolean))].length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Gmin</div></div>
             </div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj działki (nr, nazwa, obręb, gmina, właściciel)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {selGruntIdx!==null&&grunty[selGruntIdx]?(function(){var gi=selGruntIdx;var g=grunty[gi];return(<div>
               <button onClick={function(){setSelGruntIdx(null)}} className="btn btn-sm" style={{marginBottom:12,background:"#f0ebe3",border:"none",cursor:"pointer",padding:"6px 14px",borderRadius:6,fontSize:11,fontWeight:700}}>← Powrot do listy</button>
               <div className="card" style={{padding:0}}>
@@ -1729,7 +1733,7 @@ function App(){
             </div>)})()
             :<div>{grunty.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak dzialek. Kliknij "+ Dodaj dzialke".</div>:
             <div><div style={{overflowX:"auto"}}><table className="tbl"><thead><tr style={{background:"#f8f5f0"}}><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>#</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nr dzialki</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nazwa potoczna</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Obreb</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Gmina</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"right"}}>Pow (ha)</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Wlasciciel</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"center"}}>Obciaz.</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Umowa</th>{isAdmin&&<th style={{padding:"10px 12px",fontSize:10,width:40}}></th>}</tr></thead>
-            <tbody>{grunty.map(function(g,gi){return(<tr key={gi} onClick={function(){setSelGruntIdx(gi)}} style={{cursor:"pointer",background:gi%2===0?"#fff":"#faf8f5"}}>
+            <tbody>{grunty.map(function(g,gi){return{g:g,gi:gi}}).filter(function(x){if(!rFilter)return true;var q=rFilter.toLowerCase();return[x.g.nr,x.g.nazwa,x.g.obreb,x.g.gmina,x.g.wlasciciel,x.g.powiat,x.g.uwagi,x.g.kw].filter(Boolean).some(function(v){return v.toLowerCase().includes(q)})}).map(function(x){var g=x.g;var gi=x.gi;return(<tr key={gi} onClick={function(){setSelGruntIdx(gi)}} style={{cursor:"pointer",background:gi%2===0?"#fff":"#faf8f5"}}>
               <td style={{padding:"8px 12px",fontSize:11,color:"#8a7e72"}}>{gi+1}</td>
               <td style={{padding:"8px 12px",fontSize:11,fontWeight:600,fontFamily:"monospace"}}>{g.nr||"---"}</td>
               <td style={{padding:"8px 12px",fontSize:12,fontWeight:700,color:"#558b2f"}}>{isAdmin?<EC val={g.nazwa||""} w="120px" onChange={v=>{updGrunt(gi,"nazwa",v)}}/>:(g.nazwa||"---")}</td>
@@ -1764,10 +1768,11 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{fN(uprawy.reduce((s,u)=>s+(parseFloat(u.pow)||0),0),2)} ha</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Obsiane</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#e65100"}}>{fN(uprawy.reduce((s,u)=>s+(parseFloat(u.plon)||0),0),1)} t</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Plon łącznie</div></div>
             </div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj uprawy (działka, roślina, uwagi)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {uprawy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak upraw.</div>:
             <table className="tbl">
               <thead><tr>{["#","Nr działki","Nazwa potoczna","Roślina","Pow. (ha)","Siew","Zbiór","Plon (t)","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{uprawy.map((u,ui)=>{var matchG=grunty.find(g=>u.grunt&&(u.grunt===g.nr||u.grunt.startsWith(g.nr+" ")||u.grunt.startsWith(g.nr+" —")));return(<tr key={ui}>
+              <tbody>{uprawy.map((u,ui)=>({u,ui})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var matchG=grunty.find(g=>x.u.grunt&&g.nr===x.u.grunt);return[x.u.grunt,x.u.roslina,x.u.uwagi,matchG?matchG.nazwa:""].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({u,ui})=>{var matchG=grunty.find(g=>u.grunt&&(u.grunt===g.nr||u.grunt.startsWith(g.nr+" ")||u.grunt.startsWith(g.nr+" —")));return(<tr key={ui}>
                 <td style={{color:"#8a7e72"}}>{ui+1}</td>
                 <td><select value={u.grunt||""} onChange={e=>updUprawa(ui,"grunt",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",minWidth:100}}><option value="">— nr —</option>{grunty.map((g,gi)=><option key={gi} value={g.nr}>{g.nr}</option>)}</select></td>
                 <td style={{fontSize:11,color:"#558b2f",fontWeight:600}}>{matchG?matchG.nazwa:"—"}</td>
@@ -1797,10 +1802,11 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{nawozy.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Zabiegów</div></div>
               {["Azotowy","Fosforowy","Potasowy","Wapniowy","Wieloskładnikowy"].map(t=>{const c2=nawozy.filter(n=>n.typ===t).length;if(!c2)return null;return(<div key={t} className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{c2}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>{t}</div></div>)}).filter(Boolean)}
             </div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj nawożenia (działka, nawóz, typ)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             {nawozy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak nawożeń.</div>:
             <table className="tbl">
               <thead><tr>{["#","Data","Nr działki","Nazwa potoczna","Nawóz","Typ","Dawka (kg/ha)","Pow. (ha)","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{nawozy.map((n,ni)=>{var matchG=grunty.find(g=>n.grunt&&(n.grunt===g.nr||n.grunt.startsWith(g.nr+" ")||n.grunt.startsWith(g.nr+" —")));return(<tr key={ni}>
+              <tbody>{nawozy.map((n,ni)=>({n,ni})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var matchG=grunty.find(g=>x.n.grunt&&g.nr===x.n.grunt);return[x.n.grunt,x.n.nawoz,x.n.typ,x.n.uwagi,matchG?matchG.nazwa:""].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({n,ni})=>{var matchG=grunty.find(g=>n.grunt&&(n.grunt===g.nr||n.grunt.startsWith(g.nr+" ")||n.grunt.startsWith(g.nr+" —")));return(<tr key={ni}>
                 <td style={{color:"#8a7e72"}}>{ni+1}</td>
                 <td><EC val={n.d} type="date" w="110px" onChange={v=>updNawoz(ni,"d",v)}/></td>
                 <td><select value={n.grunt||""} onChange={e=>updNawoz(ni,"grunt",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",minWidth:100}}><option value="">— nr —</option>{grunty.map((g,gi)=><option key={gi} value={g.nr}>{g.nr}</option>)}</select></td>
@@ -1830,10 +1836,11 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{opryski.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Oprysków</div></div>
               {["Chwasty","Choroby","Szkodniki","Regulator","Desykacja"].map(c2=>{const n2=opryski.filter(o=>o.cel===c2).length;if(!n2)return null;return(<div key={c2} className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{n2}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>{c2}</div></div>)}).filter(Boolean)}
             </div>
-            {opryski.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak oprysków.</div>:
+            {opryski.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak oprysków.</div>:<div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj oprysku (środek, działka, cel)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <table className="tbl">
               <thead><tr>{["#","Data","Nr działki","Nazwa potoczna","Środek","Dawka","Pow.(ha)","Cel","Faza","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{opryski.map((o,oi)=>{var matchG=grunty.find(g=>o.grunt&&(o.grunt===g.nr||o.grunt.startsWith(g.nr+" ")||o.grunt.startsWith(g.nr+" —")));return(<tr key={oi}>
+              <tbody>{opryski.map((o,oi)=>({o,oi})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var mg=grunty.find(g=>x.o.grunt&&g.nr===x.o.grunt);return[x.o.grunt,x.o.srodek,x.o.cel,x.o.faza,x.o.uwagi,mg?mg.nazwa:""].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({o,oi})=>{var matchG=grunty.find(g=>o.grunt&&(o.grunt===g.nr||o.grunt.startsWith(g.nr+" ")||o.grunt.startsWith(g.nr+" —")));return(<tr key={oi}>
                 <td style={{color:"#8a7e72"}}>{oi+1}</td>
                 <td>{isAdmin?<EC val={o.d} type="date" w="110px" onChange={v=>updOprysk(oi,"d",v)}/>:fD(o.d)}</td>
                 <td>{isAdmin?<select value={o.grunt||""} onChange={e=>updOprysk(oi,"grunt",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",minWidth:100}}><option value="">— nr —</option>{grunty.map((g,gi)=><option key={gi} value={g.nr}>{g.nr}</option>)}</select>:o.grunt||"—"}</td>
@@ -1846,7 +1853,7 @@ function App(){
                 <td>{isAdmin?<EC val={o.uwagi} w="100px" onChange={v=>updOprysk(oi,"uwagi",v)}/>:o.uwagi||"—"}</td>
                 <td>{isAdmin&&<button onClick={()=>delOprysk(oi)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>)})}</tbody>
-            </table>}
+            </table></div>}
           </div>
         </div>
       </div>}
@@ -1865,10 +1872,11 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#c62828"}}>{fN(rDostawy.reduce((s,d)=>s+((d.ilosc||0)*(d.cena||0)),0),0)} zł</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Wartość łącznie</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{[...new Set(rDostawy.map(d=>d.produkt).filter(Boolean))].length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Produktów</div></div>
             </div>
-            {rDostawy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak dostaw. Kliknij „+ Dodaj dostawę".</div>:
+            {rDostawy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak dostaw. Kliknij „+ Dodaj dostawę".</div>:<div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj dostawy (produkt, dostawca, FV)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <table className="tbl">
               <thead><tr>{["#","Data","Dostawca","Nazwa produktu","Ilość","Jm.","Cena jdn.","Wartość","Nr FV","Uwagi",""].map((h,i)=><th key={i} style={{textAlign:i>3?"center":"left"}}>{h}</th>)}</tr></thead>
-              <tbody>{rDostawy.map((d,di)=>{const val=(d.ilosc||0)*(d.cena||0);return(<tr key={di}>
+              <tbody>{rDostawy.map((d,di)=>({d,di})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();return[x.d.produkt,x.d.dostawca,x.d.fv,x.d.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({d,di})=>{const val=(d.ilosc||0)*(d.cena||0);return(<tr key={di}>
                 <td style={{color:"#8a7e72",textAlign:"center"}}>{di+1}</td>
                 <td>{isAdmin?<EC val={d.d} type="date" w="110px" onChange={v=>updRDostawa(di,"d",v)}/>:fD(d.d)}</td>
                 <td>{isAdmin?<EC val={d.dostawca} w="110px" onChange={v=>updRDostawa(di,"dostawca",v)}/>:d.dostawca||"—"}</td>
@@ -1882,7 +1890,7 @@ function App(){
                 <td style={{textAlign:"center"}}>{isAdmin&&<button onClick={()=>delRDostawa(di)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>)})}</tbody>
               <tfoot><tr style={{background:"#f8f5f0"}}><td colSpan={7} style={{fontWeight:700,textAlign:"right",padding:10}}>RAZEM:</td><td style={{textAlign:"center",fontWeight:800,color:"#1a3328"}}>{fM(rDostawy.reduce((s,d)=>s+((d.ilosc||0)*(d.cena||0)),0))}</td><td colSpan={3}></td></tr></tfoot>
-            </table>}
+            </table></div>}
           </div>
         </div>
       </div>}
@@ -1902,10 +1910,11 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#c62828"}}>{fN(paliwa.reduce((s,p2)=>s+((p2.litry||0)*(p2.cena||0)),0),0)} zł</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Koszt łącznie</div></div>
               {["ON","PB95","Olej","Smar","AdBlue"].map(t2=>{const l2=paliwa.filter(p2=>p2.typ===t2).reduce((s,p2)=>s+(p2.litry||0),0);if(!l2)return null;return(<div key={t2} className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#558b2f"}}>{fN(l2,0)}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>{t2} (L/kg)</div></div>)}).filter(Boolean)}
             </div>
-            {paliwa.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów.</div>:
+            {paliwa.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów.</div>:<div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj (typ, maszyna, uwagi)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <table className="tbl">
               <thead><tr>{["#","Data","Typ","Maszyna","Ilość (L)","Cena/L","Koszt","MTH/km","L/MTH","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{paliwa.map((p2,pi)=>{var cost=(p2.litry||0)*(p2.cena||0);var lmRate=null;var lmAvg=null;if(p2.maszyna&&p2.typ==="ON"&&parseFloat(p2.km)>0){var prev=paliwa.filter(function(x,xi){return xi<pi&&x.maszyna===p2.maszyna&&x.typ==="ON"&&parseFloat(x.km)>0}).sort(function(a,b){return(a.d||"").localeCompare(b.d||"")});if(prev.length>0){var lastP=prev[prev.length-1];var dMth=parseFloat(p2.km)-parseFloat(lastP.km);if(dMth>0&&p2.litry>0)lmRate=p2.litry/dMth}var allRates=[];paliwa.forEach(function(x,xi){if(xi>0&&x.maszyna===p2.maszyna&&x.typ==="ON"&&parseFloat(x.km)>0){var pp=paliwa.filter(function(y,yi){return yi<xi&&y.maszyna===x.maszyna&&y.typ==="ON"&&parseFloat(y.km)>0});if(pp.length>0){var lp2=pp[pp.length-1];var dm=parseFloat(x.km)-parseFloat(lp2.km);if(dm>0&&x.litry>0)allRates.push(x.litry/dm)}}});if(allRates.length>0)lmAvg=allRates.reduce(function(a,b){return a+b},0)/allRates.length}var isAnom=lmRate!==null&&lmAvg!==null&&lmAvg>0&&Math.abs(lmRate-lmAvg)/lmAvg>0.30;return(<tr key={pi} style={isAnom?{background:"#ffebee"}:{}}>
+              <tbody>{paliwa.map((p2,pi)=>({p2,pi})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();return[x.p2.typ,x.p2.maszyna,x.p2.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({p2,pi})=>{var cost=(p2.litry||0)*(p2.cena||0);var lmRate=null;var lmAvg=null;if(p2.maszyna&&p2.typ==="ON"&&parseFloat(p2.km)>0){var prev=paliwa.filter(function(x,xi){return xi<pi&&x.maszyna===p2.maszyna&&x.typ==="ON"&&parseFloat(x.km)>0}).sort(function(a,b){return(a.d||"").localeCompare(b.d||"")});if(prev.length>0){var lastP=prev[prev.length-1];var dMth=parseFloat(p2.km)-parseFloat(lastP.km);if(dMth>0&&p2.litry>0)lmRate=p2.litry/dMth}var allRates=[];paliwa.forEach(function(x,xi){if(xi>0&&x.maszyna===p2.maszyna&&x.typ==="ON"&&parseFloat(x.km)>0){var pp=paliwa.filter(function(y,yi){return yi<xi&&y.maszyna===x.maszyna&&y.typ==="ON"&&parseFloat(y.km)>0});if(pp.length>0){var lp2=pp[pp.length-1];var dm=parseFloat(x.km)-parseFloat(lp2.km);if(dm>0&&x.litry>0)allRates.push(x.litry/dm)}}});if(allRates.length>0)lmAvg=allRates.reduce(function(a,b){return a+b},0)/allRates.length}var isAnom=lmRate!==null&&lmAvg!==null&&lmAvg>0&&Math.abs(lmRate-lmAvg)/lmAvg>0.30;return(<tr key={pi} style={isAnom?{background:"#ffebee"}:{}}>
                 <td style={{color:"#8a7e72"}}>{pi+1}</td>
                 <td>{isAdmin?<EC val={p2.d} type="date" w="110px" onChange={v=>updPaliwo(pi,"d",v)}/>:fD(p2.d)}</td>
                 <td>{isAdmin?<select value={p2.typ} onChange={e=>updPaliwo(pi,"typ",e.target.value)} style={{background:"#fff",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none"}}>{["ON","PB95","Olej","Smar","AdBlue","Inne"].map(t3=><option key={t3} value={t3}>{t3}</option>)}</select>:p2.typ}</td>
@@ -1919,7 +1928,7 @@ function App(){
                 <td>{isAdmin&&<button onClick={()=>delPaliwo(pi)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>)})}</tbody>
               <tfoot><tr style={{background:"#f8f5f0"}}><td colSpan={4} style={{fontWeight:700,textAlign:"right",padding:10}}>RAZEM:</td><td style={{textAlign:"center",fontWeight:800}}>{fN(paliwa.reduce((s,p2)=>s+(p2.litry||0),0),0)} L</td><td></td><td style={{textAlign:"center",fontWeight:800,color:"#c62828"}}>{fM(paliwa.reduce((s,p2)=>s+((p2.litry||0)*(p2.cena||0)),0))}</td><td colSpan={4}></td></tr></tfoot>
-            </table>}
+            </table></div>}
           </div>
         </div>
 
@@ -2076,10 +2085,11 @@ function App(){
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{zakupy.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Zakupów</div></div>
               <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#c62828"}}>{fN(zakupy.reduce((s,z)=>s+(z.cena||0),0),0)} zł</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Wydano łącznie</div></div>
             </div>
-            {zakupy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak zakupów.</div>:
+            {zakupy.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak zakupów.</div>:<div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj zakupu (produkt, kto, uwagi)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <table className="tbl">
               <thead><tr>{["#","Data","Nazwa produktu","Cena (zł)","Kto zamawiał","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{zakupy.map((z,zi)=>(<tr key={zi}>
+              <tbody>{zakupy.map((z,zi)=>({z,zi})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();return[x.z.produkt,x.z.kto,x.z.uwagi].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({z,zi})=>(<tr key={zi}>
                 <td style={{color:"#8a7e72",textAlign:"center"}}>{zi+1}</td>
                 <td>{isAdmin?<EC val={z.d} type="date" w="110px" onChange={v=>updZakup(zi,"d",v)}/>:fD(z.d)}</td>
                 <td>{isAdmin?<EC val={z.produkt} w="180px" onChange={v=>updZakup(zi,"produkt",v)}/>:<span style={{fontWeight:600}}>{z.produkt||"—"}</span>}</td>
@@ -2089,7 +2099,7 @@ function App(){
                 <td style={{textAlign:"center"}}>{isAdmin&&<button onClick={()=>delZakup(zi)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
               </tr>))}</tbody>
               <tfoot><tr style={{background:"#f8f5f0"}}><td colSpan={3} style={{fontWeight:700,textAlign:"right",padding:10}}>RAZEM:</td><td style={{textAlign:"center",fontWeight:800,color:"#c62828"}}>{fM(zakupy.reduce((s,z)=>s+(z.cena||0),0))}</td><td colSpan={3}></td></tr></tfoot>
-            </table>}
+            </table></div>}
           </div>
         </div>
       </div>}
@@ -2147,10 +2157,11 @@ function App(){
             })()}
 
             {/* TABLE */}
-            {biogaz.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów. Kliknij przycisk powyżej aby dodać.</div>:
+            {biogaz.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów. Kliknij przycisk powyżej aby dodać.</div>:<div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj (czynność, kategoria, wykonał)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <table className="tbl">
               <thead><tr>{["#","Data","Kategoria","Czynność / opis","Wykonał","Uwagi",""].map((h,i)=><th key={i}>{h}</th>)}</tr></thead>
-              <tbody>{biogaz.map((b,bi)=>{
+              <tbody>{biogaz.map((b,bi)=>({b,bi})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var kat=BIOGAZ_KAT.find(k=>k.id===x.b.kat);return[x.b.czynnosc,x.b.kto,x.b.uwagi,kat?kat.label:""].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({b,bi})=>{
                 const kat=BIOGAZ_KAT.find(k=>k.id===b.kat)||BIOGAZ_KAT[4];
                 return(<tr key={bi} style={{borderLeft:"3px solid "+kat.col}}>
                   <td style={{color:"#8a7e72",textAlign:"center"}}>{bi+1}</td>
@@ -2162,7 +2173,7 @@ function App(){
                   <td style={{textAlign:"center"}}>{isAdmin&&<button onClick={()=>delBiogaz(bi)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:14}}>✕</button>}</td>
                 </tr>)
               })}</tbody>
-            </table>}
+            </table></div>}
           </div>
         </div>
       </div>}
@@ -2210,9 +2221,10 @@ function App(){
             </div>
 
             {/* CARDS */}
-            {dokumenty.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak dokumentów. Kliknij przycisk powyżej aby dodać.</div>:
+            {dokumenty.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak dokumentów. Kliknij przycisk powyżej aby dodać.</div>:<div>
+            <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder="🔍 Szukaj dokumentu (nazwa, nr, podmiot, grunt)..." style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:12}}>
-              {dokumenty.map((d,di)=>{
+              {dokumenty.map((d,di)=>({d,di})).filter(x=>{if(!rFilter)return true;var q=rFilter.toLowerCase();var kat=DOK_KAT.find(k=>k.id===x.d.kat);return[x.d.nazwa,x.d.nr,x.d.podmiot,x.d.grunt,x.d.uwagi,kat?kat.label:""].filter(Boolean).some(v=>v.toLowerCase().includes(q))}).map(({d,di})=>{
                 const kat=DOK_KAT.find(k=>k.id===d.kat)||DOK_KAT[5];
                 const now2=new Date();const hasDo=!!d.dataDo;
                 const daysLeft=hasDo?Math.ceil((new Date(d.dataDo)-now2)/86400000):null;
@@ -2260,7 +2272,7 @@ function App(){
                   </div>
                 </div>)
               })}
-            </div>}
+            </div></div>}
           </div>
         </div>
       </div>}
