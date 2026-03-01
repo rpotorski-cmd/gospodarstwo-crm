@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List, Any
@@ -12,12 +12,12 @@ router = APIRouter(prefix="/api", tags=["tuczarnie"])
 
 def check_read(user, module):
     if not can_read(user.role, module):
-        raise HTTPException(status_code=403, detail="Brak uprawnień do odczytu")
+        raise HTTPException(status_code=403, detail="Brak uprawnien do odczytu")
 
 
 def check_write(user, module):
     if not can_write(user.role, module):
-        raise HTTPException(status_code=403, detail="Brak uprawnień do zapisu")
+        raise HTTPException(status_code=403, detail="Brak uprawnien do zapisu")
 
 
 def audit(db, user, area, action):
@@ -25,9 +25,7 @@ def audit(db, user, area, action):
     db.commit()
 
 
-# ═══════════════════════════════════════
 # CYCLES (wstawienia)
-# ═══════════════════════════════════════
 
 class CycleCreate(BaseModel):
     cid: str
@@ -49,7 +47,6 @@ class CycleCreate(BaseModel):
 
 
 class CycleUpdate(BaseModel):
-    # All fields optional for partial update
     head: Optional[int] = None
     sw: Optional[float] = None
     ew: Optional[float] = None
@@ -76,7 +73,7 @@ class CycleUpdate(BaseModel):
     todos: Optional[list] = None
 
 
-def cycle_to_dict(c: Cycle) -> dict:
+def cycle_to_dict(c):
     return {
         "id": c.id, "cid": c.cid, "num": c.num, "start": c.start,
         "head": c.head, "sw": c.sw, "ew": c.ew, "dg": c.dg, "fcr": c.fcr,
@@ -146,7 +143,7 @@ async def delete_cycle(cid: int, user: User = Depends(get_current_user), db: Ses
         raise HTTPException(status_code=404, detail="Nie znaleziono")
     db.delete(c)
     db.commit()
-    audit(db, user, "tuczarnie", f"Usunięto wstawienie #{cid}")
+    audit(db, user, "tuczarnie", f"Usunieto wstawienie #{cid}")
     return {"ok": True}
 
 
@@ -155,13 +152,11 @@ async def clear_chamber(chamber_id: str, user: User = Depends(get_current_user),
     check_write(user, "cycles")
     db.query(Cycle).filter(Cycle.cid == chamber_id).delete()
     db.commit()
-    audit(db, user, "tuczarnie", f"Wyczyszczono komorę {chamber_id}")
+    audit(db, user, "tuczarnie", f"Wyczyszczono komore {chamber_id}")
     return {"ok": True}
 
 
-# ═══════════════════════════════════════
-# STOCK (magazyn leków)
-# ═══════════════════════════════════════
+# STOCK (magazyn lekow)
 
 @router.get("/stock")
 async def list_stock(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -171,8 +166,9 @@ async def list_stock(user: User = Depends(get_current_user), db: Session = Depen
 
 
 @router.put("/stock/{sid}")
-async def update_stock(sid: int, data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def update_stock(sid: int, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     check_write(user, "stock")
+    data = await request.json()
     s = db.query(Stock).filter(Stock.id == sid).first()
     if not s:
         raise HTTPException(status_code=404)
@@ -187,8 +183,9 @@ async def update_stock(sid: int, data: dict, user: User = Depends(get_current_us
 
 
 @router.post("/stock")
-async def add_stock(data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def add_stock(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     check_write(user, "stock")
+    data = await request.json()
     s = Stock(name=data.get("name", "Nowy lek"), unit=data.get("unit", "szt"))
     db.add(s)
     db.commit()
@@ -196,9 +193,7 @@ async def add_stock(data: dict, user: User = Depends(get_current_user), db: Sess
     return {"id": s.id}
 
 
-# ═══════════════════════════════════════
 # FEEDS (dostawy paszy)
-# ═══════════════════════════════════════
 
 @router.get("/feeds")
 async def list_feeds(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -208,8 +203,9 @@ async def list_feeds(user: User = Depends(get_current_user), db: Session = Depen
 
 
 @router.post("/feeds")
-async def add_feed(data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def add_feed(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     check_write(user, "feeds")
+    data = await request.json()
     f = Feed(d=data.get("d",""), tons=data.get("tons",0), type=data.get("type","Starter"), cid=data.get("cid",""), note=data.get("note",""), zwrot=data.get("zwrot",False))
     db.add(f)
     db.commit()
@@ -218,8 +214,9 @@ async def add_feed(data: dict, user: User = Depends(get_current_user), db: Sessi
 
 
 @router.put("/feeds/{fid}")
-async def update_feed(fid: int, data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def update_feed(fid: int, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     check_write(user, "feeds")
+    data = await request.json()
     f = db.query(Feed).filter(Feed.id == fid).first()
     if not f:
         raise HTTPException(status_code=404)
@@ -238,9 +235,7 @@ async def delete_feed(fid: int, user: User = Depends(get_current_user), db: Sess
     return {"ok": True}
 
 
-# ═══════════════════════════════════════
 # PASZARNIA (singleton JSON)
-# ═══════════════════════════════════════
 
 @router.get("/paszarnia")
 async def get_paszarnia(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -250,8 +245,9 @@ async def get_paszarnia(user: User = Depends(get_current_user), db: Session = De
 
 
 @router.put("/paszarnia")
-async def update_paszarnia(data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def update_paszarnia(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     check_write(user, "paszarnia")
+    data = await request.json()
     p = db.query(Paszarnia).first()
     if not p:
         p = Paszarnia(data=data)
@@ -262,9 +258,7 @@ async def update_paszarnia(data: dict, user: User = Depends(get_current_user), d
     return {"ok": True}
 
 
-# ═══════════════════════════════════════
 # SILOSY (singleton JSON)
-# ═══════════════════════════════════════
 
 @router.get("/silosy")
 async def get_silosy(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -274,8 +268,9 @@ async def get_silosy(user: User = Depends(get_current_user), db: Session = Depen
 
 
 @router.put("/silosy")
-async def update_silosy(data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def update_silosy(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     check_write(user, "silosy")
+    data = await request.json()
     s = db.query(Silosy).first()
     if not s:
         s = Silosy(data=data)
@@ -286,9 +281,7 @@ async def update_silosy(data: dict, user: User = Depends(get_current_user), db: 
     return {"ok": True}
 
 
-# ═══════════════════════════════════════
 # UBOJNIE
-# ═══════════════════════════════════════
 
 @router.get("/ubojnie")
 async def list_ubojnie(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -297,8 +290,9 @@ async def list_ubojnie(user: User = Depends(get_current_user), db: Session = Dep
 
 
 @router.post("/ubojnie")
-async def add_ubojnia(data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def add_ubojnia(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     check_write(user, "ubojnie")
+    data = await request.json()
     name = data.get("name", "")
     if not name:
         raise HTTPException(status_code=400, detail="Nazwa wymagana")
