@@ -68,28 +68,67 @@ async def get_permissions():
     return MODULE_PERMS
 
 
-@app.get("/api/geoportal/{teryt:path}")
-async def geoportal_redirect(teryt: str):
-    """Proxy ULDK API to get parcel coordinates, redirect to Google Maps"""
+@app.get("/api/geoportal")
+async def geoportal_redirect(teryt: str = ""):
+    """Fetch parcel geometry from ULDK, show on Leaflet map with polygon"""
     import urllib.request, urllib.parse, re
-    from fastapi.responses import RedirectResponse
+    from fastapi.responses import HTMLResponse, RedirectResponse
+    if not teryt:
+        return RedirectResponse("https://www.google.com/maps")
+    coords_js = "[]"
+    center_lat, center_lng = 53.168, 19.806
+    parcel_found = False
     try:
-        url = "https://uldk.gugik.gov.pl/?request=GetParcelById&id=" + urllib.parse.quote(teryt) + "&result=geom_wkt"
+        url = "https://uldk.gugik.gov.pl/?request=GetParcelById&id=" + urllib.parse.quote(teryt) + "&result=geom_wkt&srid=4326"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         resp = urllib.request.urlopen(req, timeout=10)
         txt = resp.read().decode("utf-8", "ignore").strip()
-        nums = re.findall(r'[\d.]+', txt)
-        if nums and len(nums) >= 4:
-            xs, ys = [], []
-            for i in range(0, len(nums) - 1, 2):
-                xs.append(float(nums[i]))
-                ys.append(float(nums[i + 1]))
-            cx = (min(xs) + max(xs)) / 2
-            cy = (min(ys) + max(ys)) / 2
-            return RedirectResponse(f"https://www.google.com/maps/@{cy},{cx},18z")
+        # Parse WKT POLYGON or MULTIPOLYGON
+        ring = re.search(r'\(\(([^)]+)\)', txt)
+        if ring:
+            pairs = ring.group(1).split(",")
+            coords = []
+            for p in pairs:
+                parts = p.strip().split()
+                if len(parts) >= 2:
+                    lng, lat = float(parts[0]), float(parts[1])
+                    coords.append([lat, lng])
+            if coords:
+                parcel_found = True
+                lats = [c[0] for c in coords]
+                lngs = [c[1] for c in coords]
+                center_lat = (min(lats) + max(lats)) / 2
+                center_lng = (min(lngs) + max(lngs)) / 2
+                coords_js = str(coords)
     except Exception:
         pass
-    return RedirectResponse(f"https://www.google.com/maps/search/{urllib.parse.quote(teryt)}")
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Działka {teryt}</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>body{{margin:0}}#map{{width:100%;height:100vh}}
+.info{{position:absolute;top:10px;left:50px;z-index:1000;background:#fff;padding:8px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);font:bold 14px sans-serif;color:#1565c0}}</style>
+</head><body>
+<div class="info">Działka: {teryt}</div>
+<div id="map"></div>
+<script>
+var coords={coords_js};
+var map=L.map('map').setView([{center_lat},{center_lng}],17);
+L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'© OpenStreetMap'}}).addTo(map);
+var orto=L.tileLayer('https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMS/StandardResolution?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=Raster&STYLES=&SRS=EPSG:3857&BBOX={{bbox-epsg-3857}}&WIDTH=256&HEIGHT=256&FORMAT=image/jpeg',{{maxZoom:20,attribution:'GUGiK',tms:false}});
+var dzialki=L.tileLayer.wms('https://integracja.gugik.gov.pl/cgi-bin/KrasijObiektServletNew',{{layers:'dzialki,numery_dzialek',format:'image/png',transparent:true,maxZoom:20,attribution:'EGiB'}});
+var baseMaps={{"OSM":L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20}}),"Ortofotomapa":orto}};
+var overlays={{"Działki EGiB":dzialki}};
+L.control.layers(baseMaps,overlays).addTo(map);
+dzialki.addTo(map);
+if(coords.length>2){{
+  var poly=L.polygon(coords,{{color:'#d32f2f',weight:3,fillColor:'#ff5252',fillOpacity:0.25}}).addTo(map);
+  map.fitBounds(poly.getBounds().pad(0.3));
+  poly.bindPopup('<b>{teryt}</b>').openPopup();
+}}
+</script></body></html>"""
+    return HTMLResponse(html)
 
 
 @app.get("/")
