@@ -401,22 +401,22 @@ function App(){
   const upd=(id,f,v)=>setCycles(p=>p.map(c=>c.id===id?{...c,[f]:v}:c));
   const updS=(ci,si,f,v)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const ns=[...c.sales];ns[si]={...ns[si],[f]:v};return{...c,sales:ns}}));
   const addS=ci=>setCycles(p=>p.map(c=>c.id===ci?{...c,sales:[...c.sales,{d:tS(),q:0,k:0,p:0,ub:""}]}:c));
-  const delS=(ci,si)=>setCycles(p=>p.map(c=>{if(!confirm("Na pewno usunąć sprzedaż?"))return;if(c.id!==ci)return c;const ns=[...c.sales];ns.splice(si,1);return{...c,sales:ns}}));
+  const delS=(ci,si)=>{if(!confirm("Na pewno usunąć sprzedaż?"))return;setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const ns=[...c.sales];ns.splice(si,1);return{...c,sales:ns}}))};
   const addMed=(ci,mn)=>{const md=dynMEDS.find(m=>m.name===mn)||dynMEDS[0];setCycles(p=>p.map(c=>c.id===ci?{...c,meds:[...(c.meds||[]),{d:tS(),name:md.name,dose:md.defDose,qty:0,unit:md.unit,price:md.defPrice}]}:c))};
   const updMed=(ci,mi,f,v)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nm=[...(c.meds||[])];nm[mi]={...nm[mi],[f]:v};return{...c,meds:nm}}));
-  const delMed=(ci,mi)=>setCycles(p=>p.map(c=>{if(!confirm("Na pewno usunąć lek?"))return;if(c.id!==ci)return c;const nm=[...(c.meds||[])];nm.splice(mi,1);return{...c,meds:nm}}));
+  const delMed=(ci,mi)=>{if(!confirm("Na pewno usunąć lek?"))return;setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nm=[...(c.meds||[])];nm.splice(mi,1);return{...c,meds:nm}}))};
   const updTodo=(ci,tid,f,v)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const ts=(c.todos||mkTodos()).map(t=>t.id===tid?{...t,[f]:v,date:f==="status"&&v==="done"&&!t.date?tS():t.date}:t);return{...c,todos:ts}}));
   const addCustomTodo=(ci,name)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const ts=[...(c.todos||mkTodos()),{id:"c_"+Date.now(),name,icon:"📌",cat:"inne",desc:"",status:"todo",date:"",note:""}];return{...c,todos:ts}}));
   const delTodo=(ci,tid)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;return{...c,todos:(c.todos||[]).filter(t=>t.id!==tid)}}));
   // Deaths
   const addDeath=ci=>setCycles(p=>p.map(c=>c.id===ci?{...c,deaths:[...(c.deaths||[]),{d:tS(),qty:1,weight:0,cause:"Inne — nieznana"}]}:c));
   const updDeath=(ci,di,f,v)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nd=[...(c.deaths||[])];nd[di]={...nd[di],[f]:v};return{...c,deaths:nd}}));
-  const delDeath=(ci,di)=>setCycles(p=>p.map(c=>{if(!confirm("Na pewno usunąć wpis upadku?"))return;if(c.id!==ci)return c;const nd=[...(c.deaths||[])];nd.splice(di,1);return{...c,deaths:nd}}));
+  const delDeath=(ci,di)=>{if(!confirm("Na pewno usunąć wpis upadku?"))return;setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nd=[...(c.deaths||[])];nd.splice(di,1);return{...c,deaths:nd}}))};
 
   // Weighings
   const addWeighing=ci=>{const cy2=cycles.find(c=>c.id===ci);const day=cy2?dB(cy2.start,tS()):0;setCycles(p=>p.map(c=>c.id===ci?{...c,weighings:[...(c.weighings||[]),{d:tS(),day:day,weights:[{kg:0}],note:""}]}:c))};
   const updWeighing=(ci,wi,f,v)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nw=[...(c.weighings||[])];nw[wi]={...nw[wi],[f]:v};return{...c,weighings:nw}}));
-  const delWeighing=(ci,wi)=>setCycles(p=>p.map(c=>{if(!confirm("Na pewno usunąć ważenie?"))return;if(c.id!==ci)return c;const nw=[...(c.weighings||[])];nw.splice(wi,1);return{...c,weighings:nw}}));
+  const delWeighing=(ci,wi)=>{if(!confirm("Na pewno usunąć ważenie?"))return;setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nw=[...(c.weighings||[])];nw.splice(wi,1);return{...c,weighings:nw}}))};
   const addWeighItem=(ci,wi)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nw=[...(c.weighings||[])];nw[wi]={...nw[wi],weights:[...nw[wi].weights,{kg:0}]};return{...c,weighings:nw}}));
   const delWeighItem=(ci,wi,ii)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nw=[...(c.weighings||[])];const wts=[...nw[wi].weights];wts.splice(ii,1);nw[wi]={...nw[wi],weights:wts};return{...c,weighings:nw}}));
   const updWeighItem=(ci,wi,ii,v)=>setCycles(p=>p.map(c=>{if(c.id!==ci)return c;const nw=[...(c.weighings||[])];const wts=[...nw[wi].weights];wts[ii]={kg:v};nw[wi]={...nw[wi],weights:wts};return{...c,weighings:nw}}));
@@ -427,7 +427,7 @@ function App(){
   const saveFeeds=async()=>{try{const ex=await api.get("/feeds");for(const f of feeds){if(ex.find(e=>e.id===f.id))await api.put("/feeds/"+f.id,f);else{const r=await api.post("/feeds",f);f.id=r.id}}for(const e of ex){if(!feeds.find(f=>f.id===e.id))await api.del("/feeds/"+e.id)}setToast("Dostawy paszy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addFeed=()=>setFeeds(p=>[...p,{id:Date.now(),d:tS(),tons:0,type:"Starter",cid:"",note:"",zwrot:false}]);
   const updFeed=(i,f,v)=>setFeeds(p=>p.map((fd,fi)=>fi===i?{...fd,[f]:v}:fd));
-  const delFeed=i=>{if(!confirm("Na pewno usunąć paszę?"))return;setFeeds(p=>p.filter((_,fi)=>fi!==i))}; const _delFeedOld=i=>setFeeds(p=>p.filter((_,fi)=>fi!==i));
+  const delFeed=i=>{if(!confirm("Na pewno usunąć paszę?"))return;setFeeds(p=>p.filter((_,fi)=>fi!==i))};
   const addFeedReturn=()=>setFeeds(p=>[...p,{id:Date.now(),d:tS(),tons:0,type:"Starter",cid:"",note:"",zwrot:true}]);
 
   // Paszarnia
@@ -436,10 +436,10 @@ function App(){
   const savePaszarnia=async()=>{try{await api.put("/paszarnia",paszarnia);setToast("Paszarnia zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addPaszLog=(cat,sub)=>setPaszarnia(p=>({...p,log:[{id:Date.now(),d:tS(),cat,sub:sub||"",obroty:"",note:""},...p.log]}));
   const updPaszLog=(i,f,v)=>setPaszarnia(p=>({...p,log:p.log.map((l,li)=>li===i?{...l,[f]:v}:l)}));
-  const delPaszLog=i=>setPaszarnia(p=>({if(!confirm("Na pewno usunąć wpis paszarni?"))return;...p,log:p.log.filter((_,li)=>li!==i)}));
+  const delPaszLog=i=>{if(!confirm("Na pewno usunąć wpis paszarni?"))return;setPaszarnia(p=>({...p,log:p.log.filter((_,li)=>li!==i)}))};
   const addBufor=name=>setPaszarnia(p=>({...p,bufory:[...p.bufory,name]}));
   const updBufor=(i,v)=>setPaszarnia(p=>({...p,bufory:p.bufory.map((b,bi)=>bi===i?v:b)}));
-  const delBufor=i=>setPaszarnia(p=>({if(!confirm("Na pewno usunąć bufor?"))return;...p,bufory:p.bufory.filter((_,bi)=>bi!==i)}));
+  const delBufor=i=>{if(!confirm("Na pewno usunąć bufor?"))return;setPaszarnia(p=>({...p,bufory:p.bufory.filter((_,bi)=>bi!==i)}))};
 
   // Silosy
   const SILOSY_DEF=[{id:1,nazwa:"Silos 1",poj:400},{id:2,nazwa:"Silos 2",poj:400},{id:3,nazwa:"Silos 3",poj:400},{id:4,nazwa:"Silos 4",poj:400}];
@@ -1722,7 +1722,7 @@ function App(){
                   <div style={{gridColumn:"span 2"}}><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Wojewodztwo</div>{<select value={g.woj||""} onChange={e=>{updGrunt(gi,"woj",e.target.value);updGrunt(gi,"powiat","");updGrunt(gi,"gmina","");updGrunt(gi,"obreb","")}} style={{width:"100%",border:"1px solid #9c27b0",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#f3e5f5",fontWeight:600,boxSizing:"border-box"}}><option value="">— wybierz —</option>{WOJE.map(w=><option key={w} value={w}>{w}</option>)}</select>}</div>
                   <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Powiat</div>{<select value={g.powiat||""} onChange={e=>{updGrunt(gi,"powiat",e.target.value);updGrunt(gi,"gmina","");updGrunt(gi,"obreb","")}} style={{width:"100%",border:"1px solid #9c27b0",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#f3e5f5",fontWeight:600,boxSizing:"border-box"}}><option value="">— powiat —</option>{getPowiaty(g.woj).map(p=><option key={p} value={p}>{p}</option>)}</select>}</div>
                   <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Gmina</div>{<select value={g.gmina||""} onChange={e=>{const gm=e.target.value;updGrunt(gi,"gmina",gm);updGrunt(gi,"obreb","");if(gm)fetchObreby(gm)}} style={{width:"100%",border:"1px solid #9c27b0",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#f3e5f5",fontWeight:600,boxSizing:"border-box"}}><option value="">— gmina —</option>{getGminy(g.woj,g.powiat).map(gm=><option key={gm} value={gm}>{gm}</option>)}</select>}</div>
-                  <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Obreb</div>{(obMap[g.gmina]&&obMap[g.gmina].length>0?<select value={g.obreb||""} onChange={e=>updGrunt(gi,"obreb",e.target.value)} style={{width:"100%",border:"1px solid #558b2f",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#e8f5e9",fontWeight:600,boxSizing:"border-box"}}><option value="">— obreb —</option>{obMap[g.gmina].map((o,oi)=><option key={oi} value={o.nazwa}>{o.nazwa} ({o.teryt})</option>)}</select>}</div>
+                  <div><div style={{fontSize:8.5,color:"#6a1b9a",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Obreb</div>{obMap[g.gmina]&&obMap[g.gmina].length>0?<select value={g.obreb||""} onChange={e=>updGrunt(gi,"obreb",e.target.value)} style={{width:"100%",border:"1px solid #558b2f",borderRadius:6,padding:"5px 28px 5px 8px",fontSize:11,outline:"none",background:"#e8f5e9",fontWeight:600,boxSizing:"border-box"}}><option value="">— obreb —</option>{obMap[g.gmina].map((o,oi)=><option key={oi} value={o.nazwa}>{o.nazwa} ({o.teryt})</option>)}</select>:<EC val={g.obreb} w="100%" onChange={v=>updGrunt(gi,"obreb",v)}/>}</div>
                   <div><div style={{fontSize:8.5,color:"#e65100",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2,fontWeight:700}}>Nr dzialki</div>{<EC val={g.nr} w="100%" onChange={v=>updGrunt(gi,"nr",v)}/>}</div>
                   <div><div style={{fontSize:8.5,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Powierzchnia (ha)</div>{<EC val={g.pow} type="number" w="100%" onChange={v=>updGrunt(gi,"pow",v)}/>}</div>
                   <div><div style={{fontSize:8.5,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Nazwa potoczna</div>{<EC val={g.nazwa} w="100%" onChange={v=>updGrunt(gi,"nazwa",v)}/>}</div>
@@ -2179,7 +2179,7 @@ function App(){
             
 
             {/* QUICK ADD BUTTONS */}
-            {isAdmin&&<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
+            {user&&<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
               {BIOGAZ_KAT.map(k=><button key={k.id} onClick={()=>addBiogaz(k.id)} style={{background:k.col,color:"#fff",border:"none",borderRadius:8,padding:"8px 14px",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>{k.icon} {k.label}</button>)}
             </div>}
 
@@ -2252,7 +2252,7 @@ function App(){
           <div style={{padding:16}}>
             
 
-            {isAdmin&&<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
+            {user&&<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
               {DOK_KAT.map(k=><button key={k.id} onClick={()=>addDokument(k.id)} style={{background:k.col,color:"#fff",border:"none",borderRadius:8,padding:"8px 14px",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>+ {k.icon} {k.label}</button>)}
             </div>}
 
@@ -2327,7 +2327,10 @@ function App(){
                         <button onClick={()=>viewDocFile(d.id)} className="btn btn-sm" style={{background:"#e3f2fd",color:"#1565c0",border:"none",fontSize:10}}>👁 Otwórz</button>
                         {isAdmin&&<button onClick={()=>deleteDocFile(d.id)} className="btn btn-sm" style={{background:"#ffebee",color:"#c62828",border:"none",fontSize:10}}>✕</button>}
                       </div>:<div>
-                        {d._new?<span style={{fontSize:10,color:"#e65100",fontStyle:"italic"}}>💾 Zapisz dokument przed wgraniem pliku</span>}
+                        {d._new?<span style={{fontSize:10,color:"#e65100",fontStyle:"italic"}}>💾 Zapisz dokument przed wgraniem pliku</span>:<label style={{display:"inline-flex",alignItems:"center",gap:6,background:"#f5f0e8",border:"1px dashed #c4b8a8",borderRadius:8,padding:"10px 16px",cursor:"pointer",fontSize:11,color:"#5a6b5c"}}>
+                          <span>📤</span> Wgraj PDF lub skan
+                          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.tiff,.tif,.bmp,.gif" style={{display:"none"}} onChange={e=>{if(e.target.files[0]&&d.id)uploadDocFile(d.id,e.target.files[0])}}/>
+                        </label>}
                       </div>}
                     </div>
                   </div>
