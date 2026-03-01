@@ -91,8 +91,10 @@ async def download_file(
     if not doc.file_data:
         raise HTTPException(status_code=404, detail="Brak pliku")
 
+    file_bytes = bytes(doc.file_data) if not isinstance(doc.file_data, bytes) else doc.file_data
+
     return Response(
-        content=doc.file_data,
+        content=file_bytes,
         media_type=doc.file_mime or "application/octet-stream",
         headers={"Content-Disposition": f'inline; filename="{doc.file_name}"'}
     )
