@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
@@ -7,8 +7,26 @@ from models import User, AuditLog
 from auth import verify_password, create_token, hash_password, get_current_user, require_role
 from config import ROLE_ADMIN, MAX_USERS
 from datetime import datetime
+import time
+from collections import defaultdict
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+# ─── RATE LIMITER (brute-force protection) ───
+_login_attempts = defaultdict(list)  # IP -> [timestamp, ...]
+MAX_LOGIN_ATTEMPTS = 5  # max attempts
+LOGIN_WINDOW_SEC = 300  # per 5 minutes
+
+
+def check_rate_limit(ip: str):
+    now = time.time()
+    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < LOGIN_WINDOW_SEC]
+    if len(_login_attempts[ip]) >= MAX_LOGIN_ATTEMPTS:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Zbyt wiele prób logowania. Spróbuj za {LOGIN_WINDOW_SEC // 60} minut."
+        )
+    _login_attempts[ip].append(now)
 
 
 class LoginReq(BaseModel):
@@ -37,10 +55,15 @@ def log_audit(db: Session, user_name: str, email: str, area: str, action: str):
 
 
 @router.post("/login")
-async def login(req: LoginReq, db: Session = Depends(get_db)):
+async def login(req: LoginReq, request: Request, db: Session = Depends(get_db)):
+    client_ip = request.client.host if request.client else "unknown"
+    check_rate_limit(client_ip)
     user = db.query(User).filter(User.email == req.email, User.is_active == True).first()
     if not user or not verify_password(req.password, user.password_hash):
+        log_audit(db, req.email, req.email, "login_failed", f"Nieudane logowanie z IP: {client_ip}")
         raise HTTPException(status_code=401, detail="Nieprawidłowy email lub hasło")
+    # Clear rate limit on success
+    _login_attempts.pop(client_ip, None)
     token = create_token({"sub": str(user.id), "role": user.role})
     log_audit(db, user.name, user.email, "login", "Zalogowano")
     return {
