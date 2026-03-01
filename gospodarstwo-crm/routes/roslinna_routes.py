@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from database import get_db
 from models import (Ciagnik, Grunt, Uprawa, Nawoz, Oprysk, Paliwo,
@@ -11,20 +11,19 @@ router = APIRouter(prefix="/api", tags=["roslinna"])
 
 def check_read(user, mod):
     if not can_read(user.role, mod):
-        raise HTTPException(status_code=403, detail="Brak uprawnień")
+        raise HTTPException(status_code=403, detail="Brak uprawnien")
 
 def check_write(user, mod):
     if not can_write(user.role, mod):
-        raise HTTPException(status_code=403, detail="Brak uprawnień")
+        raise HTTPException(status_code=403, detail="Brak uprawnien")
 
 def audit(db, user, area, action):
     db.add(AuditLog(user_name=user.name, email=user.email, area=area, action=action))
     db.commit()
 
 
-# ═══ GENERIC CRUD HELPER ═══
+# GENERIC CRUD HELPER
 def make_crud(model_cls, module_name, fields, audit_area):
-    """Returns (list, create, update, delete) route handlers"""
 
     async def list_all(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
         check_read(user, module_name)
@@ -38,8 +37,9 @@ def make_crud(model_cls, module_name, fields, audit_area):
             result.append(d)
         return result
 
-    async def create(data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    async def create(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
         check_write(user, module_name)
+        data = await request.json()
         item = model_cls()
         for f in fields:
             if f["js"] in data:
@@ -50,8 +50,9 @@ def make_crud(model_cls, module_name, fields, audit_area):
         audit(db, user, audit_area, f"Dodano #{item.id}")
         return {"id": item.id}
 
-    async def update(item_id: int, data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    async def update(item_id: int, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
         check_write(user, module_name)
+        data = await request.json()
         item = db.query(model_cls).filter(model_cls.id == item_id).first()
         if not item:
             raise HTTPException(status_code=404)
@@ -68,13 +69,13 @@ def make_crud(model_cls, module_name, fields, audit_area):
             raise HTTPException(status_code=404)
         db.delete(item)
         db.commit()
-        audit(db, user, audit_area, f"Usunięto #{item_id}")
+        audit(db, user, audit_area, f"Usunieto #{item_id}")
         return {"ok": True}
 
     return list_all, create, update, delete
 
 
-# ═══ CIĄGNIKI / MASZYNY ═══
+# CIAGNIKI / MASZYNY
 _c_fields = [
     {"js":"typ","db":"typ","default":"ciagnik"}, {"js":"nazwa","db":"nazwa","default":""},
     {"js":"marka","db":"marka","default":""}, {"js":"rok","db":"rok","default":""},
@@ -91,11 +92,11 @@ router.put("/ciagniki/{item_id}")(_cu)
 router.delete("/ciagniki/{item_id}")(_cd)
 
 
-# ═══ GRUNTY ═══
+# GRUNTY
 _g_fields = [
     {"js":"nr","db":"nr"}, {"js":"teryt","db":"teryt"}, {"js":"obreb","db":"obreb"},
     {"js":"pow","db":"pow"}, {"js":"gmina","db":"gmina"}, {"js":"powiat","db":"powiat"},
-    {"js":"woj","db":"woj","default":"warmińsko-mazurskie"}, {"js":"nazwa","db":"nazwa"},
+    {"js":"woj","db":"woj","default":"warminsko-mazurskie"}, {"js":"nazwa","db":"nazwa"},
     {"js":"wlasciciel","db":"wlasciciel"}, {"js":"uwagi","db":"uwagi"},
     {"js":"kw","db":"kw"}, {"js":"obciazona","db":"obciazona","default":"nie"},
     {"js":"bankNazwa","db":"bank_nazwa"}, {"js":"bankKwota","db":"bank_kwota"},
@@ -107,7 +108,7 @@ router.put("/grunty/{item_id}")(_gu)
 router.delete("/grunty/{item_id}")(_gd)
 
 
-# ═══ UPRAWY ═══
+# UPRAWY
 _u_fields = [
     {"js":"grunt","db":"grunt"}, {"js":"roslina","db":"roslina"}, {"js":"odmiana","db":"odmiana"},
     {"js":"pow","db":"pow"}, {"js":"dataS","db":"data_s"}, {"js":"dataZ","db":"data_z"},
@@ -120,7 +121,7 @@ router.put("/uprawy/{item_id}")(_uu)
 router.delete("/uprawy/{item_id}")(_ud)
 
 
-# ═══ NAWOZY ═══
+# NAWOZY
 _n_fields = [
     {"js":"d","db":"d"}, {"js":"grunt","db":"grunt"}, {"js":"nawoz","db":"nawoz"},
     {"js":"typ","db":"typ","default":"Azotowy"}, {"js":"dawka","db":"dawka"},
@@ -133,7 +134,7 @@ router.put("/nawozy/{item_id}")(_nu)
 router.delete("/nawozy/{item_id}")(_nd)
 
 
-# ═══ OPRYSKI ═══
+# OPRYSKI
 _o_fields = [
     {"js":"d","db":"d"}, {"js":"grunt","db":"grunt"}, {"js":"srodek","db":"srodek"},
     {"js":"dawka","db":"dawka"}, {"js":"pow","db":"pow"},
@@ -147,7 +148,7 @@ router.put("/opryski/{item_id}")(_ou)
 router.delete("/opryski/{item_id}")(_od)
 
 
-# ═══ PALIWA ═══
+# PALIWA
 _p_fields = [
     {"js":"d","db":"d"}, {"js":"typ","db":"typ","default":"ON"}, {"js":"maszyna","db":"maszyna"},
     {"js":"litry","db":"litry","default":0}, {"js":"cena","db":"cena","default":0},
@@ -160,7 +161,7 @@ router.put("/paliwa/{item_id}")(_pu)
 router.delete("/paliwa/{item_id}")(_pd)
 
 
-# ═══ DOSTAWY ROŚLINNA ═══
+# DOSTAWY ROSLINNA
 _rd_fields = [
     {"js":"d","db":"d"}, {"js":"produkt","db":"produkt"}, {"js":"ilosc","db":"ilosc","default":0},
     {"js":"jm","db":"jm","default":"t"}, {"js":"cena","db":"cena","default":0},
@@ -173,7 +174,7 @@ router.put("/rdostawy/{item_id}")(_rdu)
 router.delete("/rdostawy/{item_id}")(_rdd)
 
 
-# ═══ ZAKUPY ═══
+# ZAKUPY
 _z_fields = [
     {"js":"d","db":"d"}, {"js":"produkt","db":"produkt"},
     {"js":"cena","db":"cena","default":0}, {"js":"kto","db":"kto"}, {"js":"uwagi","db":"uwagi"},
@@ -185,7 +186,7 @@ router.put("/zakupy/{item_id}")(_zu)
 router.delete("/zakupy/{item_id}")(_zd)
 
 
-# ═══ BIOGAZOWNIA ═══
+# BIOGAZOWNIA
 _b_fields = [
     {"js":"d","db":"d"}, {"js":"kat","db":"kat","default":"inne"},
     {"js":"czynnosc","db":"czynnosc"}, {"js":"uwagi","db":"uwagi"}, {"js":"kto","db":"kto"},
@@ -197,7 +198,7 @@ router.put("/biogaz/{item_id}")(_bu)
 router.delete("/biogaz/{item_id}")(_bd)
 
 
-# ═══ DOKUMENTY ═══
+# DOKUMENTY
 _d_fields = [
     {"js":"kat","db":"kat","default":"inne"}, {"js":"nazwa","db":"nazwa"},
     {"js":"nr","db":"nr"}, {"js":"podmiot","db":"podmiot"},
@@ -215,7 +216,7 @@ router.put("/dokumenty/{item_id}")(_du2)
 router.delete("/dokumenty/{item_id}")(_dd)
 
 
-# ═══ AKCYZA ═══
+# AKCYZA
 
 @router.get("/akcyza")
 async def list_akcyza(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -225,8 +226,9 @@ async def list_akcyza(user: User = Depends(get_current_user), db: Session = Depe
 
 
 @router.put("/akcyza/{aid}")
-async def update_akcyza(aid: int, data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def update_akcyza(aid: int, request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     check_write(user, "akcyza")
+    data = await request.json()
     a = db.query(Akcyza).filter(Akcyza.id == aid).first()
     if not a:
         raise HTTPException(status_code=404)
