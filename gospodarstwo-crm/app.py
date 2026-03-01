@@ -30,6 +30,16 @@ app.add_middleware(
 # Create tables
 Base.metadata.create_all(bind=engine)
 
+# Migration: add file_data column if missing
+try:
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE dokumenty ADD COLUMN IF NOT EXISTS file_data BYTEA"))
+        conn.commit()
+        print("  Migration: file_data column OK")
+except Exception as e:
+    print(f"  Migration note: {e}")
+
 # Seed default data on first run
 print("Sprawdzanie danych poczatkowych...")
 seed()
