@@ -137,6 +137,8 @@ async def update_cycle(cid: int, req: CycleUpdate, user: User = Depends(get_curr
 
 @router.delete("/cycles/{cid}")
 async def delete_cycle(cid: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Tylko administrator może usuwać dane")
     check_write(user, "cycles")
     c = db.query(Cycle).filter(Cycle.id == cid).first()
     if not c:
@@ -149,6 +151,8 @@ async def delete_cycle(cid: int, user: User = Depends(get_current_user), db: Ses
 
 @router.delete("/cycles/chamber/{chamber_id}")
 async def clear_chamber(chamber_id: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Tylko administrator może usuwać dane")
     check_write(user, "cycles")
     db.query(Cycle).filter(Cycle.cid == chamber_id).delete()
     db.commit()
@@ -229,6 +233,8 @@ async def update_feed(fid: int, request: Request, user: User = Depends(get_curre
 
 @router.delete("/feeds/{fid}")
 async def delete_feed(fid: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Tylko administrator może usuwać dane")
     check_write(user, "feeds")
     db.query(Feed).filter(Feed.id == fid).delete()
     db.commit()
