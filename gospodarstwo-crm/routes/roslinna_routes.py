@@ -63,6 +63,8 @@ def make_crud(model_cls, module_name, fields, audit_area):
         return {"ok": True}
 
     async def delete(item_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+        if user.role != "admin":
+            raise HTTPException(status_code=403, detail="Tylko administrator może usuwać dane")
         check_write(user, module_name)
         item = db.query(model_cls).filter(model_cls.id == item_id).first()
         if not item:
