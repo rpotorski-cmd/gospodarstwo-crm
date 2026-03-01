@@ -523,6 +523,10 @@ function App(){
     "żuromiński":["Bieżuń","Kuczbork-Osada","Lubowidz","Lutocin","Siemiątkowo","Żuromin"],
     "żyrardowski":["Mszczonów","Puszcza Mariańska","Radziejowice","Wiskitki","Żyrardów"],
     "Radom":["Radom"],"Płock":["Płock"],"Siedlce":["Siedlce"],"Ostrołęka":["Ostrołęka"],"Warszawa":["Warszawa"]
+  },"małopolskie":{
+    "tatrzański":["Biały Dunajec","Bukowina Tatrzańska","Kościelisko","Poronin","Zakopane"],
+    "nowotarski":["Czarny Dunajec","Jabłonka","Lipnica Wielka","Nowy Targ","Ochotnica Dolna","Raba Wyżna","Rabka-Zdrój","Szaflary"],
+    "krakowski":["Kraków"]
   }};
   const WOJE=Object.keys(TERYT_DB);
   const getPowiaty=(woj)=>woj&&TERYT_DB[woj]?Object.keys(TERYT_DB[woj]).sort():[];
@@ -1724,11 +1728,11 @@ function App(){
               </div>
             </div>)})()
             :<div>{grunty.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak dzialek. Kliknij "+ Dodaj dzialke".</div>:
-            <div><div style={{overflowX:"auto"}}><table className="tbl"><thead><tr style={{background:"#f8f5f0"}}><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>#</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nr dzialki</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nazwa</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Obreb</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Gmina</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"right"}}>Pow (ha)</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Wlasciciel</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"center"}}>Obciaz.</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Umowa</th>{isAdmin&&<th style={{padding:"10px 12px",fontSize:10,width:40}}></th>}</tr></thead>
+            <div><div style={{overflowX:"auto"}}><table className="tbl"><thead><tr style={{background:"#f8f5f0"}}><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>#</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nr dzialki</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Nazwa potoczna</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Obreb</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Gmina</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"right"}}>Pow (ha)</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Wlasciciel</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"center"}}>Obciaz.</th><th style={{padding:"10px 12px",fontSize:10,textAlign:"left"}}>Umowa</th>{isAdmin&&<th style={{padding:"10px 12px",fontSize:10,width:40}}></th>}</tr></thead>
             <tbody>{grunty.map(function(g,gi){return(<tr key={gi} onClick={function(){setSelGruntIdx(gi)}} style={{cursor:"pointer",background:gi%2===0?"#fff":"#faf8f5"}}>
               <td style={{padding:"8px 12px",fontSize:11,color:"#8a7e72"}}>{gi+1}</td>
               <td style={{padding:"8px 12px",fontSize:11,fontWeight:600,fontFamily:"monospace"}}>{g.nr||"---"}</td>
-              <td style={{padding:"8px 12px",fontSize:12,fontWeight:700,color:"#558b2f"}}>{g.nazwa||"---"}</td>
+              <td style={{padding:"8px 12px",fontSize:12,fontWeight:700,color:"#558b2f"}}>{isAdmin?<EC val={g.nazwa||""} w="120px" onChange={v=>{updGrunt(gi,"nazwa",v)}}/>:(g.nazwa||"---")}</td>
               <td style={{padding:"8px 12px",fontSize:11}}>{g.obreb||"---"}</td>
               <td style={{padding:"8px 12px",fontSize:11}}>{g.gmina||"---"}</td>
               <td style={{padding:"8px 12px",fontSize:11,fontWeight:700,textAlign:"right",color:"#2e7d32"}}>{g.pow||"---"}</td>
