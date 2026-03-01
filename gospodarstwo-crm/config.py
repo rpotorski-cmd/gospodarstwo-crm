@@ -1,6 +1,13 @@
 import os
+import secrets
 
-SECRET_KEY = os.getenv("SECRET_KEY", "gospodarstwo-crm-secret-2024-change-in-prod")
+# SECURITY: SECRET_KEY MUST be set in environment (Railway settings)
+# If not set, generate random one (will invalidate tokens on restart - safe default)
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_hex(32)
+    print("⚠️ SECRET_KEY not set! Generated random key. Set SECRET_KEY in Railway env variables for persistent sessions.")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480
 
