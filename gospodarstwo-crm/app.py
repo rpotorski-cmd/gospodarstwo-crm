@@ -77,31 +77,39 @@ async def geoportal_redirect(teryt: str = ""):
         return RedirectResponse("https://www.google.com/maps")
     coords_js = "[]"
     center_lat, center_lng = 53.168, 19.806
-    parcel_found = False
+    debug_info = ""
     try:
         url = "https://uldk.gugik.gov.pl/?request=GetParcelById&id=" + urllib.parse.quote(teryt) + "&result=geom_wkt&srid=4326"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         resp = urllib.request.urlopen(req, timeout=10)
         txt = resp.read().decode("utf-8", "ignore").strip()
-        # Parse WKT POLYGON or MULTIPOLYGON
-        ring = re.search(r'\(\(([^)]+)\)', txt)
+        # ULDK returns: "0\nPOLYGON((lng lat, lng lat, ...))" - first line is status
+        lines = txt.split("\n")
+        wkt = lines[-1].strip() if len(lines) > 1 else txt.strip()
+        debug_info = wkt[:200]
+        # Parse POLYGON or MULTIPOLYGON
+        ring = re.search(r'\(\(([^)]+)\)', wkt)
         if ring:
             pairs = ring.group(1).split(",")
             coords = []
             for p in pairs:
                 parts = p.strip().split()
                 if len(parts) >= 2:
-                    lng, lat = float(parts[0]), float(parts[1])
-                    coords.append([lat, lng])
+                    try:
+                        lng, lat = float(parts[0]), float(parts[1])
+                        # Sanity check - Poland is roughly lat 49-55, lng 14-24
+                        if 14 < lng < 25 and 49 < lat < 55:
+                            coords.append([lat, lng])
+                    except ValueError:
+                        pass
             if coords:
-                parcel_found = True
                 lats = [c[0] for c in coords]
                 lngs = [c[1] for c in coords]
                 center_lat = (min(lats) + max(lats)) / 2
                 center_lng = (min(lngs) + max(lngs)) / 2
                 coords_js = str(coords)
-    except Exception:
-        pass
+    except Exception as e:
+        debug_info = str(e)
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Działka {teryt}</title>
@@ -115,19 +123,17 @@ async def geoportal_redirect(teryt: str = ""):
 <script>
 var coords={coords_js};
 var map=L.map('map').setView([{center_lat},{center_lng}],17);
-L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'© OpenStreetMap'}}).addTo(map);
-var orto=L.tileLayer('https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMS/StandardResolution?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=Raster&STYLES=&SRS=EPSG:3857&BBOX={{bbox-epsg-3857}}&WIDTH=256&HEIGHT=256&FORMAT=image/jpeg',{{maxZoom:20,attribution:'GUGiK',tms:false}});
-var dzialki=L.tileLayer.wms('https://integracja.gugik.gov.pl/cgi-bin/KrasijObiektServletNew',{{layers:'dzialki,numery_dzialek',format:'image/png',transparent:true,maxZoom:20,attribution:'EGiB'}});
-var baseMaps={{"OSM":L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20}}),"Ortofotomapa":orto}};
-var overlays={{"Działki EGiB":dzialki}};
-L.control.layers(baseMaps,overlays).addTo(map);
+L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'OSM'}}).addTo(map);
+var dzialki=L.tileLayer.wms('https://integracja.gugik.gov.pl/cgi-bin/KraijObiektServletNew',{{layers:'dzialki,numery_dzialek',format:'image/png',transparent:true,maxZoom:20,attribution:'EGiB'}});
 dzialki.addTo(map);
 if(coords.length>2){{
   var poly=L.polygon(coords,{{color:'#d32f2f',weight:3,fillColor:'#ff5252',fillOpacity:0.25}}).addTo(map);
   map.fitBounds(poly.getBounds().pad(0.3));
   poly.bindPopup('<b>{teryt}</b>').openPopup();
 }}
-</script></body></html>"""
+</script>
+<!-- debug: {debug_info} -->
+</body></html>"""
     return HTMLResponse(html)
 
 
