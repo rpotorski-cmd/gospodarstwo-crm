@@ -238,6 +238,8 @@ STOCK_DATA = [
     {"name":"Nervomix 5L","unit":"szt","qty":1,"note":"DODATKI / WITAMINY"},
     {"name":"AD3E + K3 5L","unit":"szt","qty":1,"note":"DODATKI / WITAMINY"},
     {"name":"Pulmomix AERO 5L","unit":"szt","qty":3,"note":"1 szt używana"},
+    {"name":"Ossi forte 5L","unit":"szt","qty":6,"note":"DODATKI / WITAMINY"},
+    {"name":"Vit N 5L","unit":"szt","qty":36,"note":"DODATKI / WITAMINY"},
 ]
 
 
