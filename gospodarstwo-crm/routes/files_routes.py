@@ -93,10 +93,14 @@ async def download_file(
 
     file_bytes = bytes(doc.file_data) if not isinstance(doc.file_data, bytes) else doc.file_data
 
+    # URL-encode filename for non-ASCII characters (Polish letters)
+    from urllib.parse import quote
+    safe_name = quote(doc.file_name or "plik", safe="")
+
     return Response(
         content=file_bytes,
         media_type=doc.file_mime or "application/octet-stream",
-        headers={"Content-Disposition": f'inline; filename="{doc.file_name}"'}
+        headers={"Content-Disposition": f"inline; filename*=UTF-8''{safe_name}"}
     )
 
 
