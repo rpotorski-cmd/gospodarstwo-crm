@@ -296,8 +296,13 @@ def seed():
             print(f"  ✓ {count} elementów konfiguracyjnych (admin)")
 
 
-        # Grunty (z Excela)
-        if db.query(Grunt).count() == 0:
+        # Grunty (z Excela) - reseed if gmina is empty (old data)
+        existing_grunty = db.query(Grunt).count()
+        needs_reseed = existing_grunty > 0 and not db.query(Grunt).filter(Grunt.gmina != "").first()
+        if existing_grunty == 0 or needs_reseed:
+            if needs_reseed:
+                db.query(Grunt).delete()
+                print("  ↻ Czyszczenie starych gruntów (brak gminy)")
             for g in GRUNTY_DATA:
                 db.add(Grunt(
                     kw=g["kw"], nr=g["nr"], obreb=g["obreb"], pow=g["pow"],
