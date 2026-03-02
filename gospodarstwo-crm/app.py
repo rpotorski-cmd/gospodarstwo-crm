@@ -1,5 +1,5 @@
 """
-Kabanek Gospodarstwo CRM — Backend
+Kabanek Gospodarstwo CRM - Backend
 FastAPI + SQLite + JWT Auth + 3-Role Permissions
 """
 import os
@@ -15,24 +15,22 @@ from routes.tuczarnie_routes import router as tucz_router
 from routes.roslinna_routes import router as rosl_router
 from routes.admin_routes import router as admin_router
 from routes.files_routes import router as files_router
+from routes.bioasekuracja_routes import router as bio_router
 from config import MODULE_PERMS, UPLOAD_DIR
 
 app = FastAPI(title="Kabanek Gospodarstwo CRM", version="2.0")
 
-# ─── HTTPS redirect (Railway provides SSL) ───
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import RedirectResponse
 
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        # HTTPS redirect (Railway sets x-forwarded-proto)
         proto = request.headers.get("x-forwarded-proto", "https")
         if proto == "http" and os.getenv("RAILWAY_ENVIRONMENT"):
             url = request.url.replace(scheme="https")
             return RedirectResponse(url=str(url), status_code=301)
         response = await call_next(request)
-        # Security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
@@ -59,7 +57,7 @@ app.add_middleware(
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-# Migration: add file_data column if missing
+# Migration: add columns if missing
 try:
     from sqlalchemy import text
     with engine.connect() as conn:
@@ -82,6 +80,7 @@ app.include_router(tucz_router)
 app.include_router(rosl_router)
 app.include_router(admin_router)
 app.include_router(files_router)
+app.include_router(bio_router)
 
 # Create upload directory
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -97,10 +96,8 @@ async def get_permissions():
     return MODULE_PERMS
 
 
-
 @app.get("/api/geoportal")
 async def geoportal_redirect(teryt: str = ""):
-    """Fetch parcel geometry from ULDK, show on Leaflet map with satellite + parcel overlay"""
     import urllib.request, urllib.parse, re
     from fastapi.responses import HTMLResponse, RedirectResponse
     if not teryt:
@@ -116,7 +113,7 @@ async def geoportal_redirect(teryt: str = ""):
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
             resp = urllib.request.urlopen(req, timeout=10)
             txt = resp.read().decode("utf-8", "ignore").strip()
-            debug_info += single_teryt + ":" + txt[:150].replace("<","&lt;").replace(">","&gt;").replace('"',"'") + " | "
+            debug_info += single_teryt + ":" + txt[:150].replace("<", "&lt;").replace(">", "&gt;").replace('"', "'") + " | "
             lines = txt.split("\n")
             wkt = lines[-1].strip() if len(lines) > 1 else txt.strip()
             ring = re.search(r'\(\(([^)]+)\)', wkt)
@@ -143,8 +140,8 @@ async def geoportal_redirect(teryt: str = ""):
         center_lat = (min(all_lats) + max(all_lats)) / 2
         center_lng = (min(all_lngs) + max(all_lngs)) / 2
     polygons_js = str([{"teryt": p["teryt"], "nr": p["nr"], "coords": p["coords"]} for p in all_polygons]).replace("'", '"')
-    title = ", ".join(teryts) if len(teryts) <= 3 else f"{len(teryts)} działek"
-    colors = ["#ff1744","#2979ff","#00e676","#ff9100","#d500f9","#00e5ff","#ffea00","#ff6d00"]
+    title = ", ".join(teryts) if len(teryts) <= 3 else f"{len(teryts)} dzialek"
+    colors = ["#ff1744", "#2979ff", "#00e676", "#ff9100", "#d500f9", "#00e5ff", "#ffea00", "#ff6d00"]
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mapa: {title}</title>
@@ -165,23 +162,22 @@ body{{margin:0;font-family:Arial,sans-serif}}
 </style>
 </head><body>
 <div class="info-panel">
-  <h3>🗺 Mapa działek</h3>
+  <h3>Mapa dzialek</h3>
   <div class="sub">{title}</div>
   <div class="legend" id="legend"></div>
 </div>
 <div id="map"></div>
 <div class="layer-ctrl">
   <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700">Warstwy</div>
-  <label><input type="checkbox" id="chkSat" checked onchange="toggleSat()"/> 🛰 Satelita</label>
-  <label><input type="checkbox" id="chkDzialki" checked onchange="toggleDz()"/> 📐 Granice działek</label>
-  <label><input type="checkbox" id="chkNumery" checked onchange="toggleNr()"/> 🔢 Numery działek</label>
-  <label><input type="checkbox" id="chkOSM" onchange="toggleOSM()"/> 🗺 Mapa drogowa</label>
+  <label><input type="checkbox" id="chkSat" checked onchange="toggleSat()"/> Satelita</label>
+  <label><input type="checkbox" id="chkDzialki" checked onchange="toggleDz()"/> Granice dzialek</label>
+  <label><input type="checkbox" id="chkNumery" checked onchange="toggleNr()"/> Numery dzialek</label>
+  <label><input type="checkbox" id="chkOSM" onchange="toggleOSM()"/> Mapa drogowa</label>
 </div>
 <script>
 var polygons={polygons_js};
 var colors={str(colors)};
 var map=L.map('map',{{zoomControl:true}}).setView([{center_lat},{center_lng}],16);
-
 var satLayer=L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={{x}}&y={{y}}&z={{z}}',{{maxZoom:21,attribution:'Google Satellite'}});
 satLayer.addTo(map);
 var osmLayer=L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',{{maxZoom:20,attribution:'OSM'}});
@@ -189,12 +185,10 @@ var dzLayer=L.tileLayer.wms('https://integracja.gugik.gov.pl/cgi-bin/KraijObiekt
 dzLayer.addTo(map);
 var nrLayer=L.tileLayer.wms('https://integracja.gugik.gov.pl/cgi-bin/KraijObiektServletNew',{{layers:'numery_dzialek',format:'image/png',transparent:true,maxZoom:21,attribution:'EGiB'}});
 nrLayer.addTo(map);
-
 function toggleSat(){{if(document.getElementById('chkSat').checked)map.addLayer(satLayer);else map.removeLayer(satLayer)}}
 function toggleDz(){{if(document.getElementById('chkDzialki').checked)map.addLayer(dzLayer);else map.removeLayer(dzLayer)}}
 function toggleNr(){{if(document.getElementById('chkNumery').checked)map.addLayer(nrLayer);else map.removeLayer(nrLayer)}}
 function toggleOSM(){{if(document.getElementById('chkOSM').checked)map.addLayer(osmLayer);else map.removeLayer(osmLayer)}}
-
 var bounds=L.latLngBounds();
 var legend=document.getElementById('legend');
 polygons.forEach(function(p,i){{
@@ -218,7 +212,6 @@ L.control.scale({{imperial:false,position:'bottomleft'}}).addTo(map);
     return HTMLResponse(html)
 
 
-
 @app.get("/")
 async def root():
     index = os.path.join(static_dir, "index.html")
@@ -236,7 +229,6 @@ async def manifest():
 async def service_worker():
     return FileResponse(os.path.join(static_dir, "sw.js"), media_type="application/javascript",
                         headers={"Service-Worker-Allowed": "/"})
-
 
 
 if __name__ == "__main__":
