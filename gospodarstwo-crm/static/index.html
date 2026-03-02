@@ -75,6 +75,9 @@ table{border-spacing:0}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
 <script type="text/babel">
 
 // ═══ API CLIENT ═══
@@ -463,9 +466,97 @@ function App(){
   const[bioDeratyzacja,setBioDeratyzacja]=useState([]);
   const bioLoad=async()=>{try{const[a,b,c,d,e,f,g,h]=await Promise.allSettled([api.get("/bio/dezynfekcja"),api.get("/bio/biobojcze"),api.get("/bio/maty"),api.get("/bio/przeglady"),api.get("/bio/insekty"),api.get("/bio/transport"),api.get("/bio/deratyzacja-biogaz"),api.get("/bio/deratyzacja")]);if(a.status==="fulfilled")setBioDezynfekcja(a.value||[]);if(b.status==="fulfilled")setBioBiobojcze(b.value||[]);if(c.status==="fulfilled")setBioMaty(c.value||[]);if(d.status==="fulfilled")setBioPrzeglady(d.value||[]);if(e.status==="fulfilled")setBioInsekty(e.value||[]);if(f.status==="fulfilled")setBioTransport(f.value||[]);if(g.status==="fulfilled")setBioDeratBiogaz(g.value||[]);if(h.status==="fulfilled")setBioDeratyzacja(h.value||[])}catch(e){console.error("Bio load:",e)}};
   const bioSave=async(endpoint,list,setList,label)=>{try{const ex=await api.get("/bio/"+endpoint);for(const item of list){if(ex.find(e=>e.id===item.id))await api.put("/bio/"+endpoint+"/"+item.id,item);else{const r=await api.post("/bio/"+endpoint,item);item.id=r.id}}for(const e of ex){if(!list.find(i=>i.id===e.id))await api.del("/bio/"+endpoint+"/"+e.id)}const fresh=await api.get("/bio/"+endpoint);setList(fresh||[]);setToast(label+" zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd zapisu!")}};
-  const bioAdd=(setList,defaults)=>setList(p=>[{id:Date.now(),d:tS(),...defaults},...p]);
+  const bioAdd=(setList,defaults)=>setList(p=>[{id:Date.now(),d:tS(),...defaults,pliki:[]},...p]);
   const bioUpd=(setList,i,f,v)=>setList(p=>p.map((x,xi)=>xi===i?{...x,[f]:v}:x));
   const bioDel=(setList,i)=>{if(!confirm("Na pewno usunąć?"))return;setList(p=>p.filter((_,xi)=>xi!==i))};
+
+  // ═══ BIO FILE HANDLING ═══
+  const bioImportExcel=(setList,fields,defaults)=>{
+    const inp=document.createElement("input");inp.type="file";inp.accept=".xlsx,.xls,.csv";
+    inp.onchange=async e=>{const file=e.target.files[0];if(!file)return;
+      try{const ab=await file.arrayBuffer();const wb=XLSX.read(ab,{type:"array"});
+        const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+        if(!rows.length){setToast("Plik pusty!");setTimeout(()=>setToast(null),2500);return}
+        // map columns: try exact key match, then label match
+        const fkeys=fields.map(f=>f.k);const flabels=fields.map(f=>f.l.toLowerCase());
+        const colMap={};const hdr=Object.keys(rows[0]);
+        hdr.forEach(h=>{const hl=h.toLowerCase().trim();
+          const ki=fkeys.findIndex(k=>k===hl||k===h);
+          if(ki>=0){colMap[h]=fkeys[ki];return}
+          const li=flabels.findIndex(l=>l===hl||hl.includes(l)||l.includes(hl));
+          if(li>=0)colMap[h]=fkeys[li];
+        });
+        const newRows=rows.map(r=>{const obj={id:Date.now()+Math.random()*1e6|0,d:tS(),...defaults,pliki:[]};
+          Object.entries(r).forEach(([k,v])=>{if(colMap[k])obj[colMap[k]]=String(v)});
+          if(r["Data"]||r["data"]||r["DATA"])obj.d=r["Data"]||r["data"]||r["DATA"];
+          return obj;
+        });
+        setList(p=>[...newRows,...p]);
+        setToast(`Zaimportowano ${newRows.length} wierszy z Excel ✓`);setTimeout(()=>setToast(null),3000);
+      }catch(err){setToast("Błąd importu: "+err.message);setTimeout(()=>setToast(null),3000)}
+    };inp.click();
+  };
+
+  const bioImportPDF=(setList,fields,defaults)=>{
+    const inp=document.createElement("input");inp.type="file";inp.accept=".pdf";
+    inp.onchange=async e=>{const file=e.target.files[0];if(!file)return;
+      try{const ab=await file.arrayBuffer();const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+        let text="";for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();text+=tc.items.map(it=>it.str).join(" ")+"\n"}
+        // try to parse table-like lines
+        const lines=text.split("\n").filter(l=>l.trim().length>5);
+        if(lines.length<2){
+          // just attach as single record with PDF text
+          const obj={id:Date.now(),d:tS(),...defaults,pliki:[],uwagi:"[PDF] "+text.substring(0,500)};
+          setList(p=>[obj,...p]);
+          setToast("PDF zaczytany jako wpis (tekst w uwagach) ✓");setTimeout(()=>setToast(null),3000);
+        }else{
+          // try line-by-line parsing
+          let imported=0;const newRows=[];
+          lines.forEach(line=>{
+            const parts=line.split(/\t|;|  +/).map(s=>s.trim()).filter(Boolean);
+            if(parts.length>=2){
+              const obj={id:Date.now()+Math.random()*1e6|0,d:tS(),...defaults,pliki:[]};
+              // try date detection
+              const dateMatch=parts.find(p=>/^\d{4}-\d{2}-\d{2}$/.test(p)||/^\d{2}[./-]\d{2}[./-]\d{4}$/.test(p));
+              if(dateMatch)obj.d=dateMatch;
+              // fill first available text fields
+              const textFields=fields.filter(f=>!f.opts&&f.t!=="bool"&&f.t!=="date"&&f.k!=="d");
+              let fi=0;parts.forEach(p=>{if(p!==dateMatch&&fi<textFields.length){obj[textFields[fi].k]=p;fi++}});
+              newRows.push(obj);imported++;
+            }
+          });
+          if(imported>0){setList(p=>[...newRows,...p]);setToast(`PDF: zaimportowano ${imported} wierszy ✓`);setTimeout(()=>setToast(null),3000)}
+          else{const obj={id:Date.now(),d:tS(),...defaults,pliki:[],uwagi:"[PDF] "+text.substring(0,500)};setList(p=>[obj,...p]);setToast("PDF jako wpis ✓");setTimeout(()=>setToast(null),3000)}
+        }
+      }catch(err){setToast("Błąd PDF: "+err.message);setTimeout(()=>setToast(null),3000)}
+    };inp.click();
+  };
+
+  const bioExportExcel=(data,fields,label)=>{
+    const rows=data.map(item=>{const row={};fields.forEach(f=>{row[f.l]=item[f.k]||""});return row});
+    const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,label.substring(0,31));
+    XLSX.writeFile(wb,label.replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ ]/g,"_")+".xlsx");
+    setToast("Eksport Excel ✓");setTimeout(()=>setToast(null),2500);
+  };
+
+  const bioAttachFile=(setList,i)=>{
+    const inp=document.createElement("input");inp.type="file";inp.accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png,.doc,.docx";inp.multiple=true;
+    inp.onchange=async e=>{const files=Array.from(e.target.files);if(!files.length)return;
+      const attachments=[];
+      for(const file of files){
+        if(file.size>10*1024*1024){setToast("Plik "+file.name+" za duży (max 10MB)");setTimeout(()=>setToast(null),3000);continue}
+        const b64=await new Promise(r=>{const rd=new FileReader();rd.onload=()=>r(rd.result);rd.readAsDataURL(file)});
+        attachments.push({name:file.name,size:file.size,type:file.type,data:b64,date:tS()});
+      }
+      if(attachments.length>0){
+        setList(p=>p.map((x,xi)=>xi===i?{...x,pliki:[...(x.pliki||[]),...attachments]}:x));
+        setToast(attachments.length+" plik(ów) załączono ✓");setTimeout(()=>setToast(null),2500);
+      }
+    };inp.click();
+  };
+
+  const bioDownloadFile=(att)=>{const a=document.createElement("a");a.href=att.data;a.download=att.name;a.click()};
+  const bioRemoveFile=(setList,ri,fi)=>setList(p=>p.map((x,xi)=>xi===ri?{...x,pliki:(x.pliki||[]).filter((_,i2)=>i2!==fi)}:x));
   const[selMaszIdx,setSelMaszIdx]=useState(null);
   const[selGruntIdx,setSelGruntIdx]=useState(null);
   const[ciagniki,setCiagniki]=useState([]);
@@ -817,7 +908,7 @@ function App(){
   </div></div>);
 
   return(<div style={{minHeight:"100vh"}}>
-    {rView==="konfiguracja"&&isAdmin&&<AdminConfigPanel customElements={customElements} setCustomElements={setCustomElements} api={api} setToast={setToast} EC={EC}/>}
+    {dept==="roslinna"&&rView==="konfiguracja"&&isAdmin&&<AdminConfigPanel customElements={customElements} setCustomElements={setCustomElements} api={api} setToast={setToast} EC={EC}/>}
     {toast&&<div className="toast">✅ {toast}</div>}
     {/* HEADER */}
     <header style={{background:"#1a3328",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 12px rgba(0,0,0,0.15)"}}>
@@ -1647,23 +1738,32 @@ function App(){
             {BIO_REGS.map(r=><button key={r.id} className={"tab-btn"+(bView===r.id?" active":"")} onClick={()=>setBView(r.id)}>{r.icon} {r.label}</button>)}
           </div>
           {BIO_REGS.filter(r=>r.id===bView).map(reg=>{const data=reg.state;const setData=reg.setter;return(<div key={reg.id} className="card">
-            <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
               <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:22}}>{reg.icon}</span><div><div style={{fontSize:15,fontWeight:700}}>{reg.label}</div><div style={{fontSize:10,color:"#8a7e72"}}>{data.length} wpisów</div></div></div>
-              <div style={{display:"flex",gap:8}}>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 <button className="btn btn-primary btn-sm" onClick={()=>bioAdd(setData,reg.defaults)}>+ Dodaj wpis</button>
+                <button className="btn btn-sm" style={{background:"#e8f5e9",color:"#2e7d32",border:"1px solid #a5d6a7"}} onClick={()=>bioImportExcel(setData,reg.fields,reg.defaults)}>📥 Import Excel</button>
+                <button className="btn btn-sm" style={{background:"#fce4ec",color:"#c62828",border:"1px solid #ef9a9a"}} onClick={()=>bioImportPDF(setData,reg.fields,reg.defaults)}>📄 Import PDF</button>
+                {data.length>0&&<button className="btn btn-sm" style={{background:"#e3f2fd",color:"#1565c0",border:"1px solid #90caf9"}} onClick={()=>bioExportExcel(data,reg.fields,reg.label)}>📤 Eksport Excel</button>}
                 <SaveBtn onClick={()=>bioSave(reg.endpoint,data,setData,reg.label)} size="sm"/>
               </div>
             </div>
             <div style={{padding:16}}>
               <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder={"🔍 Szukaj w "+reg.label+"..."} style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
-              {data.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów. Kliknij „+ Dodaj wpis" aby rozpocząć.</div>:
+              {data.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów. Kliknij „+ Dodaj wpis" lub „Import Excel/PDF".</div>:
               <div style={{overflowX:"auto"}}>
                 <table className="tbl">
-                  <thead><tr>{reg.fields.map(f=><th key={f.k}>{f.l}</th>)}<th>Akcje</th></tr></thead>
+                  <thead><tr>{reg.fields.map(f=><th key={f.k}>{f.l}</th>)}<th>📎 Pliki</th><th>Akcje</th></tr></thead>
                   <tbody>{data.map((item,i)=>{
                     if(rFilter){const q=rFilter.toLowerCase();const match=reg.fields.some(f=>{const v=item[f.k];return v&&String(v).toLowerCase().includes(q)});if(!match)return null}
                     return(<tr key={item.id||i}>
                       {reg.fields.map(f=><td key={f.k}>{f.opts?<select value={item[f.k]||""} onChange={e=>bioUpd(setData,i,f.k,e.target.value)} style={{border:"1px solid #ddd6cc",borderRadius:6,padding:"4px 24px 4px 6px",fontSize:11,outline:"none",background:"#fff",minWidth:80}}>{f.opts.map(o=><option key={o} value={o}>{o}</option>)}</select>:f.t==="bool"?<input type="checkbox" checked={!!item[f.k]} onChange={e=>bioUpd(setData,i,f.k,e.target.checked)} style={{accentColor:"#2e7d32",width:16,height:16}}/>:<EC val={item[f.k]||""} type={f.t||"text"} w={f.w||"100px"} onChange={v=>bioUpd(setData,i,f.k,v)}/>}</td>)}
+                      <td style={{minWidth:120}}>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:3,alignItems:"center"}}>
+                          {(item.pliki||[]).map((att,fi)=><span key={fi} style={{display:"inline-flex",alignItems:"center",gap:2,background:att.type?.includes("pdf")?"#fce4ec":att.type?.includes("sheet")||att.name?.match(/\.xlsx?$/i)?"#e8f5e9":"#e3f2fd",padding:"2px 6px",borderRadius:4,fontSize:9,fontWeight:600,maxWidth:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",cursor:"pointer"}} title={att.name+" ("+((att.size||0)/1024).toFixed(0)+"KB)"} onClick={()=>bioDownloadFile(att)}>{att.name?.match(/\.pdf$/i)?"📄":att.name?.match(/\.xlsx?$/i)?"📊":"📎"}<span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{att.name?.substring(0,12)}</span><button onClick={e=>{e.stopPropagation();bioRemoveFile(setData,i,fi)}} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:10,padding:0,marginLeft:2}}>✕</button></span>)}
+                          <button onClick={()=>bioAttachFile(setData,i)} style={{background:"#f0ebe3",border:"1px dashed #8a7e72",borderRadius:4,padding:"2px 6px",fontSize:9,cursor:"pointer",color:"#1a3328",fontWeight:600}} title="Załącz plik PDF/Excel/JPG">📎+</button>
+                        </div>
+                      </td>
                       <td>{isAdmin&&<button onClick={()=>bioDel(setData,i)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:13}}>✕</button>}</td>
                     </tr>)})}</tbody>
                 </table>
