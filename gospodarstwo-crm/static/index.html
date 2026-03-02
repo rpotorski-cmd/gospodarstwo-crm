@@ -780,7 +780,7 @@ function App(){
   ].map(v=>({...v,overdue:v.due<tS(),daysLeft:dB(tS(),v.due)}))};
   const gbs=(cyc,m,y)=>{const s=toD(cyc.start),e=toD(cyc.endD);if(!s||!e)return null;const ms=new Date(y,m,1),me=new Date(y,m+1,0),d=me.getDate();if(e<ms||s>me)return null;const bs=s<ms?0:s.getDate()-1,be=e>me?d-1:e.getDate()-1;return{left:`${bs/d*100}%`,width:`${Math.max((be-bs+1)/d*100,3)}%`}};
   const clrs=["#1b6b28","#2e8b3e","#4cb050","#219ebc","#8ecae6","#c8a84e","#e0982a","#d4622a","#606c38","#283618"];
-  const navs=[{id:"panel",label:"Panel",icon:"◆",zoo:false},{id:"komory",label:"Komory",icon:"⌂",zoo:true},{id:"szczepienia",label:"Szczepienia",icon:"💉",zoo:true},{id:"pasza",label:"Pasza",icon:"🌾",zoo:true},{id:"paszarnia",label:"Paszarnia",icon:"⚙️",zoo:true},{id:"silosy",label:"Silosy",icon:"🏗",zoo:true},{id:"calendar",label:"Kalendarz",icon:"▦",zoo:false},{id:"historia",label:"Historia",icon:"◷",zoo:false},{id:"magazyn",label:"Magazyn Leków",icon:"🏪",zoo:false},{id:"analityka",label:"Analityka",icon:"▤",zoo:false},{id:"auditlog",label:"Zmiany",icon:"📋",zoo:false}].filter(n=>!user||user.role!=="zoo"||n.zoo);
+  const navs=[{id:"panel",label:"Panel",icon:"◆",zoo:false},{id:"komory",label:"Komory",icon:"⌂",zoo:true},{id:"szczepienia",label:"Szczepienia",icon:"💉",zoo:true},{id:"pasza",label:"Pasza",icon:"🌾",zoo:true},{id:"paszarnia",label:"Paszarnia",icon:"⚙️",zoo:true},{id:"silosy",label:"Silosy",icon:"🏗",zoo:true},{id:"calendar",label:"Kalendarz",icon:"▦",zoo:false},{id:"historia",label:"Historia",icon:"◷",zoo:false},{id:"magazyn",label:"Magazyn Leków",icon:"🏪",zoo:false},{id:"analityka",label:"Analityka",icon:"▤",zoo:false},{id:"bioasekuracja",label:"Bioasekuracja",icon:"🛡️",zoo:false},{id:"auditlog",label:"Zmiany",icon:"📋",zoo:false}].filter(n=>!user||user.role!=="zoo"||n.zoo);
 
   // LOGIN SCREEN
   if(!user)return(<div className="login-bg"><div className="login-card">
@@ -799,7 +799,7 @@ function App(){
       <div style={{fontSize:28,fontWeight:900,color:"#fff",letterSpacing:-1}}>Kabanek</div>
       <div style={{fontSize:13,color:"#b8c4ba"}}>Witaj, {user.name} • Wybierz dział</div>
     </div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:20}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
       <div onClick={()=>{setDept("tuczarnie");if(user.role==="zoo")setView("komory");else setView("panel")}} style={{background:"#fff",borderRadius:20,padding:"36px 28px",cursor:"pointer",border:"3px solid transparent",transition:"all 0.2s",textAlign:"center",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}} onMouseOver={e=>e.currentTarget.style.border="3px solid #2e7d32"} onMouseOut={e=>e.currentTarget.style.border="3px solid transparent"}>
         <div style={{fontSize:52,marginBottom:12}}>🐷</div>
         <div style={{fontSize:20,fontWeight:800,color:"#1a3328",marginBottom:6}}>Kabanek Tuczarnie</div>
@@ -811,12 +811,6 @@ function App(){
         <div style={{fontSize:20,fontWeight:800,color:"#1a3328",marginBottom:6}}>Produkcja Roślinna</div>
         <div style={{fontSize:11,color:"#8a7e72",lineHeight:1.5}}>Maszyny rolnicze • Grunty rolne<br/>Uprawy • Nawozy</div>
         <div style={{marginTop:14,background:"#f1f8e9",color:"#558b2f",padding:"6px 16px",borderRadius:8,fontSize:12,fontWeight:700,display:"inline-block"}}>Wejdź →</div>
-      </div>
-      <div onClick={()=>{setDept("bioasekuracja");setBView("dezynfekcja");bioLoad()}} style={{background:"#fff",borderRadius:20,padding:"36px 28px",cursor:"pointer",border:"3px solid transparent",transition:"all 0.2s",textAlign:"center",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}} onMouseOver={e=>e.currentTarget.style.border="3px solid #0277bd"} onMouseOut={e=>e.currentTarget.style.border="3px solid transparent"}>
-        <div style={{fontSize:52,marginBottom:12}}>🛡️</div>
-        <div style={{fontSize:20,fontWeight:800,color:"#1a3328",marginBottom:6}}>Bioasekuracja</div>
-        <div style={{fontSize:11,color:"#8a7e72",lineHeight:1.5}}>Dezynfekcja • Środki biobójcze • Maty<br/>Transport • Deratyzacja • Insekty</div>
-        <div style={{marginTop:14,background:"#e1f5fe",color:"#0277bd",padding:"6px 16px",borderRadius:8,fontSize:12,fontWeight:700,display:"inline-block"}}>Wejdź →</div>
       </div>
     </div>
     <div style={{textAlign:"center",marginTop:20}}><button onClick={doLogout} style={{background:"none",border:"none",color:"#b8c4ba",cursor:"pointer",fontSize:11}}>Wyloguj</button></div>
@@ -830,9 +824,9 @@ function App(){
       <div style={{display:"flex",alignItems:"center",gap:12}}>
         <button onClick={()=>setDept(null)} style={{background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:4}}>◂ Działy</button>
         <img src={LOGO} style={{width:40,height:40,borderRadius:8}}/>
-        <div><div style={{fontSize:16,fontWeight:800,color:"#fff"}}>{dept==="tuczarnie"?"🐷 Kabanek Tuczarnie":dept==="bioasekuracja"?"🛡️ Bioasekuracja":"🌾 Produkcja Roślinna"}</div><div style={{fontSize:9,color:"#b8c4ba",letterSpacing:1.5}}>CRM</div></div>
+        <div><div style={{fontSize:16,fontWeight:800,color:"#fff"}}>{dept==="tuczarnie"?"🐷 Kabanek Tuczarnie":"🌾 Produkcja Roślinna"}</div><div style={{fontSize:9,color:"#b8c4ba",letterSpacing:1.5}}>CRM</div></div>
       </div>
-      <nav style={{display:"flex",gap:2,flexWrap:"wrap"}}>{dept==="tuczarnie"?navs.map(n=><button key={n.id} className={`nav-btn${view===n.id?" active":""}`} onClick={()=>setView(n.id)}><span>{n.icon}</span>{n.label}</button>):dept==="bioasekuracja"?[{id:"dezynfekcja",label:"Dezynfekcja",icon:"🧹"},{id:"biobojcze",label:"Śr. biobójcze",icon:"🧪"},{id:"maty",label:"Maty",icon:"🚪"},{id:"przeglady",label:"Przeglądy",icon:"🏗"},{id:"insekty",label:"Insekty",icon:"🪲"},{id:"transport",label:"Transport",icon:"🚛"},{id:"deratbiogaz",label:"Derat. biogaz",icon:"🐀"},{id:"deratyzacja",label:"Deratyzacja",icon:"🐁"}].map(n=><button key={n.id} className={`nav-btn${bView===n.id?" active":""}`} onClick={()=>setBView(n.id)}><span>{n.icon}</span>{n.label}</button>):[{id:"ciagniki",label:"Maszyny",icon:"🚜"},{id:"grunty",label:"Grunty",icon:"🗺"},{id:"uprawy",label:"Uprawy",icon:"🌱"},{id:"nawozy",label:"Nawozy",icon:"🧪"},{id:"opryski",label:"Opryski",icon:"🧴"},{id:"rdostawy",label:"Dostawy",icon:"📦"},{id:"paliwa",label:"Paliwa",icon:"⛽"},{id:"zakupy",label:"Zakupy różne",icon:"🛒"},{id:"biogaz",label:"Biogazownia",icon:"🔥"},{id:"dokumenty",label:"Dokumenty",icon:"📂"},{id:"rhistoria",label:"Historia",icon:"📋"}].concat(isAdmin?[{id:"uzytkownicy",label:"Użytkownicy",icon:"👥"},{id:"konfiguracja",label:"Konfiguracja",icon:"⚙️"}]:[]).map(n=><button key={n.id} className={`nav-btn${rView===n.id?" active":""}`} onClick={()=>{setRView(n.id);setRFilter("");if(n.id==="uzytkownicy")loadUsers()}}><span>{n.icon}</span>{n.label}</button>)}</nav>
+      <nav style={{display:"flex",gap:2,flexWrap:"wrap"}}>{dept==="tuczarnie"?navs.map(n=><button key={n.id} className={`nav-btn${view===n.id?" active":""}`} onClick={()=>{setView(n.id);if(n.id==="bioasekuracja")bioLoad()}}><span>{n.icon}</span>{n.label}</button>):[{id:"ciagniki",label:"Maszyny",icon:"🚜"},{id:"grunty",label:"Grunty",icon:"🗺"},{id:"uprawy",label:"Uprawy",icon:"🌱"},{id:"nawozy",label:"Nawozy",icon:"🧪"},{id:"opryski",label:"Opryski",icon:"🧴"},{id:"rdostawy",label:"Dostawy",icon:"📦"},{id:"paliwa",label:"Paliwa",icon:"⛽"},{id:"zakupy",label:"Zakupy różne",icon:"🛒"},{id:"biogaz",label:"Biogazownia",icon:"🔥"},{id:"dokumenty",label:"Dokumenty",icon:"📂"},{id:"rhistoria",label:"Historia",icon:"📋"}].concat(isAdmin?[{id:"uzytkownicy",label:"Użytkownicy",icon:"👥"},{id:"konfiguracja",label:"Konfiguracja",icon:"⚙️"}]:[]).map(n=><button key={n.id} className={`nav-btn${rView===n.id?" active":""}`} onClick={()=>{setRView(n.id);setRFilter("");if(n.id==="uzytkownicy")loadUsers()}}><span>{n.icon}</span>{n.label}</button>)}</nav>
       <div style={{display:"flex",alignItems:"center",gap:10}}>
         {dept==="tuczarnie"&&dirty&&<span style={{fontSize:10,color:"#fbbf24",fontWeight:600}}>● Niezapisane</span>}
         {dept==="tuczarnie"&&!dirty&&lastSave&&<span style={{fontSize:10,color:"#a5d6a7"}}>✓</span>}
@@ -1619,6 +1613,65 @@ function App(){
           <div className="card" style={{padding:20}}><div style={{fontWeight:700,marginBottom:12}}>Top FCR</div>{[...done].filter(c=>c.fcr>0).sort((a,b)=>a.fcr-b.fcr).slice(0,10).map((c,i)=>{const ch=CH.find(x=>x.id===c.cid);return(<div key={c.id} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid #f0ebe3",fontSize:12}}><span style={{fontWeight:i<3?700:400,color:i<3?"#2e7d32":"inherit"}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`} {ch?.name}</span><span style={{fontWeight:700,color:"#1565c0"}}>{fN(c.fcr,3)}</span></div>)})}</div>
         </div>
       </div>}
+
+      {/* BIOASEKURACJA */}
+      {view==="bioasekuracja"&&(()=>{
+        const BIO_REGS=[
+          {id:"dezynfekcja",label:"Dezynfekcja",icon:"🧹",endpoint:"dezynfekcja",state:bioDezynfekcja,setter:setBioDezynfekcja,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"budynek",l:"Budynek/Komora"},{k:"srodek",l:"Środek dezynf."},{k:"stezenie",l:"Stężenie"},{k:"metoda",l:"Metoda",opts:["oprysk","zamgławianie","mycie","inne"]},{k:"powierzchnia",l:"Powierzchnia m²"},{k:"czas_karencji",l:"Karencja"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{budynek:"",srodek:"",stezenie:"",metoda:"oprysk",powierzchnia:"",czas_karencji:"",wykonawca:user?.name||"",uwagi:""}},
+          {id:"biobojcze",label:"Ewidencja środków biobójczych",icon:"🧪",endpoint:"biobojcze",state:bioBiobojcze,setter:setBioBiobojcze,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nazwa_srodka",l:"Nazwa środka"},{k:"nr_pozwolenia",l:"Nr pozwolenia"},{k:"substancja_czynna",l:"Subst. czynna"},{k:"rodzaj",l:"Rodzaj",opts:["dezynfekcja","dezynsekcja","deratyzacja","inne"]},{k:"dawka",l:"Dawka"},{k:"miejsce",l:"Miejsce"},{k:"powierzchnia",l:"Powierzchnia"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nazwa_srodka:"",nr_pozwolenia:"",substancja_czynna:"",rodzaj:"",dawka:"",miejsce:"",powierzchnia:"",wykonawca:user?.name||"",uwagi:""}},
+          {id:"maty",label:"Maty dezynfekcyjne",icon:"🚪",endpoint:"maty",state:bioMaty,setter:setBioMaty,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"lokalizacja",l:"Lokalizacja"},{k:"typ_maty",l:"Typ maty",opts:["mokra","sucha"]},{k:"srodek",l:"Środek"},{k:"stezenie",l:"Stężenie"},{k:"akcja",l:"Akcja",opts:["wymiana","uzupełnienie","kontrola"]},{k:"stan",l:"Stan",opts:["ok","do wymiany","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{lokalizacja:"",typ_maty:"mokra",srodek:"",stezenie:"",akcja:"wymiana",stan:"ok",wykonawca:user?.name||"",uwagi:""}},
+          {id:"przeglady",label:"Przegląd zabezpieczeń budynków",icon:"🏗",endpoint:"przeglady",state:bioPrzeglady,setter:setBioPrzeglady,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"budynek",l:"Budynek"},{k:"siatki_okna",l:"Siatki okna",opts:["ok","uszkodzone","brak"]},{k:"siatki_wloty",l:"Siatki wloty",opts:["ok","uszkodzone","brak"]},{k:"drzwi",l:"Drzwi",opts:["ok","uszkodzone","brak"]},{k:"sciany",l:"Ściany",opts:["ok","uszkodzone","brak"]},{k:"dach",l:"Dach",opts:["ok","uszkodzone","brak"]},{k:"ogrodzenie",l:"Ogrodzenie",opts:["ok","uszkodzone","brak"]},{k:"rynny_odplyw",l:"Rynny/odpływ",opts:["ok","uszkodzone","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"nastepny_przeglad",l:"Następny przegląd",t:"date",w:"120px"},{k:"inne_uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{budynek:"",siatki_okna:"ok",siatki_wloty:"ok",drzwi:"ok",sciany:"ok",dach:"ok",ogrodzenie:"ok",rynny_odplyw:"ok",wykonawca:user?.name||"",nastepny_przeglad:"",inne_uwagi:""}},
+          {id:"insekty",label:"Kontrola stacji p/insektom",icon:"🪲",endpoint:"insekty",state:bioInsekty,setter:setBioInsekty,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"typ_stacji",l:"Typ",opts:["lampa UV","pułapka lepowa","inna"]},{k:"stan",l:"Stan",opts:["ok","wymiana","uszkodzona"]},{k:"ilosc_owadow",l:"Ilość owadów"},{k:"akcja",l:"Akcja",opts:["kontrola","wymiana wkładu","naprawa"]},{k:"srodek",l:"Środek"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nr_stacji:"",lokalizacja:"",typ_stacji:"",stan:"ok",ilosc_owadow:"",akcja:"kontrola",srodek:"",wykonawca:user?.name||"",uwagi:""}},
+          {id:"transport",label:"Rejestr środków transportu",icon:"🚛",endpoint:"transport",state:bioTransport,setter:setBioTransport,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_rej",l:"Nr rejestr."},{k:"kierowca",l:"Kierowca"},{k:"firma",l:"Firma"},{k:"cel_wizyty",l:"Cel wizyty"},{k:"dezynfekcja_przed",l:"Dezyn. przed",t:"bool"},{k:"dezynfekcja_po",l:"Dezyn. po",t:"bool"},{k:"srodek_dezyn",l:"Środek"},{k:"godz_wjazdu",l:"Godz. wjazdu"},{k:"godz_wyjazdu",l:"Godz. wyjazdu"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nr_rej:"",kierowca:"",firma:"",cel_wizyty:"",dezynfekcja_przed:false,dezynfekcja_po:false,srodek_dezyn:"",godz_wjazdu:"",godz_wyjazdu:"",uwagi:""}},
+          {id:"deratbiogaz",label:"Deratyzacja — Biogazownia",icon:"🐀",endpoint:"deratyzacja-biogaz",state:bioDerBiogaz,setter:setBioDeratBiogaz,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"preparat",l:"Preparat"},{k:"dawka",l:"Dawka"},{k:"zuzycie",l:"Zużycie przynęty"},{k:"aktywnosc",l:"Aktywność",opts:["brak","niska","średnia","wysoka"]},{k:"stan_stacji",l:"Stan stacji",opts:["ok","uszkodzona","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nr_stacji:"",lokalizacja:"biogazownia",preparat:"",dawka:"",zuzycie:"",aktywnosc:"brak",stan_stacji:"ok",wykonawca:user?.name||"",uwagi:""}},
+          {id:"deratyzacja",label:"Deratyzacja — ogólna",icon:"🐁",endpoint:"deratyzacja",state:bioDeratyzacja,setter:setBioDeratyzacja,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"budynek",l:"Budynek"},{k:"preparat",l:"Preparat"},{k:"dawka",l:"Dawka"},{k:"zuzycie",l:"Zużycie przynęty"},{k:"aktywnosc",l:"Aktywność",opts:["brak","niska","średnia","wysoka"]},{k:"stan_stacji",l:"Stan stacji",opts:["ok","uszkodzona","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nr_stacji:"",lokalizacja:"",budynek:"",preparat:"",dawka:"",zuzycie:"",aktywnosc:"brak",stan_stacji:"ok",wykonawca:user?.name||"",uwagi:""}}
+        ];
+        return(<div>
+          <div style={{display:"flex",gap:4,marginBottom:16,borderBottom:"2px solid #e8e3db",paddingBottom:0,flexWrap:"wrap"}}>
+            {BIO_REGS.map(r=><button key={r.id} className={"tab-btn"+(bView===r.id?" active":"")} onClick={()=>setBView(r.id)}>{r.icon} {r.label}</button>)}
+          </div>
+          {BIO_REGS.filter(r=>r.id===bView).map(reg=>{const data=reg.state;const setData=reg.setter;return(<div key={reg.id} className="card">
+            <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:22}}>{reg.icon}</span><div><div style={{fontSize:15,fontWeight:700}}>{reg.label}</div><div style={{fontSize:10,color:"#8a7e72"}}>{data.length} wpisów</div></div></div>
+              <div style={{display:"flex",gap:8}}>
+                <button className="btn btn-primary btn-sm" onClick={()=>bioAdd(setData,reg.defaults)}>+ Dodaj wpis</button>
+                <SaveBtn onClick={()=>bioSave(reg.endpoint,data,setData,reg.label)} size="sm"/>
+              </div>
+            </div>
+            <div style={{padding:16}}>
+              <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder={"🔍 Szukaj w "+reg.label+"..."} style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
+              {data.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów. Kliknij „+ Dodaj wpis" aby rozpocząć.</div>:
+              <div style={{overflowX:"auto"}}>
+                <table className="tbl">
+                  <thead><tr>{reg.fields.map(f=><th key={f.k}>{f.l}</th>)}<th>Akcje</th></tr></thead>
+                  <tbody>{data.map((item,i)=>{
+                    if(rFilter){const q=rFilter.toLowerCase();const match=reg.fields.some(f=>{const v=item[f.k];return v&&String(v).toLowerCase().includes(q)});if(!match)return null}
+                    return(<tr key={item.id||i}>
+                      {reg.fields.map(f=><td key={f.k}>{f.opts?<select value={item[f.k]||""} onChange={e=>bioUpd(setData,i,f.k,e.target.value)} style={{border:"1px solid #ddd6cc",borderRadius:6,padding:"4px 24px 4px 6px",fontSize:11,outline:"none",background:"#fff",minWidth:80}}>{f.opts.map(o=><option key={o} value={o}>{o}</option>)}</select>:f.t==="bool"?<input type="checkbox" checked={!!item[f.k]} onChange={e=>bioUpd(setData,i,f.k,e.target.checked)} style={{accentColor:"#2e7d32",width:16,height:16}}/>:<EC val={item[f.k]||""} type={f.t||"text"} w={f.w||"100px"} onChange={v=>bioUpd(setData,i,f.k,v)}/>}</td>)}
+                      <td>{isAdmin&&<button onClick={()=>bioDel(setData,i)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:13}}>✕</button>}</td>
+                    </tr>)})}</tbody>
+                </table>
+              </div>}
+            </div>
+          </div>)})}
+        </div>);
+      })()}
 
       {/* AUDIT LOG — TUCZARNIE */}
       {view==="auditlog"&&<div>
@@ -2436,67 +2489,7 @@ function App(){
       </div>}
     </div>}
 
-    {dept==="bioasekuracja"&&<div style={{maxWidth:1440,margin:"0 auto",padding:"24px 32px"}}>
-      {(()=>{
-        const BIO_REGS=[
-          {id:"dezynfekcja",label:"Dezynfekcja",icon:"🧹",endpoint:"dezynfekcja",state:bioDezynfekcja,setter:setBioDezynfekcja,
-            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"budynek",l:"Budynek/Komora"},{k:"srodek",l:"Środek dezynf."},{k:"stezenie",l:"Stężenie"},{k:"metoda",l:"Metoda",opts:["oprysk","zamgławianie","mycie","inne"]},{k:"powierzchnia",l:"Powierzchnia m²"},{k:"czas_karencji",l:"Karencja"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
-            defaults:{budynek:"",srodek:"",stezenie:"",metoda:"oprysk",powierzchnia:"",czas_karencji:"",wykonawca:user?.name||"",uwagi:""}},
-          {id:"biobojcze",label:"Ewidencja środków biobójczych",icon:"🧪",endpoint:"biobojcze",state:bioBiobojcze,setter:setBioBiobojcze,
-            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nazwa_srodka",l:"Nazwa środka"},{k:"nr_pozwolenia",l:"Nr pozwolenia"},{k:"substancja_czynna",l:"Subst. czynna"},{k:"rodzaj",l:"Rodzaj",opts:["dezynfekcja","dezynsekcja","deratyzacja","inne"]},{k:"dawka",l:"Dawka"},{k:"miejsce",l:"Miejsce"},{k:"powierzchnia",l:"Powierzchnia"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
-            defaults:{nazwa_srodka:"",nr_pozwolenia:"",substancja_czynna:"",rodzaj:"",dawka:"",miejsce:"",powierzchnia:"",wykonawca:user?.name||"",uwagi:""}},
-          {id:"maty",label:"Maty dezynfekcyjne",icon:"🚪",endpoint:"maty",state:bioMaty,setter:setBioMaty,
-            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"lokalizacja",l:"Lokalizacja"},{k:"typ_maty",l:"Typ maty",opts:["mokra","sucha"]},{k:"srodek",l:"Środek"},{k:"stezenie",l:"Stężenie"},{k:"akcja",l:"Akcja",opts:["wymiana","uzupełnienie","kontrola"]},{k:"stan",l:"Stan",opts:["ok","do wymiany","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
-            defaults:{lokalizacja:"",typ_maty:"mokra",srodek:"",stezenie:"",akcja:"wymiana",stan:"ok",wykonawca:user?.name||"",uwagi:""}},
-          {id:"przeglady",label:"Przegląd zabezpieczeń budynków",icon:"🏗",endpoint:"przeglady",state:bioPrzeglady,setter:setBioPrzeglady,
-            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"budynek",l:"Budynek"},{k:"siatki_okna",l:"Siatki okna",opts:["ok","uszkodzone","brak"]},{k:"siatki_wloty",l:"Siatki wloty",opts:["ok","uszkodzone","brak"]},{k:"drzwi",l:"Drzwi",opts:["ok","uszkodzone","brak"]},{k:"sciany",l:"Ściany",opts:["ok","uszkodzone","brak"]},{k:"dach",l:"Dach",opts:["ok","uszkodzone","brak"]},{k:"ogrodzenie",l:"Ogrodzenie",opts:["ok","uszkodzone","brak"]},{k:"rynny_odplyw",l:"Rynny/odpływ",opts:["ok","uszkodzone","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"nastepny_przeglad",l:"Następny przegląd",t:"date",w:"120px"},{k:"inne_uwagi",l:"Uwagi",w:"200px"}],
-            defaults:{budynek:"",siatki_okna:"ok",siatki_wloty:"ok",drzwi:"ok",sciany:"ok",dach:"ok",ogrodzenie:"ok",rynny_odplyw:"ok",wykonawca:user?.name||"",nastepny_przeglad:"",inne_uwagi:""}},
-          {id:"insekty",label:"Kontrola stacji p/insektom",icon:"🪲",endpoint:"insekty",state:bioInsekty,setter:setBioInsekty,
-            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"typ_stacji",l:"Typ",opts:["lampa UV","pułapka lepowa","inna"]},{k:"stan",l:"Stan",opts:["ok","wymiana","uszkodzona"]},{k:"ilosc_owadow",l:"Ilość owadów"},{k:"akcja",l:"Akcja",opts:["kontrola","wymiana wkładu","naprawa"]},{k:"srodek",l:"Środek"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
-            defaults:{nr_stacji:"",lokalizacja:"",typ_stacji:"",stan:"ok",ilosc_owadow:"",akcja:"kontrola",srodek:"",wykonawca:user?.name||"",uwagi:""}},
-          {id:"transport",label:"Rejestr środków transportu",icon:"🚛",endpoint:"transport",state:bioTransport,setter:setBioTransport,
-            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_rej",l:"Nr rejestr."},{k:"kierowca",l:"Kierowca"},{k:"firma",l:"Firma"},{k:"cel_wizyty",l:"Cel wizyty"},{k:"dezynfekcja_przed",l:"Dezyn. przed",t:"bool"},{k:"dezynfekcja_po",l:"Dezyn. po",t:"bool"},{k:"srodek_dezyn",l:"Środek"},{k:"godz_wjazdu",l:"Godz. wjazdu"},{k:"godz_wyjazdu",l:"Godz. wyjazdu"},{k:"uwagi",l:"Uwagi",w:"200px"}],
-            defaults:{nr_rej:"",kierowca:"",firma:"",cel_wizyty:"",dezynfekcja_przed:false,dezynfekcja_po:false,srodek_dezyn:"",godz_wjazdu:"",godz_wyjazdu:"",uwagi:""}},
-          {id:"deratbiogaz",label:"Deratyzacja — Biogazownia",icon:"🐀",endpoint:"deratyzacja-biogaz",state:bioDerBiogaz,setter:setBioDeratBiogaz,
-            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"preparat",l:"Preparat"},{k:"dawka",l:"Dawka"},{k:"zuzycie",l:"Zużycie przynęty"},{k:"aktywnosc",l:"Aktywność",opts:["brak","niska","średnia","wysoka"]},{k:"stan_stacji",l:"Stan stacji",opts:["ok","uszkodzona","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
-            defaults:{nr_stacji:"",lokalizacja:"biogazownia",preparat:"",dawka:"",zuzycie:"",aktywnosc:"brak",stan_stacji:"ok",wykonawca:user?.name||"",uwagi:""}},
-          {id:"deratyzacja",label:"Deratyzacja — ogólna",icon:"🐁",endpoint:"deratyzacja",state:bioDeratyzacja,setter:setBioDeratyzacja,
-            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"budynek",l:"Budynek"},{k:"preparat",l:"Preparat"},{k:"dawka",l:"Dawka"},{k:"zuzycie",l:"Zużycie przynęty"},{k:"aktywnosc",l:"Aktywność",opts:["brak","niska","średnia","wysoka"]},{k:"stan_stacji",l:"Stan stacji",opts:["ok","uszkodzona","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
-            defaults:{nr_stacji:"",lokalizacja:"",budynek:"",preparat:"",dawka:"",zuzycie:"",aktywnosc:"brak",stan_stacji:"ok",wykonawca:user?.name||"",uwagi:""}}
-        ];
-        const reg=BIO_REGS.find(r=>r.id===bView)||BIO_REGS[0];
-        const data=reg.state;
-        const setData=reg.setter;
-        return(<div>
-          <div className="card">
-            <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:22}}>{reg.icon}</span><div><div style={{fontSize:15,fontWeight:700}}>{reg.label}</div><div style={{fontSize:10,color:"#8a7e72"}}>{data.length} wpisów</div></div></div>
-              <div style={{display:"flex",gap:8}}>
-                <button className="btn btn-primary btn-sm" onClick={()=>bioAdd(setData,reg.defaults)}>+ Dodaj wpis</button>
-                <SaveBtn onClick={()=>bioSave(reg.endpoint,data,setData,reg.label)} size="sm"/>
-              </div>
-            </div>
-            <div style={{padding:16}}>
-              <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder={"🔍 Szukaj w "+reg.label+"..."} style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
-              {data.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów. Kliknij „+ Dodaj wpis" aby rozpocząć.</div>:
-              <div style={{overflowX:"auto"}}>
-                <table className="tbl">
-                  <thead><tr>{reg.fields.map(f=><th key={f.k}>{f.l}</th>)}<th>Akcje</th></tr></thead>
-                  <tbody>{data.map((item,i)=>{
-                    if(rFilter){const q=rFilter.toLowerCase();const match=reg.fields.some(f=>{const v=item[f.k];return v&&String(v).toLowerCase().includes(q)});if(!match)return null}
-                    return(<tr key={item.id||i}>
-                      {reg.fields.map(f=><td key={f.k}>{f.opts?<select value={item[f.k]||""} onChange={e=>bioUpd(setData,i,f.k,e.target.value)} style={{border:"1px solid #ddd6cc",borderRadius:6,padding:"4px 24px 4px 6px",fontSize:11,outline:"none",background:"#fff",minWidth:80}}>{f.opts.map(o=><option key={o} value={o}>{o}</option>)}</select>:f.t==="bool"?<input type="checkbox" checked={!!item[f.k]} onChange={e=>bioUpd(setData,i,f.k,e.target.checked)} style={{accentColor:"#2e7d32",width:16,height:16}}/>:<EC val={item[f.k]||""} type={f.t||"text"} w={f.w||"100px"} onChange={v=>bioUpd(setData,i,f.k,v)}/>}</td>)}
-                      <td><button onClick={()=>bioDel(setData,i)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:13}}>✕</button></td>
-                    </tr>)})}</tbody>
-                </table>
-              </div>}
-            </div>
-          </div>
-        </div>);
-      })()}
-    </div>}
-
-    <footer style={{textAlign:"center",padding:20,color:"#8a7e72",fontSize:11,borderTop:"1px solid #e8e3db",marginTop:20}}>Kabanek — Z Nami Się Opłaca • {dept==="tuczarnie"?"Tuczarnie":dept==="bioasekuracja"?"Bioasekuracja":"Produkcja Roślinna"} • CRM</footer>
+    <footer style={{textAlign:"center",padding:20,color:"#8a7e72",fontSize:11,borderTop:"1px solid #e8e3db",marginTop:20}}>Kabanek — Z Nami Się Opłaca • {dept==="tuczarnie"?"Tuczarnie":"Produkcja Roślinna"} • CRM</footer>
 
     {/* GLOBAL DROPDOWN PORTALS for parcel selection (uprawy/nawozy/opryski) */}
     {(()=>{const renderGruntDropdown=(prefix,dropOpen,setDropOpen,dropQ,setDropQ,data,toggleFn,label)=>{
