@@ -2,19 +2,11 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kabanek Tuczarnie — CRM</title>
-<!-- PWA -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#1a3328">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Gospodarstwa">
-<link rel="apple-touch-icon" href="/static/icon-192.png">
-<meta name="mobile-web-app-capable" content="yes">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#f0ebe3;color:#2d3a2e;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+body{background:#f0ebe3;color:#2d3a2e;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;min-height:100vh}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:#e8e3db}
 ::-webkit-scrollbar-thumb{background:#1a3328;border-radius:3px}
@@ -76,84 +68,12 @@ table{border-spacing:0}
 .login-input{width:100%;padding:12px 16px;background:#f8f5f0;border:1px solid #ddd6cc;border-radius:10px;font-size:14px;outline:none;margin-bottom:12px;color:#1a3328}
 .login-input:focus{border-color:#1a3328;box-shadow:0 0 0 3px rgba(26,51,40,0.1)}
 .cause-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin:1px}
-/* ═══ TABLET & MOBILE RESPONSIVE ═══ */
-@media(max-width:1200px){
-  .nav-btn{padding:8px 12px;font-size:12px;gap:5px}
-}
-@media(max-width:1024px){
-  /* Navigation: scrollable horizontal */
-  .tablet-nav-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;padding-bottom:4px}
-  .tablet-nav-scroll::-webkit-scrollbar{display:none}
-  .nav-btn{padding:10px 14px;font-size:12px;gap:6px;min-height:44px;flex-shrink:0}
-  
-  /* Tables: horizontal scroll on tablet */
-  .card{overflow:visible}
-  .tbl{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
-  .tbl thead,.tbl tbody,.tbl tr{display:table;width:100%;table-layout:auto}
-  .tbl thead{position:sticky;top:0;z-index:1}
-  
-  /* Touch-friendly inputs & buttons */
-  .btn{min-height:44px;padding:10px 16px;font-size:13px}
-  .btn-sm{min-height:38px;padding:8px 14px;font-size:12px}
-  input,select,textarea{font-size:14px!important;min-height:40px}
-  .edit-cell{min-height:36px;padding:6px 8px;font-size:13px;line-height:24px}
-  .edit-input{min-height:38px;padding:6px 10px;font-size:14px}
-  
-  /* Tables: prevent squeeze */
-  .tbl{font-size:13px}
-  .tbl th{padding:12px 8px;font-size:11px}
-  .tbl td{padding:12px 8px}
-  
-  /* KPI cards */
-  .kpi-card{padding:16px 20px}
-  
-  /* Status buttons bigger */
-  .status-btn{padding:6px 14px;font-size:10px;min-height:32px}
-  
-  /* Checkbox bigger for touch */
-  input[type="checkbox"]{width:20px!important;height:20px!important;min-height:20px!important}
-  
-  /* Select dropdown bigger */
-  select{min-height:40px;padding:8px 32px 8px 10px!important;font-size:13px!important}
-  
-  /* Tab buttons */
-  .tab-btn{padding:10px 16px;font-size:12px;min-height:40px}
-  
-  /* Med/cause selects */
-  .med-select,.cause-select{min-height:40px;padding:8px 32px 8px 12px;font-size:12px}
-  
-  /* Toast position for tablet */
-  .toast{bottom:80px;right:16px;left:16px;text-align:center;justify-content:center}
-  
-  /* Login card */
-  .login-card{padding:32px;width:420px}
-  .login-input{padding:14px 18px;font-size:16px;min-height:48px}
-}
-
-@media(max-width:768px){
-  /* Smaller paddings */
-  .nav-btn{padding:8px 10px;font-size:11px;gap:4px}
-  .nav-btn span:first-child{font-size:14px}
-  .kpi-card{padding:14px 16px;border-radius:10px}
-  .card{border-radius:10px}
-  .btn{padding:10px 14px;font-size:12px}
-  .btn-sm{padding:7px 12px;font-size:11px}
-  .tbl{font-size:12px}
-  .tbl th,.tbl td{padding:10px 6px}
-  .login-card{padding:24px 20px;width:96vw;border-radius:16px}
-}
-
-/* Safe area for notch/home indicator */
-@supports(padding:env(safe-area-inset-bottom)){
-  .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
-}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <script type="text/babel">
 
@@ -169,24 +89,30 @@ const api = {
     if (_token) h["Authorization"] = "Bearer " + _token;
     return h;
   },
-  async _fetch(path, opts) {
-    if (!navigator.onLine) throw new Error("📡 Brak połączenia z internetem. Sprawdź WiFi lub dane mobilne.");
-    try {
-      const r = await fetch(API_BASE + path, opts);
-      if (r.status === 401) { this.clearToken(); throw new Error("Sesja wygasła — zaloguj się ponownie"); }
-      if (r.status === 403) throw new Error("⛔ Brak uprawnień do tej operacji");
-      if (r.status === 429) throw new Error("⏳ Zbyt wiele prób — odczekaj chwilę");
-      if (!r.ok) { const t = await r.text(); throw new Error(t || "Błąd serwera ("+r.status+")"); }
-      return r.json();
-    } catch(e) {
-      if (e.name === "TypeError" && e.message.includes("fetch")) throw new Error("📡 Nie można połączyć się z serwerem. Sprawdź internet.");
-      throw e;
-    }
+  async get(path) {
+    const r = await fetch(API_BASE + path, {headers: this.headers()});
+    if (r.status === 401) { this.clearToken(); throw new Error("Sesja wygasła"); }
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
   },
-  async get(path) { return this._fetch(path, {headers: this.headers()}); },
-  async post(path, data) { return this._fetch(path, {method:"POST", headers:this.headers(), body:JSON.stringify(data)}); },
-  async put(path, data) { return this._fetch(path, {method:"PUT", headers:this.headers(), body:JSON.stringify(data)}); },
-  async del(path) { return this._fetch(path, {method:"DELETE", headers:this.headers()}); }
+  async post(path, data) {
+    const r = await fetch(API_BASE + path, {method:"POST", headers:this.headers(), body:JSON.stringify(data)});
+    if (r.status === 401) { this.clearToken(); throw new Error("Sesja wygasła"); }
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async put(path, data) {
+    const r = await fetch(API_BASE + path, {method:"PUT", headers:this.headers(), body:JSON.stringify(data)});
+    if (r.status === 401) { this.clearToken(); throw new Error("Sesja wygasła"); }
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async del(path) {
+    const r = await fetch(API_BASE + path, {method:"DELETE", headers:this.headers()});
+    if (r.status === 401) { this.clearToken(); throw new Error("Sesja wygasła"); }
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
 };
 
 const LOGO="data:image/png;base64,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";
@@ -330,7 +256,7 @@ const AdminConfigPanel=({customElements,setCustomElements,api,setToast,EC})=>{
   const catItems=(customElements[cfgCat]||[]).filter(x=>x.isActive);
   const catInfo=CATS.find(c=>c.key===cfgCat)||CATS[0];
   const addEl=async()=>{if(!cfgNew.name?.trim())return;setCfgLoading(true);try{const res=await api.post("/admin/elements",{category:cfgCat,...cfgNew});setCustomElements(p=>({...p,[cfgCat]:[...(p[cfgCat]||[]),res]}));setCfgNew({});setToast("Dodano ✓");setTimeout(()=>setToast(null),2000)}catch(e){setToast("Błąd: "+e.message)}setCfgLoading(false)};
-  const delEl=async(eid)=>{if(!confirm("Dezaktywować element?"))return;try{await api.del("/admin/elements/"+eid);setCustomElements(p=>({...p,[cfgCat]:(p[cfgCat]||[]).map(x=>x.id===eid?{...x,isActive:false}:x)}));setToast("Dezaktywowano ✓");setTimeout(()=>setToast(null),2000)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const delEl=async(eid)=>{if(!confirm("Dezaktywować element?"))return;try{await api.del("/admin/elements/"+eid);setCustomElements(p=>({...p,[cfgCat]:(p[cfgCat]||[]).map(x=>x.id===eid?{...x,isActive:false}:x)}));setToast("Dezaktywowano ✓");setTimeout(()=>setToast(null),2000)}catch(e){setToast("Błąd")}};
   const updEl=async(eid,field,val)=>{try{await api.put("/admin/elements/"+eid,{[field]:val});setCustomElements(p=>({...p,[cfgCat]:(p[cfgCat]||[]).map(x=>x.id===eid?{...x,[field]:val}:x)}))}catch(e){}};
   return <div className="card">
     <h3 style={{color:"#1a3328",marginBottom:12}}>⚙️ Konfiguracja elementów</h3>
@@ -390,18 +316,10 @@ function App(){
   const[fo,setFo]=useState("all");
   const[ctab,setCtab]=useState({});
   const[toast,setToast]=useState(null);
-  const[isOnline,setIsOnline]=useState(navigator.onLine);
-  useEffect(()=>{
-    const goOnline=()=>{setIsOnline(true);setToast("✅ Połączenie przywrócone");setTimeout(()=>setToast(null),3000)};
-    const goOffline=()=>{setIsOnline(false)};
-    window.addEventListener("online",goOnline);
-    window.addEventListener("offline",goOffline);
-    return()=>{window.removeEventListener("online",goOnline);window.removeEventListener("offline",goOffline)};
-  },[]);
   const[dirty,setDirty]=useState(false);
   const[lastSave,setLastSave]=useState(null);
   const[stock,setStock]=useState([]);
-  const saveStock=async()=>{try{for(const s of stock){if(s.id)await api.put("/stock/"+s.id,s);else{const r=await api.post("/stock",s);s.id=r.id}}setToast("Magazyn zapisany ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveStock=async()=>{try{for(const s of stock){if(s.id)await api.put("/stock/"+s.id,s);else{const r=await api.post("/stock",s);s.id=r.id}}setToast("Magazyn zapisany ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const updStock=(i,f,v)=>setStock(p=>p.map((s,si)=>si===i?{...s,[f]:v}:s));
   const[ubojnie,setUbojnie]=useState(DEF_UBOJNIE);
   const saveUbojnie=async(list)=>{try{const ex=await api.get("/ubojnie");for(const name of list){if(!ex.find(e=>e.name===name))await api.post("/ubojnie",{name})}setUbojnie(list)}catch(e){}};
@@ -506,7 +424,7 @@ function App(){
 
   // Feeds
   const[feeds,setFeeds]=useState([]);
-  const saveFeeds=async()=>{try{const ex=await api.get("/feeds");for(const f of feeds){if(ex.find(e=>e.id===f.id))await api.put("/feeds/"+f.id,f);else{const r=await api.post("/feeds",f);f.id=r.id}}for(const e of ex){if(!feeds.find(f=>f.id===e.id))await api.del("/feeds/"+e.id)}setToast("Dostawy paszy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveFeeds=async()=>{try{const ex=await api.get("/feeds");for(const f of feeds){if(ex.find(e=>e.id===f.id))await api.put("/feeds/"+f.id,f);else{const r=await api.post("/feeds",f);f.id=r.id}}for(const e of ex){if(!feeds.find(f=>f.id===e.id))await api.del("/feeds/"+e.id)}setToast("Dostawy paszy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addFeed=()=>setFeeds(p=>[...p,{id:Date.now(),d:tS(),tons:0,type:"Starter",cid:"",note:"",zwrot:false}]);
   const updFeed=(i,f,v)=>setFeeds(p=>p.map((fd,fi)=>fi===i?{...fd,[f]:v}:fd));
   const delFeed=i=>{if(!confirm("Na pewno usunąć paszę?"))return;setFeeds(p=>p.filter((_,fi)=>fi!==i))};
@@ -515,7 +433,7 @@ function App(){
   // Paszarnia
   const DEF_BUFORY=["Pszenżyto","Jęczmień","Wysłodki"];
   const[paszarnia,setPaszarnia]=useState({log:[],bufory:DEF_BUFORY});
-  const savePaszarnia=async()=>{try{await api.put("/paszarnia",paszarnia);setToast("Paszarnia zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const savePaszarnia=async()=>{try{await api.put("/paszarnia",paszarnia);setToast("Paszarnia zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addPaszLog=(cat,sub)=>setPaszarnia(p=>({...p,log:[{id:Date.now(),d:tS(),cat,sub:sub||"",obroty:"",note:""},...p.log]}));
   const updPaszLog=(i,f,v)=>setPaszarnia(p=>({...p,log:p.log.map((l,li)=>li===i?{...l,[f]:v}:l)}));
   const delPaszLog=i=>{if(!confirm("Na pewno usunąć wpis paszarni?"))return;setPaszarnia(p=>({...p,log:p.log.filter((_,li)=>li!==i)}))};
@@ -526,7 +444,7 @@ function App(){
   // Silosy
   const SILOSY_DEF=[{id:1,nazwa:"Silos 1",poj:400},{id:2,nazwa:"Silos 2",poj:400},{id:3,nazwa:"Silos 3",poj:400},{id:4,nazwa:"Silos 4",poj:400}];
   const[silosy,setSilosy]=useState({silosy:SILOSY_DEF,log:[]});
-  const saveSilosy=async()=>{try{await api.put("/silosy",silosy);setToast("Silosy zapisane");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveSilosy=async()=>{try{await api.put("/silosy",silosy);setToast("Silosy zapisane");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addSilosLog=()=>{logAudit("silosy","Dodano wpis silosu");setSilosy(p=>({...p,log:[{id:Date.now(),d:tS(),silosId:1,zboze:"",tony:0,kierunek:"zaladowanie",uwagi:""},...p.log]}))};
   const updSilosLog=(i,f,v)=>setSilosy(p=>({...p,log:p.log.map((l,li)=>li===i?{...l,[f]:v}:l)}));
   const delSilosLog=i=>{if(!confirm("Na pewno usunąć wpis?"))return;logAudit("silosy","Usunieto wpis silosu");setSilosy(p=>({...p,log:p.log.filter((_,li)=>li!==i)}))};
@@ -534,10 +452,24 @@ function App(){
 
   // ═══ PRODUKCJA ROŚLINNA ═══
   const[rView,setRView]=useState("ciagniki");
+  const[bView,setBView]=useState("dezynfekcja");
+  const[bioDezynfekcja,setBioDezynfekcja]=useState([]);
+  const[bioBiobojcze,setBioBiobojcze]=useState([]);
+  const[bioMaty,setBioMaty]=useState([]);
+  const[bioPrzeglady,setBioPrzeglady]=useState([]);
+  const[bioInsekty,setBioInsekty]=useState([]);
+  const[bioTransport,setBioTransport]=useState([]);
+  const[bioDerBiogaz,setBioDeratBiogaz]=useState([]);
+  const[bioDeratyzacja,setBioDeratyzacja]=useState([]);
+  const bioLoad=async()=>{try{const[a,b,c,d,e,f,g,h]=await Promise.allSettled([api.get("/bio/dezynfekcja"),api.get("/bio/biobojcze"),api.get("/bio/maty"),api.get("/bio/przeglady"),api.get("/bio/insekty"),api.get("/bio/transport"),api.get("/bio/deratyzacja-biogaz"),api.get("/bio/deratyzacja")]);if(a.status==="fulfilled")setBioDezynfekcja(a.value||[]);if(b.status==="fulfilled")setBioBiobojcze(b.value||[]);if(c.status==="fulfilled")setBioMaty(c.value||[]);if(d.status==="fulfilled")setBioPrzeglady(d.value||[]);if(e.status==="fulfilled")setBioInsekty(e.value||[]);if(f.status==="fulfilled")setBioTransport(f.value||[]);if(g.status==="fulfilled")setBioDeratBiogaz(g.value||[]);if(h.status==="fulfilled")setBioDeratyzacja(h.value||[])}catch(e){console.error("Bio load:",e)}};
+  const bioSave=async(endpoint,list,setList,label)=>{try{const ex=await api.get("/bio/"+endpoint);for(const item of list){if(ex.find(e=>e.id===item.id))await api.put("/bio/"+endpoint+"/"+item.id,item);else{const r=await api.post("/bio/"+endpoint,item);item.id=r.id}}for(const e of ex){if(!list.find(i=>i.id===e.id))await api.del("/bio/"+endpoint+"/"+e.id)}const fresh=await api.get("/bio/"+endpoint);setList(fresh||[]);setToast(label+" zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd zapisu!")}};
+  const bioAdd=(setList,defaults)=>setList(p=>[{id:Date.now(),d:tS(),...defaults},...p]);
+  const bioUpd=(setList,i,f,v)=>setList(p=>p.map((x,xi)=>xi===i?{...x,[f]:v}:x));
+  const bioDel=(setList,i)=>{if(!confirm("Na pewno usunąć?"))return;setList(p=>p.filter((_,xi)=>xi!==i))};
   const[selMaszIdx,setSelMaszIdx]=useState(null);
   const[selGruntIdx,setSelGruntIdx]=useState(null);
   const[ciagniki,setCiagniki]=useState([]);
-  const saveCiagniki=async()=>{try{const ex=await api.get("/ciagniki");for(const c of ciagniki){if(ex.find(e=>e.id===c.id))await api.put("/ciagniki/"+c.id,c);else{const r=await api.post("/ciagniki",c);c.id=r.id}}for(const e of ex){if(!ciagniki.find(c=>c.id===e.id))await api.del("/ciagniki/"+e.id)}const fresh=await api.get("/ciagniki");setCiagniki(fresh||[]);setToast("Maszyny zapisane");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveCiagniki=async()=>{try{const ex=await api.get("/ciagniki");for(const c of ciagniki){if(ex.find(e=>e.id===c.id))await api.put("/ciagniki/"+c.id,c);else{const r=await api.post("/ciagniki",c);c.id=r.id}}for(const e of ex){if(!ciagniki.find(c=>c.id===e.id))await api.del("/ciagniki/"+e.id)}const fresh=await api.get("/ciagniki");setCiagniki(fresh||[]);setToast("Maszyny zapisane");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addCiagnik=()=>{logAudit("maszyny","Dodano maszyne");setCiagniki(p=>[...p,{id:Date.now(),typ:"ciagnik",nazwa:"",marka:"",rok:"",moc:"",rejestr:"",przeglad:"",ubezp:"",uwagi:"",olejSilnik:"",olejSkrzynia:"",olejMostP:"",olejMostT:"",naprawy:""}])};
   const[maszynyTab,setMaszynyTab]=useState("ciagniki");
   const[rFilter,setRFilter]=useState("");
@@ -545,7 +477,7 @@ function App(){
   const delCiagnik=i=>{if(!confirm("Na pewno usunąć maszynę?"))return;logAudit("maszyny","Usunieto maszyne: "+(ciagniki[i]?.nazwa||"#"+(i+1)));setCiagniki(p=>p.filter((_,ci)=>ci!==i))};
 
   const[grunty,setGrunty]=useState([]);
-  const saveGrunty=async()=>{try{const ex=await api.get("/grunty");for(const g of grunty){if(ex.find(e=>e.id===g.id))await api.put("/grunty/"+g.id,g);else{const r=await api.post("/grunty",g);g.id=r.id}}for(const e of ex){if(!grunty.find(g=>g.id===e.id))await api.del("/grunty/"+e.id)}const fresh=await api.get("/grunty");setGrunty(fresh||[]);setToast("Grunty zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveGrunty=async()=>{try{const ex=await api.get("/grunty");for(const g of grunty){if(ex.find(e=>e.id===g.id))await api.put("/grunty/"+g.id,g);else{const r=await api.post("/grunty",g);g.id=r.id}}for(const e of ex){if(!grunty.find(g=>g.id===e.id))await api.del("/grunty/"+e.id)}const fresh=await api.get("/grunty");setGrunty(fresh||[]);setToast("Grunty zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   // ═══ TERYT BAZA: woj→powiat→gminy ═══
   const TERYT_DB={"warmińsko-mazurskie":{
     "bartoszycki":["Bartoszyce","Bisztynek","Górowo Iławeckie","Sępopol"],
@@ -706,7 +638,7 @@ function App(){
   const delGrunt=i=>{if(!confirm("Na pewno usunąć działkę?"))return;logAudit("grunty","Usunięto grunt: "+(grunty[i]?.nazwa||"#"+(i+1)));setGrunty(p=>p.filter((_,gi)=>gi!==i))};
 
   const[uprawy,setUprawy]=useState([]);
-  const saveUprawy=async()=>{try{const ex=await api.get("/uprawy");for(const u of uprawy){if(ex.find(e=>e.id===u.id))await api.put("/uprawy/"+u.id,u);else{const r=await api.post("/uprawy",u);u.id=r.id}}for(const e of ex){if(!uprawy.find(u=>u.id===e.id))await api.del("/uprawy/"+e.id)}const fresh=await api.get("/uprawy");setUprawy(fresh||[]);setToast("Uprawy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveUprawy=async()=>{try{const ex=await api.get("/uprawy");for(const u of uprawy){if(ex.find(e=>e.id===u.id))await api.put("/uprawy/"+u.id,u);else{const r=await api.post("/uprawy",u);u.id=r.id}}for(const e of ex){if(!uprawy.find(u=>u.id===e.id))await api.del("/uprawy/"+e.id)}const fresh=await api.get("/uprawy");setUprawy(fresh||[]);setToast("Uprawy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addUprawa=()=>{logAudit("uprawy","Dodano nową uprawę");setUprawy(p=>[...p,{id:Date.now(),grunt:"",roslina:"",odmiana:"",pow:"",dataS:"",dataZ:"",plon:"",uwagi:""}])};
   const updUprawa=(i,f,v)=>{setUprawy(p=>p.map((u,ui)=>ui===i?{...u,[f]:v}:u))};
   const delUprawa=i=>{if(!confirm("Na pewno usunąć uprawę?"))return;logAudit("uprawy","Usunięto uprawę #"+(i+1));setUprawy(p=>p.filter((_,ui)=>ui!==i))};
@@ -729,35 +661,35 @@ function App(){
   const[oprDropQ,setOprDropQ]=useState("");
 
   const[nawozy,setNawozy]=useState([]);
-  const saveNawozy=async()=>{try{const ex=await api.get("/nawozy");for(const n of nawozy){if(ex.find(e=>e.id===n.id))await api.put("/nawozy/"+n.id,n);else{const r=await api.post("/nawozy",n);n.id=r.id}}for(const e of ex){if(!nawozy.find(n=>n.id===e.id))await api.del("/nawozy/"+e.id)}const fresh=await api.get("/nawozy");setNawozy(fresh||[]);setToast("Nawozy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveNawozy=async()=>{try{const ex=await api.get("/nawozy");for(const n of nawozy){if(ex.find(e=>e.id===n.id))await api.put("/nawozy/"+n.id,n);else{const r=await api.post("/nawozy",n);n.id=r.id}}for(const e of ex){if(!nawozy.find(n=>n.id===e.id))await api.del("/nawozy/"+e.id)}const fresh=await api.get("/nawozy");setNawozy(fresh||[]);setToast("Nawozy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addNawoz=()=>{logAudit("nawozy","Dodano nawożenie");setNawozy(p=>[...p,{id:Date.now(),d:tS(),grunt:"",nawoz:"",typ:"Azotowy",dawka:"",pow:"",uwagi:""}])};
   const updNawoz=(i,f,v)=>{setNawozy(p=>p.map((n,ni)=>ni===i?{...n,[f]:v}:n))};
   const delNawoz=i=>{if(!confirm("Na pewno usunąć nawożenie?"))return;logAudit("nawozy","Usunięto nawożenie #"+(i+1));setNawozy(p=>p.filter((_,ni)=>ni!==i))};
 
   // ═══ OPRYSKI ═══
   const[opryski,setOpryski]=useState([]);
-  const saveOpryski=async()=>{try{const ex=await api.get("/opryski");for(const o of opryski){if(ex.find(e=>e.id===o.id))await api.put("/opryski/"+o.id,o);else{const r=await api.post("/opryski",o);o.id=r.id}}for(const e of ex){if(!opryski.find(o=>o.id===e.id))await api.del("/opryski/"+e.id)}const fresh=await api.get("/opryski");setOpryski(fresh||[]);setToast("Opryski zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveOpryski=async()=>{try{const ex=await api.get("/opryski");for(const o of opryski){if(ex.find(e=>e.id===o.id))await api.put("/opryski/"+o.id,o);else{const r=await api.post("/opryski",o);o.id=r.id}}for(const e of ex){if(!opryski.find(o=>o.id===e.id))await api.del("/opryski/"+e.id)}const fresh=await api.get("/opryski");setOpryski(fresh||[]);setToast("Opryski zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addOprysk=()=>{logAudit("opryski","Dodano nowy oprysk");setOpryski(p=>[...p,{id:Date.now(),d:tS(),grunt:"",srodek:"",dawka:"",pow:"",cel:"Chwasty",faza:"",uwagi:""}])};
   const updOprysk=(i,f,v)=>setOpryski(p=>p.map((o,oi)=>oi===i?{...o,[f]:v}:o));
   const delOprysk=i=>{if(!confirm("Na pewno usunąć oprysk?"))return;logAudit("opryski","Usunięto oprysk #"+(i+1));setOpryski(p=>p.filter((_,oi)=>oi!==i))};
 
   // ═══ PALIWA I SMARY ═══
   const[paliwa,setPaliwa]=useState([]);
-  const savePaliwa=async()=>{try{const ex=await api.get("/paliwa");for(const p of paliwa){if(ex.find(e=>e.id===p.id))await api.put("/paliwa/"+p.id,p);else{const r=await api.post("/paliwa",p);p.id=r.id}}for(const e of ex){if(!paliwa.find(p=>p.id===e.id))await api.del("/paliwa/"+e.id)}const fresh=await api.get("/paliwa");setPaliwa(fresh||[]);setToast("Paliwa zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const savePaliwa=async()=>{try{const ex=await api.get("/paliwa");for(const p of paliwa){if(ex.find(e=>e.id===p.id))await api.put("/paliwa/"+p.id,p);else{const r=await api.post("/paliwa",p);p.id=r.id}}for(const e of ex){if(!paliwa.find(p=>p.id===e.id))await api.del("/paliwa/"+e.id)}const fresh=await api.get("/paliwa");setPaliwa(fresh||[]);setToast("Paliwa zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addPaliwo=()=>{logAudit("paliwa","Dodano wpis paliwa/smaru");setPaliwa(p=>[...p,{id:Date.now(),d:tS(),typ:"ON",maszyna:"",litry:0,cena:0,km:"",uwagi:""}])};
   const updPaliwo=(i,f,v)=>setPaliwa(p=>p.map((o,oi)=>oi===i?{...o,[f]:v}:o));
   const delPaliwo=i=>{if(!confirm("Na pewno usunąć wpis?"))return;logAudit("paliwa","Usunięto wpis #"+(i+1));setPaliwa(p=>p.filter((_,oi)=>oi!==i))};
 
   // ═══ DOSTAWY ROŚLINNA ═══
   const[rDostawy,setRDostawy]=useState([]);
-  const saveRDostawy=async()=>{try{const ex=await api.get("/rdostawy");for(const d of rDostawy){if(ex.find(e=>e.id===d.id))await api.put("/rdostawy/"+d.id,d);else{const r=await api.post("/rdostawy",d);d.id=r.id}}for(const e of ex){if(!rDostawy.find(d=>d.id===e.id))await api.del("/rdostawy/"+e.id)}const fresh=await api.get("/rdostawy");setRDostawy(fresh||[]);setToast("Dostawy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveRDostawy=async()=>{try{const ex=await api.get("/rdostawy");for(const d of rDostawy){if(ex.find(e=>e.id===d.id))await api.put("/rdostawy/"+d.id,d);else{const r=await api.post("/rdostawy",d);d.id=r.id}}for(const e of ex){if(!rDostawy.find(d=>d.id===e.id))await api.del("/rdostawy/"+e.id)}const fresh=await api.get("/rdostawy");setRDostawy(fresh||[]);setToast("Dostawy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addRDostawa=()=>{logAudit("dostawy","Dodano dostawę");setRDostawy(p=>[...p,{id:Date.now(),d:tS(),produkt:"",ilosc:0,jm:"t",cena:0,dostawca:"",fv:"",uwagi:""}])};
   const updRDostawa=(i,f,v)=>setRDostawy(p=>p.map((d,di)=>di===i?{...d,[f]:v}:d));
   const delRDostawa=i=>{if(!confirm("Na pewno usunąć dostawę?"))return;logAudit("dostawy","Usunięto dostawę #"+(i+1));setRDostawy(p=>p.filter((_,di)=>di!==i))};
 
   // ═══ ZAKUPY RÓŻNE ═══
   const[zakupy,setZakupy]=useState([]);
-  const saveZakupy=async()=>{try{const ex=await api.get("/zakupy");for(const z of zakupy){if(ex.find(e=>e.id===z.id))await api.put("/zakupy/"+z.id,z);else{const r=await api.post("/zakupy",z);z.id=r.id}}for(const e of ex){if(!zakupy.find(z=>z.id===e.id))await api.del("/zakupy/"+e.id)}const fresh=await api.get("/zakupy");setZakupy(fresh||[]);setToast("Zakupy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveZakupy=async()=>{try{const ex=await api.get("/zakupy");for(const z of zakupy){if(ex.find(e=>e.id===z.id))await api.put("/zakupy/"+z.id,z);else{const r=await api.post("/zakupy",z);z.id=r.id}}for(const e of ex){if(!zakupy.find(z=>z.id===e.id))await api.del("/zakupy/"+e.id)}const fresh=await api.get("/zakupy");setZakupy(fresh||[]);setToast("Zakupy zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addZakup=()=>{logAudit("zakupy","Dodano zakup");setZakupy(p=>[...p,{id:Date.now(),d:tS(),produkt:"",cena:0,kto:user?.name||"",uwagi:""}])};
   const updZakup=(i,f,v)=>setZakupy(p=>p.map((z,zi)=>zi===i?{...z,[f]:v}:z));
   const delZakup=i=>{if(!confirm("Na pewno usunąć zakup?"))return;logAudit("zakupy","Usunięto zakup #"+(i+1));setZakupy(p=>p.filter((_,zi)=>zi!==i))};
@@ -771,7 +703,7 @@ function App(){
     {id:"inne",label:"Inne",icon:"📝",col:"#558b2f"}
   ];
   const[biogaz,setBiogaz]=useState([]);
-  const saveBiogaz=async()=>{try{const ex=await api.get("/biogaz");for(const b of biogaz){if(ex.find(e=>e.id===b.id))await api.put("/biogaz/"+b.id,b);else{const r=await api.post("/biogaz",b);b.id=r.id}}for(const e of ex){if(!biogaz.find(b=>b.id===e.id))await api.del("/biogaz/"+e.id)}const fresh=await api.get("/biogaz");setBiogaz(fresh||[]);setToast("Biogazownia zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveBiogaz=async()=>{try{const ex=await api.get("/biogaz");for(const b of biogaz){if(ex.find(e=>e.id===b.id))await api.put("/biogaz/"+b.id,b);else{const r=await api.post("/biogaz",b);b.id=r.id}}for(const e of ex){if(!biogaz.find(b=>b.id===e.id))await api.del("/biogaz/"+e.id)}const fresh=await api.get("/biogaz");setBiogaz(fresh||[]);setToast("Biogazownia zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addBiogaz=(kat)=>{logAudit("biogazownia","Dodano: "+kat);setBiogaz(p=>[{id:Date.now(),d:tS(),kat:kat,czynnosc:"",uwagi:"",kto:user?.name||""},...p])};
   const updBiogaz=(i,f,v)=>setBiogaz(p=>p.map((b,bi)=>bi===i?{...b,[f]:v}:b));
   const delBiogaz=i=>{if(!confirm("Na pewno usunąć wpis?"))return;logAudit("biogazownia","Usunięto wpis #"+(i+1));setBiogaz(p=>p.filter((_,bi)=>bi!==i))};
@@ -786,7 +718,7 @@ function App(){
     {id:"inne",label:"Inne",icon:"📄",col:"#546e7a"}
   ];
   const[dokumenty,setDokumenty]=useState([]);
-  const saveDokumenty=async()=>{try{const ex=await api.get("/dokumenty");for(const d of dokumenty){if(ex.find(e=>e.id===d.id))await api.put("/dokumenty/"+d.id,d);else{const r=await api.post("/dokumenty",d);d.id=r.id;delete d._new}}for(const e of ex){if(!dokumenty.find(d=>d.id===e.id))await api.del("/dokumenty/"+e.id)}const fresh=await api.get("/dokumenty");setDokumenty(fresh);setToast("Dokumenty zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveDokumenty=async()=>{try{const ex=await api.get("/dokumenty");for(const d of dokumenty){if(ex.find(e=>e.id===d.id))await api.put("/dokumenty/"+d.id,d);else{const r=await api.post("/dokumenty",d);d.id=r.id;delete d._new}}for(const e of ex){if(!dokumenty.find(d=>d.id===e.id))await api.del("/dokumenty/"+e.id)}const fresh=await api.get("/dokumenty");setDokumenty(fresh);setToast("Dokumenty zapisane ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const addDokument=(kat)=>{logAudit("dokumenty","Dodano: "+kat);setDokumenty(p=>[{id:Date.now(),kat,nazwa:"",nr:"",podmiot:"",dataOd:"",dataDo:"",grunt:"",uwagi:"",status:"aktywny",fileName:"",fileSize:0,fileMime:"",_new:true},...p])};
   const updDok=(i,f,v)=>setDokumenty(p=>p.map((d,di)=>di===i?{...d,[f]:v}:d));
   const delDok=i=>{if(!confirm("Na pewno usunąć dokument?"))return;logAudit("dokumenty","Usunięto dokument #"+(i+1));setDokumenty(p=>p.filter((_,di)=>di!==i))};
@@ -799,7 +731,7 @@ function App(){
     {id:4,nazwa:"GR Robert Potorski",typ:"VAT",col:"#2e7d32"}
   ];
   const[akcPodmioty,setAkcPodmioty]=useState([]);
-  const saveAkcyza=async()=>{try{for(const a of akcPodmioty){if(a.id)await api.put("/akcyza/"+a.id,a)}setToast("Akcyza zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const saveAkcyza=async()=>{try{for(const a of akcPodmioty){if(a.id)await api.put("/akcyza/"+a.id,a)}setToast("Akcyza zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
   const updAkc=(i,f,v)=>setAkcPodmioty(p=>p.map((a,ai)=>ai===i?{...a,[f]:f==="ha"||f==="swin"?parseFloat(v)||0:v}:a));
 
   // ═══ AUDIT LOG ═══
@@ -807,99 +739,6 @@ function App(){
   const[auditLog,setAuditLog]=useState([]);
   const logAudit=(area,action)=>{const entry={ts:new Date().toISOString(),user:user?.name||"?",email:user?.email||"?",area,action};setAuditLog(p=>[entry,...p].slice(0,500))};
 
-
-  // ═══ BIOASEKURACJA ═══
-  const[bioasek,setBioasek]=useState([]);
-  const[bioNew,setBioNew]=useState({data:tS(),kategoria:"Dezynfekcja",opis:"",wykonawca:"",uwagi:""});
-  const BIOKAT=["Dezynfekcja","Kontrola odwiedzin","Deratyzacja","Kwarantanna","Szkolenie","Przegląd śluzy","Inne"];
-  const saveBioasek=async()=>{try{await api.put("/bioasekuracja",bioasek);setToast("Bioasekuracja zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
-
-  // ═══ EXCEL IMPORT ═══
-  const[xlImporting,setXlImporting]=useState(false);
-  const[xlResult,setXlResult]=useState(null);
-  const[xlSheets,setXlSheets]=useState([]);
-  const[xlSelSheet,setXlSelSheet]=useState("");
-  const[xlRows,setXlRows]=useState([]);
-  const[xlHeaders,setXlHeaders]=useState([]);
-  const[xlTarget,setXlTarget]=useState("");
-  const[xlPreview,setXlPreview]=useState(false);
-
-  const xlTargets=dept==="tuczarnie"?[
-    {id:"stock",label:"Magazyn Leków",cols:["name","qty","unit","expiry","notes"]},
-  ]:[
-    {id:"ciagniki",label:"Maszyny/Pojazdy",cols:["name","nr_rej","type","rok","przebieg","uwagi"]},
-    {id:"grunty",label:"Grunty/Działki",cols:["nr","nazwa","obreb","gmina","teryt","pow_ha","klasa","uwagi"]},
-    {id:"uprawy",label:"Uprawy",cols:["data","roslina","odmiana","pow_ha","uwagi"]},
-    {id:"nawozy",label:"Nawozy",cols:["data","nawoz","typ","dawka","pow_ha","uwagi"]},
-    {id:"opryski",label:"Opryski",cols:["data","srodek","dawka","pow_ha","cel","faza","uwagi"]},
-    {id:"rdostawy",label:"Dostawy",cols:["data","dostawca","produkt","ilosc","jm","cena","uwagi"]},
-    {id:"paliwa",label:"Paliwa",cols:["data","pojazd","litry","kwota","stacja","uwagi"]},
-    {id:"zakupy",label:"Zakupy różne",cols:["data","nazwa","ilosc","jm","kwota","dostawca","uwagi"]},
-  ];
-
-  const xlHandleFile=(e)=>{
-    const file=e.target.files?.[0];if(!file)return;
-    setXlImporting(true);setXlResult(null);setXlPreview(false);
-    const reader=new FileReader();
-    reader.onload=(ev)=>{
-      try{
-        const wb=XLSX.read(ev.target.result,{type:"array",cellDates:true});
-        setXlSheets(wb.SheetNames);
-        setXlSelSheet(wb.SheetNames[0]);
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        const json=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
-        if(json.length>0){setXlHeaders(json[0].map(String));setXlRows(json.slice(1).filter(r=>r.some(c=>c!=="")));}
-        setXlPreview(true);
-        window._xlWB=wb;
-      }catch(err){setXlResult({ok:false,msg:"Błąd odczytu: "+err.message})}
-      setXlImporting(false);
-    };
-    reader.readAsArrayBuffer(file);
-  };
-
-  const xlChangeSheet=(name)=>{
-    setXlSelSheet(name);
-    if(!window._xlWB)return;
-    const ws=window._xlWB.Sheets[name];
-    const json=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
-    if(json.length>0){setXlHeaders(json[0].map(String));setXlRows(json.slice(1).filter(r=>r.some(c=>c!=="")));}
-  };
-
-  const xlDoImport=async()=>{
-    if(!xlTarget||xlRows.length===0)return;
-    setXlImporting(true);setXlResult(null);
-    const tgt=xlTargets.find(t=>t.id===xlTarget);if(!tgt)return;
-    let imported=0,errors=0;
-    try{
-      for(const row of xlRows){
-        const obj={};
-        tgt.cols.forEach((col,i)=>{
-          let v=i<row.length?row[i]:"";
-          if(v instanceof Date)v=v.toISOString().split("T")[0];
-          if(typeof v==="number")v=String(v);
-          obj[col]=v!=null?String(v):"";
-        });
-        if(!Object.values(obj).some(v=>v&&v.trim()))return;
-        try{
-          if(xlTarget==="ciagniki"){setCiagniki(p=>[...p,{id:Date.now()+imported,...obj}]);}
-          else if(xlTarget==="grunty"){setGrunty(p=>[...p,{id:Date.now()+imported,...obj}]);}
-          else if(xlTarget==="uprawy"){setUprawy(p=>[...p,{id:Date.now()+imported,grunty_nrs:"",...obj}]);}
-          else if(xlTarget==="nawozy"){setNawozy(p=>[...p,{id:Date.now()+imported,grunty_nrs:"",...obj}]);}
-          else if(xlTarget==="opryski"){setOpryski(p=>[...p,{id:Date.now()+imported,grunty_nrs:"",...obj}]);}
-          else if(xlTarget==="rdostawy"){setRDostawy(p=>[...p,{id:Date.now()+imported,...obj}]);}
-          else if(xlTarget==="paliwa"){setPaliwa(p=>[...p,{id:Date.now()+imported,...obj}]);}
-          else if(xlTarget==="zakupy"){setZakupy(p=>[...p,{id:Date.now()+imported,...obj}]);}
-          else if(xlTarget==="stock"){setStock(p=>[...p,{id:Date.now()+imported,...obj}]);}
-          imported++;
-        }catch(e){errors++;}
-      }
-      setXlResult({ok:true,msg:`✅ Zaimportowano ${imported} wierszy${errors?` (${errors} błędów)`:""}`});
-      setXlPreview(false);setXlRows([]);setXlHeaders([]);
-      logAudit(dept==="tuczarnie"?"tuczarnie":"roslinna",`Import Excel: ${imported} wierszy → ${tgt.label}`);
-      setToast(`Import: ${imported} wierszy → ${tgt.label} ✓`);setTimeout(()=>setToast(null),3000);
-    }catch(e){setXlResult({ok:false,msg:"Błąd importu: "+e.message})}
-    setXlImporting(false);
-  };
   // ═══ USER MANAGEMENT (admin only) ═══
   const[mUsers,setMUsers]=useState([]);
   const[showUsers,setShowUsers]=useState(false);
@@ -907,8 +746,8 @@ function App(){
   const[editUser,setEditUser]=useState(null);
   const loadUsers=async()=>{try{const u=await api.get("/auth/users");setMUsers(u)}catch(e){}};
   const createUser=async()=>{try{await api.post("/auth/users",newUser);setNewUser({email:"",name:"",password:"",role:"user"});loadUsers();setToast("Użytkownik utworzony ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+(e.message||""))}};
-  const updateUser=async(uid,data)=>{try{await api.put("/auth/users/"+uid,data);loadUsers();setEditUser(null);setToast("Zaktualizowano ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
-  const deactivateUser=async(uid)=>{if(!window.confirm("Dezaktywować użytkownika?"))return;try{await api.del("/auth/users/"+uid);loadUsers();setToast("Dezaktywowano ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  const updateUser=async(uid,data)=>{try{await api.put("/auth/users/"+uid,data);loadUsers();setEditUser(null);setToast("Zaktualizowano ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
+  const deactivateUser=async(uid)=>{if(!window.confirm("Dezaktywować użytkownika?"))return;try{await api.del("/auth/users/"+uid);loadUsers();setToast("Dezaktywowano ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd!")}};
 
   // ═══ FILE UPLOAD for documents ═══
   const uploadDocFile=async(docId,file)=>{try{
@@ -923,7 +762,7 @@ function App(){
     await api.del("/files/delete/"+docId);
     setDokumenty(p=>p.map(d=>d.id===docId?{...d,fileName:"",fileSize:0,fileMime:""}:d));
     setToast("Plik usunięty ✓");setTimeout(()=>setToast(null),2500);
-  }catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+  }catch(e){setToast("Błąd!")}};
   const viewDocFile=(docId)=>{window.open(API_BASE+"/files/download/"+docId+"?token="+encodeURIComponent(_token),"_blank")};
   const fSize=(bytes)=>{if(!bytes)return"";if(bytes<1024)return bytes+" B";if(bytes<1048576)return(bytes/1024).toFixed(1)+" KB";return(bytes/1048576).toFixed(1)+" MB"};
   // Login audit handled by backend
@@ -941,7 +780,7 @@ function App(){
   ].map(v=>({...v,overdue:v.due<tS(),daysLeft:dB(tS(),v.due)}))};
   const gbs=(cyc,m,y)=>{const s=toD(cyc.start),e=toD(cyc.endD);if(!s||!e)return null;const ms=new Date(y,m,1),me=new Date(y,m+1,0),d=me.getDate();if(e<ms||s>me)return null;const bs=s<ms?0:s.getDate()-1,be=e>me?d-1:e.getDate()-1;return{left:`${bs/d*100}%`,width:`${Math.max((be-bs+1)/d*100,3)}%`}};
   const clrs=["#1b6b28","#2e8b3e","#4cb050","#219ebc","#8ecae6","#c8a84e","#e0982a","#d4622a","#606c38","#283618"];
-  const navs=[{id:"panel",label:"Panel",icon:"◆",zoo:false},{id:"komory",label:"Komory",icon:"⌂",zoo:true},{id:"szczepienia",label:"Szczepienia",icon:"💉",zoo:true},{id:"pasza",label:"Pasza",icon:"🌾",zoo:true},{id:"paszarnia",label:"Paszarnia",icon:"⚙️",zoo:true},{id:"silosy",label:"Silosy",icon:"🏗",zoo:true},{id:"calendar",label:"Kalendarz",icon:"▦",zoo:false},{id:"historia",label:"Historia",icon:"◷",zoo:false},{id:"magazyn",label:"Magazyn Leków",icon:"🏪",zoo:false},{id:"analityka",label:"Analityka",icon:"▤",zoo:false},{id:"bioasekuracja",label:"Bioasekuracja",icon:"🛡",zoo:false},{id:"auditlog",label:"Zmiany",icon:"📋",zoo:false}].concat(isAdmin?[{id:"xlimport",label:"Import Excel",icon:"📥",zoo:false}]:[]).filter(n=>!user||user.role!=="zoo"||n.zoo);
+  const navs=[{id:"panel",label:"Panel",icon:"◆",zoo:false},{id:"komory",label:"Komory",icon:"⌂",zoo:true},{id:"szczepienia",label:"Szczepienia",icon:"💉",zoo:true},{id:"pasza",label:"Pasza",icon:"🌾",zoo:true},{id:"paszarnia",label:"Paszarnia",icon:"⚙️",zoo:true},{id:"silosy",label:"Silosy",icon:"🏗",zoo:true},{id:"calendar",label:"Kalendarz",icon:"▦",zoo:false},{id:"historia",label:"Historia",icon:"◷",zoo:false},{id:"magazyn",label:"Magazyn Leków",icon:"🏪",zoo:false},{id:"analityka",label:"Analityka",icon:"▤",zoo:false},{id:"auditlog",label:"Zmiany",icon:"📋",zoo:false}].filter(n=>!user||user.role!=="zoo"||n.zoo);
 
   // LOGIN SCREEN
   if(!user)return(<div className="login-bg"><div className="login-card">
@@ -960,7 +799,7 @@ function App(){
       <div style={{fontSize:28,fontWeight:900,color:"#fff",letterSpacing:-1}}>Kabanek</div>
       <div style={{fontSize:13,color:"#b8c4ba"}}>Witaj, {user.name} • Wybierz dział</div>
     </div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:20}}>
       <div onClick={()=>{setDept("tuczarnie");if(user.role==="zoo")setView("komory");else setView("panel")}} style={{background:"#fff",borderRadius:20,padding:"36px 28px",cursor:"pointer",border:"3px solid transparent",transition:"all 0.2s",textAlign:"center",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}} onMouseOver={e=>e.currentTarget.style.border="3px solid #2e7d32"} onMouseOut={e=>e.currentTarget.style.border="3px solid transparent"}>
         <div style={{fontSize:52,marginBottom:12}}>🐷</div>
         <div style={{fontSize:20,fontWeight:800,color:"#1a3328",marginBottom:6}}>Kabanek Tuczarnie</div>
@@ -973,42 +812,42 @@ function App(){
         <div style={{fontSize:11,color:"#8a7e72",lineHeight:1.5}}>Maszyny rolnicze • Grunty rolne<br/>Uprawy • Nawozy</div>
         <div style={{marginTop:14,background:"#f1f8e9",color:"#558b2f",padding:"6px 16px",borderRadius:8,fontSize:12,fontWeight:700,display:"inline-block"}}>Wejdź →</div>
       </div>
+      <div onClick={()=>{setDept("bioasekuracja");setBView("dezynfekcja");bioLoad()}} style={{background:"#fff",borderRadius:20,padding:"36px 28px",cursor:"pointer",border:"3px solid transparent",transition:"all 0.2s",textAlign:"center",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}} onMouseOver={e=>e.currentTarget.style.border="3px solid #0277bd"} onMouseOut={e=>e.currentTarget.style.border="3px solid transparent"}>
+        <div style={{fontSize:52,marginBottom:12}}>🛡️</div>
+        <div style={{fontSize:20,fontWeight:800,color:"#1a3328",marginBottom:6}}>Bioasekuracja</div>
+        <div style={{fontSize:11,color:"#8a7e72",lineHeight:1.5}}>Dezynfekcja • Środki biobójcze • Maty<br/>Transport • Deratyzacja • Insekty</div>
+        <div style={{marginTop:14,background:"#e1f5fe",color:"#0277bd",padding:"6px 16px",borderRadius:8,fontSize:12,fontWeight:700,display:"inline-block"}}>Wejdź →</div>
+      </div>
     </div>
     <div style={{textAlign:"center",marginTop:20}}><button onClick={doLogout} style={{background:"none",border:"none",color:"#b8c4ba",cursor:"pointer",fontSize:11}}>Wyloguj</button></div>
   </div></div>);
 
   return(<div style={{minHeight:"100vh"}}>
     {rView==="konfiguracja"&&isAdmin&&<AdminConfigPanel customElements={customElements} setCustomElements={setCustomElements} api={api} setToast={setToast} EC={EC}/>}
-    {!isOnline&&<div style={{position:"fixed",top:0,left:0,right:0,zIndex:9999,background:"linear-gradient(90deg,#c62828,#e53935)",color:"#fff",padding:"12px 20px",textAlign:"center",fontSize:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
-      <span style={{fontSize:22}}>📡</span>
-      <span>Brak połączenia z internetem — dane nie mogą być zapisane ani odczytane</span>
-    </div>}
-    {toast&&<div className="toast" style={{background:toast.includes("Błąd")||toast.includes("📡")||toast.includes("⛔")?"#c62828":"#2e7d32"}}>{toast}</div>}
+    {toast&&<div className="toast">✅ {toast}</div>}
     {/* HEADER */}
-    <header style={{background:"#1a3328",position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 12px rgba(0,0,0,0.15)"}}>
-      <div style={{padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <button onClick={()=>setDept(null)} style={{background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:4,minHeight:36}}>◂ Działy</button>
-          <img src={LOGO} style={{width:36,height:36,borderRadius:8}}/>
-          <div><div style={{fontSize:15,fontWeight:800,color:"#fff"}}>{dept==="tuczarnie"?"🐷 Tuczarnie":"🌾 Roślinna"}</div><div style={{fontSize:8,color:"#b8c4ba",letterSpacing:1.5}}>Kabanek CRM</div></div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {dept==="tuczarnie"&&dirty&&<span style={{fontSize:10,color:"#fbbf24",fontWeight:600}}>● Niezapisane</span>}
-          {dept==="tuczarnie"&&!dirty&&lastSave&&<span style={{fontSize:10,color:"#a5d6a7"}}>✓</span>}
-          <SaveBtn onClick={()=>dept==="tuczarnie"?doSave():null} size="sm"/>
-          {dept==="tuczarnie"&&<select value={fo} onChange={e=>setFo(e.target.value)} style={{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:6,color:"#fff",padding:"6px 30px 6px 10px",fontSize:11,outline:"none",minHeight:36}}><option value="all" style={{background:"#1a3328"}}>Wszyscy</option>{owners.map(o=><option key={o} value={o} style={{background:"#1a3328"}}>{o}</option>)}</select>}
-          <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.08)",borderRadius:8,padding:"4px 10px",minHeight:36}}>
-            <span style={{fontSize:11,color:"#b8c4ba"}}>{user.name}</span>
-            {user.role==="admin"&&<span style={{background:"#c8a84e",color:"#fff",padding:"1px 6px",borderRadius:4,fontSize:8,fontWeight:700}}>ADMIN</span>}
-            {user.role==="zoo"&&<span style={{background:"#219ebc",color:"#fff",padding:"1px 6px",borderRadius:4,fontSize:8,fontWeight:700}}>ZOO</span>}
-            <button onClick={doLogout} style={{background:"none",border:"none",color:"#ef5350",cursor:"pointer",fontSize:11,fontWeight:600,marginLeft:4,minHeight:36}}>Wyloguj</button>
-          </div>
+    <header style={{background:"#1a3328",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 12px rgba(0,0,0,0.15)"}}>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <button onClick={()=>setDept(null)} style={{background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:4}}>◂ Działy</button>
+        <img src={LOGO} style={{width:40,height:40,borderRadius:8}}/>
+        <div><div style={{fontSize:16,fontWeight:800,color:"#fff"}}>{dept==="tuczarnie"?"🐷 Kabanek Tuczarnie":dept==="bioasekuracja"?"🛡️ Bioasekuracja":"🌾 Produkcja Roślinna"}</div><div style={{fontSize:9,color:"#b8c4ba",letterSpacing:1.5}}>CRM</div></div>
+      </div>
+      <nav style={{display:"flex",gap:2,flexWrap:"wrap"}}>{dept==="tuczarnie"?navs.map(n=><button key={n.id} className={`nav-btn${view===n.id?" active":""}`} onClick={()=>setView(n.id)}><span>{n.icon}</span>{n.label}</button>):dept==="bioasekuracja"?[{id:"dezynfekcja",label:"Dezynfekcja",icon:"🧹"},{id:"biobojcze",label:"Śr. biobójcze",icon:"🧪"},{id:"maty",label:"Maty",icon:"🚪"},{id:"przeglady",label:"Przeglądy",icon:"🏗"},{id:"insekty",label:"Insekty",icon:"🪲"},{id:"transport",label:"Transport",icon:"🚛"},{id:"deratbiogaz",label:"Derat. biogaz",icon:"🐀"},{id:"deratyzacja",label:"Deratyzacja",icon:"🐁"}].map(n=><button key={n.id} className={`nav-btn${bView===n.id?" active":""}`} onClick={()=>setBView(n.id)}><span>{n.icon}</span>{n.label}</button>):[{id:"ciagniki",label:"Maszyny",icon:"🚜"},{id:"grunty",label:"Grunty",icon:"🗺"},{id:"uprawy",label:"Uprawy",icon:"🌱"},{id:"nawozy",label:"Nawozy",icon:"🧪"},{id:"opryski",label:"Opryski",icon:"🧴"},{id:"rdostawy",label:"Dostawy",icon:"📦"},{id:"paliwa",label:"Paliwa",icon:"⛽"},{id:"zakupy",label:"Zakupy różne",icon:"🛒"},{id:"biogaz",label:"Biogazownia",icon:"🔥"},{id:"dokumenty",label:"Dokumenty",icon:"📂"},{id:"rhistoria",label:"Historia",icon:"📋"}].concat(isAdmin?[{id:"uzytkownicy",label:"Użytkownicy",icon:"👥"},{id:"konfiguracja",label:"Konfiguracja",icon:"⚙️"}]:[]).map(n=><button key={n.id} className={`nav-btn${rView===n.id?" active":""}`} onClick={()=>{setRView(n.id);setRFilter("");if(n.id==="uzytkownicy")loadUsers()}}><span>{n.icon}</span>{n.label}</button>)}</nav>
+      <div style={{display:"flex",alignItems:"center",gap:10}}>
+        {dept==="tuczarnie"&&dirty&&<span style={{fontSize:10,color:"#fbbf24",fontWeight:600}}>● Niezapisane</span>}
+        {dept==="tuczarnie"&&!dirty&&lastSave&&<span style={{fontSize:10,color:"#a5d6a7"}}>✓</span>}
+        <SaveBtn onClick={()=>dept==="tuczarnie"?doSave():null} size="sm"/>
+        {dept==="tuczarnie"&&<select value={fo} onChange={e=>setFo(e.target.value)} style={{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:6,color:"#fff",padding:"6px 30px 6px 10px",fontSize:11,outline:"none"}}><option value="all" style={{background:"#1a3328"}}>Wszyscy</option>{owners.map(o=><option key={o} value={o} style={{background:"#1a3328"}}>{o}</option>)}</select>}
+        <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.08)",borderRadius:8,padding:"4px 10px"}}>
+          <span style={{fontSize:11,color:"#b8c4ba"}}>{user.name}</span>
+          {user.role==="admin"&&<span style={{background:"#c8a84e",color:"#fff",padding:"1px 6px",borderRadius:4,fontSize:8,fontWeight:700}}>ADMIN</span>}
+          {user.role==="zoo"&&<span style={{background:"#219ebc",color:"#fff",padding:"1px 6px",borderRadius:4,fontSize:8,fontWeight:700}}>ZOO</span>}
+          <button onClick={doLogout} style={{background:"none",border:"none",color:"#ef5350",cursor:"pointer",fontSize:11,fontWeight:600,marginLeft:4}}>Wyloguj</button>
         </div>
       </div>
-      <nav className="tablet-nav-scroll" style={{display:"flex",gap:2,padding:"0 12px 6px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>{dept==="tuczarnie"?navs.map(n=><button key={n.id} className={`nav-btn${view===n.id?" active":""}`} onClick={()=>setView(n.id)}><span>{n.icon}</span>{n.label}</button>):[{id:"ciagniki",label:"Maszyny",icon:"🚜"},{id:"grunty",label:"Grunty",icon:"🗺"},{id:"uprawy",label:"Uprawy",icon:"🌱"},{id:"nawozy",label:"Nawozy",icon:"🧪"},{id:"opryski",label:"Opryski",icon:"🧴"},{id:"rdostawy",label:"Dostawy",icon:"📦"},{id:"paliwa",label:"Paliwa",icon:"⛽"},{id:"zakupy",label:"Zakupy różne",icon:"🛒"},{id:"biogaz",label:"Biogazownia",icon:"🔥"},{id:"dokumenty",label:"Dokumenty",icon:"📂"},{id:"rhistoria",label:"Zmiany",icon:"📋"}].concat(isAdmin?[{id:"xlimport",label:"Import Excel",icon:"📥"},{id:"uzytkownicy",label:"Użytkownicy",icon:"👥"},{id:"konfiguracja",label:"Konfiguracja",icon:"⚙️"}]:[]).map(n=><button key={n.id} className={`nav-btn${rView===n.id?" active":""}`} onClick={()=>{setRView(n.id);setRFilter("");if(n.id==="uzytkownicy")loadUsers()}}><span>{n.icon}</span>{n.label}</button>)}</nav>
     </header>
 
-    {dept==="tuczarnie"&&<div style={{maxWidth:1440,margin:"0 auto",padding:"16px 12px"}}>
+    {dept==="tuczarnie"&&<div style={{maxWidth:1440,margin:"0 auto",padding:"24px 32px"}}>
 
       {/* PANEL */}
       {view==="panel"&&<div>
@@ -1781,50 +1620,6 @@ function App(){
         </div>
       </div>}
 
-      {/* BIOASEKURACJA */}
-      {view==="bioasekuracja"&&<div>
-        <div className="card">
-          <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12}}>
-              <span style={{fontSize:22}}>🛡</span><div><div style={{fontSize:15,fontWeight:700}}>Bioasekuracja</div><div style={{fontSize:10,color:"#8a7e72"}}>Rejestr dezynfekcji, kontroli, kwarantanny</div></div>
-            </div>
-            <button className="btn btn-sm" onClick={saveBioasek}>💾 Zapisz</button>
-          </div>
-          <div style={{padding:16}}>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:20}}>
-              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{bioasek.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Wpisów</div></div>
-              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#2e7d32"}}>{bioasek.filter(b=>b.kategoria==="Dezynfekcja").length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Dezynfekcji</div></div>
-              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#e65100"}}>{bioasek.filter(b=>b.kategoria==="Kwarantanna").length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Kwarantann</div></div>
-              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1565c0"}}>{bioasek.filter(b=>b.kategoria==="Kontrola odwiedzin").length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Kontroli</div></div>
-            </div>
-            {isAdmin&&<div style={{background:"#f8f5f0",borderRadius:12,padding:16,marginBottom:16}}>
-              <div style={{fontSize:12,fontWeight:700,marginBottom:10}}>➕ Nowy wpis bioasekuracji</div>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"end"}}>
-                <div><label style={{fontSize:10,color:"#8a7e72"}}>Data</label><input type="date" value={bioNew.data} onChange={e=>setBioNew(p=>({...p,data:e.target.value}))} className="inp" style={{width:130}}/></div>
-                <div><label style={{fontSize:10,color:"#8a7e72"}}>Kategoria</label><select value={bioNew.kategoria} onChange={e=>setBioNew(p=>({...p,kategoria:e.target.value}))} className="inp">{BIOKAT.map(k=><option key={k}>{k}</option>)}</select></div>
-                <div style={{flex:1,minWidth:150}}><label style={{fontSize:10,color:"#8a7e72"}}>Opis</label><input value={bioNew.opis} onChange={e=>setBioNew(p=>({...p,opis:e.target.value}))} className="inp" placeholder="Opis czynności..."/></div>
-                <div><label style={{fontSize:10,color:"#8a7e72"}}>Wykonawca</label><input value={bioNew.wykonawca} onChange={e=>setBioNew(p=>({...p,wykonawca:e.target.value}))} className="inp" placeholder="Kto?" style={{width:120}}/></div>
-                <div style={{flex:1,minWidth:100}}><label style={{fontSize:10,color:"#8a7e72"}}>Uwagi</label><input value={bioNew.uwagi} onChange={e=>setBioNew(p=>({...p,uwagi:e.target.value}))} className="inp" placeholder="Uwagi..."/></div>
-                <button className="btn btn-sm" style={{background:"#2e7d32",color:"#fff"}} onClick={()=>{if(!bioNew.opis.trim())return;const entry={...bioNew,id:Date.now(),ts:new Date().toISOString(),user:user?.name||"?"};setBioasek(p=>[entry,...p]);setBioNew({data:tS(),kategoria:"Dezynfekcja",opis:"",wykonawca:"",uwagi:""});logAudit("tuczarnie","Bioasekuracja: "+bioNew.kategoria+" — "+bioNew.opis)}}>➕ Dodaj</button>
-              </div>
-            </div>}
-            {bioasek.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów bioasekuracji.</div>:
-            <div style={{maxHeight:"70vh",overflowY:"auto"}}><table className="tbl">
-              <thead><tr>{["#","Data","Kategoria","Opis","Wykonawca","Uwagi","Dodał"].map((h,i)=><th key={i}>{h}</th>)}{isAdmin&&<th>✕</th>}</tr></thead>
-              <tbody>{bioasek.map((b,i)=>(<tr key={b.id||i} style={{background:b.kategoria==="Kwarantanna"?"#fff3e008":""}}>
-                <td style={{color:"#8a7e72",fontSize:10}}>{i+1}</td>
-                <td style={{fontSize:11,whiteSpace:"nowrap"}}>{b.data}</td>
-                <td><span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:b.kategoria==="Dezynfekcja"?"#e8f5e9":b.kategoria==="Kwarantanna"?"#fff3e0":b.kategoria==="Kontrola odwiedzin"?"#e3f2fd":"#f3e5f5",color:b.kategoria==="Dezynfekcja"?"#2e7d32":b.kategoria==="Kwarantanna"?"#e65100":b.kategoria==="Kontrola odwiedzin"?"#1565c0":"#6a1b9a"}}>{b.kategoria}</span></td>
-                <td style={{fontSize:11}}>{b.opis}</td>
-                <td style={{fontSize:11}}>{b.wykonawca}</td>
-                <td style={{fontSize:10,color:"#8a7e72"}}>{b.uwagi}</td>
-                <td style={{fontSize:10,color:"#8a7e72"}}>{b.user}</td>
-                {isAdmin&&<td><button className="btn-x" onClick={()=>{setBioasek(p=>p.filter(x=>x.id!==b.id))}}>✕</button></td>}
-              </tr>))}</tbody>
-            </table></div>}
-          </div>
-        </div>
-      </div>}
       {/* AUDIT LOG — TUCZARNIE */}
       {view==="auditlog"&&<div>
         <div className="card">
@@ -1854,7 +1649,7 @@ function App(){
         </div>
       </div>}
     </div>}
-    {dept==="roslinna"&&<div style={{maxWidth:1440,margin:"0 auto",padding:"16px 12px"}}>
+    {dept==="roslinna"&&<div style={{maxWidth:1440,margin:"0 auto",padding:"24px 32px"}}>
       {/* MASZYNY */}
       {rView==="ciagniki"&&<div>
         <div className="card">
@@ -2641,7 +2436,67 @@ function App(){
       </div>}
     </div>}
 
-    <footer style={{textAlign:"center",padding:20,color:"#8a7e72",fontSize:11,borderTop:"1px solid #e8e3db",marginTop:20}}>Kabanek — Z Nami Się Opłaca • {dept==="tuczarnie"?"Tuczarnie":"Produkcja Roślinna"} • CRM</footer>
+    {dept==="bioasekuracja"&&<div style={{maxWidth:1440,margin:"0 auto",padding:"24px 32px"}}>
+      {(()=>{
+        const BIO_REGS=[
+          {id:"dezynfekcja",label:"Dezynfekcja",icon:"🧹",endpoint:"dezynfekcja",state:bioDezynfekcja,setter:setBioDezynfekcja,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"budynek",l:"Budynek/Komora"},{k:"srodek",l:"Środek dezynf."},{k:"stezenie",l:"Stężenie"},{k:"metoda",l:"Metoda",opts:["oprysk","zamgławianie","mycie","inne"]},{k:"powierzchnia",l:"Powierzchnia m²"},{k:"czas_karencji",l:"Karencja"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{budynek:"",srodek:"",stezenie:"",metoda:"oprysk",powierzchnia:"",czas_karencji:"",wykonawca:user?.name||"",uwagi:""}},
+          {id:"biobojcze",label:"Ewidencja środków biobójczych",icon:"🧪",endpoint:"biobojcze",state:bioBiobojcze,setter:setBioBiobojcze,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nazwa_srodka",l:"Nazwa środka"},{k:"nr_pozwolenia",l:"Nr pozwolenia"},{k:"substancja_czynna",l:"Subst. czynna"},{k:"rodzaj",l:"Rodzaj",opts:["dezynfekcja","dezynsekcja","deratyzacja","inne"]},{k:"dawka",l:"Dawka"},{k:"miejsce",l:"Miejsce"},{k:"powierzchnia",l:"Powierzchnia"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nazwa_srodka:"",nr_pozwolenia:"",substancja_czynna:"",rodzaj:"",dawka:"",miejsce:"",powierzchnia:"",wykonawca:user?.name||"",uwagi:""}},
+          {id:"maty",label:"Maty dezynfekcyjne",icon:"🚪",endpoint:"maty",state:bioMaty,setter:setBioMaty,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"lokalizacja",l:"Lokalizacja"},{k:"typ_maty",l:"Typ maty",opts:["mokra","sucha"]},{k:"srodek",l:"Środek"},{k:"stezenie",l:"Stężenie"},{k:"akcja",l:"Akcja",opts:["wymiana","uzupełnienie","kontrola"]},{k:"stan",l:"Stan",opts:["ok","do wymiany","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{lokalizacja:"",typ_maty:"mokra",srodek:"",stezenie:"",akcja:"wymiana",stan:"ok",wykonawca:user?.name||"",uwagi:""}},
+          {id:"przeglady",label:"Przegląd zabezpieczeń budynków",icon:"🏗",endpoint:"przeglady",state:bioPrzeglady,setter:setBioPrzeglady,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"budynek",l:"Budynek"},{k:"siatki_okna",l:"Siatki okna",opts:["ok","uszkodzone","brak"]},{k:"siatki_wloty",l:"Siatki wloty",opts:["ok","uszkodzone","brak"]},{k:"drzwi",l:"Drzwi",opts:["ok","uszkodzone","brak"]},{k:"sciany",l:"Ściany",opts:["ok","uszkodzone","brak"]},{k:"dach",l:"Dach",opts:["ok","uszkodzone","brak"]},{k:"ogrodzenie",l:"Ogrodzenie",opts:["ok","uszkodzone","brak"]},{k:"rynny_odplyw",l:"Rynny/odpływ",opts:["ok","uszkodzone","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"nastepny_przeglad",l:"Następny przegląd",t:"date",w:"120px"},{k:"inne_uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{budynek:"",siatki_okna:"ok",siatki_wloty:"ok",drzwi:"ok",sciany:"ok",dach:"ok",ogrodzenie:"ok",rynny_odplyw:"ok",wykonawca:user?.name||"",nastepny_przeglad:"",inne_uwagi:""}},
+          {id:"insekty",label:"Kontrola stacji p/insektom",icon:"🪲",endpoint:"insekty",state:bioInsekty,setter:setBioInsekty,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"typ_stacji",l:"Typ",opts:["lampa UV","pułapka lepowa","inna"]},{k:"stan",l:"Stan",opts:["ok","wymiana","uszkodzona"]},{k:"ilosc_owadow",l:"Ilość owadów"},{k:"akcja",l:"Akcja",opts:["kontrola","wymiana wkładu","naprawa"]},{k:"srodek",l:"Środek"},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nr_stacji:"",lokalizacja:"",typ_stacji:"",stan:"ok",ilosc_owadow:"",akcja:"kontrola",srodek:"",wykonawca:user?.name||"",uwagi:""}},
+          {id:"transport",label:"Rejestr środków transportu",icon:"🚛",endpoint:"transport",state:bioTransport,setter:setBioTransport,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_rej",l:"Nr rejestr."},{k:"kierowca",l:"Kierowca"},{k:"firma",l:"Firma"},{k:"cel_wizyty",l:"Cel wizyty"},{k:"dezynfekcja_przed",l:"Dezyn. przed",t:"bool"},{k:"dezynfekcja_po",l:"Dezyn. po",t:"bool"},{k:"srodek_dezyn",l:"Środek"},{k:"godz_wjazdu",l:"Godz. wjazdu"},{k:"godz_wyjazdu",l:"Godz. wyjazdu"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nr_rej:"",kierowca:"",firma:"",cel_wizyty:"",dezynfekcja_przed:false,dezynfekcja_po:false,srodek_dezyn:"",godz_wjazdu:"",godz_wyjazdu:"",uwagi:""}},
+          {id:"deratbiogaz",label:"Deratyzacja — Biogazownia",icon:"🐀",endpoint:"deratyzacja-biogaz",state:bioDerBiogaz,setter:setBioDeratBiogaz,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"preparat",l:"Preparat"},{k:"dawka",l:"Dawka"},{k:"zuzycie",l:"Zużycie przynęty"},{k:"aktywnosc",l:"Aktywność",opts:["brak","niska","średnia","wysoka"]},{k:"stan_stacji",l:"Stan stacji",opts:["ok","uszkodzona","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nr_stacji:"",lokalizacja:"biogazownia",preparat:"",dawka:"",zuzycie:"",aktywnosc:"brak",stan_stacji:"ok",wykonawca:user?.name||"",uwagi:""}},
+          {id:"deratyzacja",label:"Deratyzacja — ogólna",icon:"🐁",endpoint:"deratyzacja",state:bioDeratyzacja,setter:setBioDeratyzacja,
+            fields:[{k:"d",l:"Data",t:"date",w:"120px"},{k:"nr_stacji",l:"Nr stacji"},{k:"lokalizacja",l:"Lokalizacja"},{k:"budynek",l:"Budynek"},{k:"preparat",l:"Preparat"},{k:"dawka",l:"Dawka"},{k:"zuzycie",l:"Zużycie przynęty"},{k:"aktywnosc",l:"Aktywność",opts:["brak","niska","średnia","wysoka"]},{k:"stan_stacji",l:"Stan stacji",opts:["ok","uszkodzona","brak"]},{k:"wykonawca",l:"Wykonawca"},{k:"uwagi",l:"Uwagi",w:"200px"}],
+            defaults:{nr_stacji:"",lokalizacja:"",budynek:"",preparat:"",dawka:"",zuzycie:"",aktywnosc:"brak",stan_stacji:"ok",wykonawca:user?.name||"",uwagi:""}}
+        ];
+        const reg=BIO_REGS.find(r=>r.id===bView)||BIO_REGS[0];
+        const data=reg.state;
+        const setData=reg.setter;
+        return(<div>
+          <div className="card">
+            <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{fontSize:22}}>{reg.icon}</span><div><div style={{fontSize:15,fontWeight:700}}>{reg.label}</div><div style={{fontSize:10,color:"#8a7e72"}}>{data.length} wpisów</div></div></div>
+              <div style={{display:"flex",gap:8}}>
+                <button className="btn btn-primary btn-sm" onClick={()=>bioAdd(setData,reg.defaults)}>+ Dodaj wpis</button>
+                <SaveBtn onClick={()=>bioSave(reg.endpoint,data,setData,reg.label)} size="sm"/>
+              </div>
+            </div>
+            <div style={{padding:16}}>
+              <div style={{marginBottom:14}}><input value={rFilter} onChange={e=>setRFilter(e.target.value)} placeholder={"🔍 Szukaj w "+reg.label+"..."} style={{width:"100%",border:"2px solid #e8e3db",borderRadius:8,padding:"8px 12px",fontSize:12,outline:"none",background:"#faf8f5",boxSizing:"border-box"}}/></div>
+              {data.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów. Kliknij „+ Dodaj wpis" aby rozpocząć.</div>:
+              <div style={{overflowX:"auto"}}>
+                <table className="tbl">
+                  <thead><tr>{reg.fields.map(f=><th key={f.k}>{f.l}</th>)}<th>Akcje</th></tr></thead>
+                  <tbody>{data.map((item,i)=>{
+                    if(rFilter){const q=rFilter.toLowerCase();const match=reg.fields.some(f=>{const v=item[f.k];return v&&String(v).toLowerCase().includes(q)});if(!match)return null}
+                    return(<tr key={item.id||i}>
+                      {reg.fields.map(f=><td key={f.k}>{f.opts?<select value={item[f.k]||""} onChange={e=>bioUpd(setData,i,f.k,e.target.value)} style={{border:"1px solid #ddd6cc",borderRadius:6,padding:"4px 24px 4px 6px",fontSize:11,outline:"none",background:"#fff",minWidth:80}}>{f.opts.map(o=><option key={o} value={o}>{o}</option>)}</select>:f.t==="bool"?<input type="checkbox" checked={!!item[f.k]} onChange={e=>bioUpd(setData,i,f.k,e.target.checked)} style={{accentColor:"#2e7d32",width:16,height:16}}/>:<EC val={item[f.k]||""} type={f.t||"text"} w={f.w||"100px"} onChange={v=>bioUpd(setData,i,f.k,v)}/>}</td>)}
+                      <td><button onClick={()=>bioDel(setData,i)} style={{background:"none",border:"none",color:"#c62828",cursor:"pointer",fontSize:13}}>✕</button></td>
+                    </tr>)})}</tbody>
+                </table>
+              </div>}
+            </div>
+          </div>
+        </div>);
+      })()}
+    </div>}
+
+    <footer style={{textAlign:"center",padding:20,color:"#8a7e72",fontSize:11,borderTop:"1px solid #e8e3db",marginTop:20}}>Kabanek — Z Nami Się Opłaca • {dept==="tuczarnie"?"Tuczarnie":dept==="bioasekuracja"?"Bioasekuracja":"Produkcja Roślinna"} • CRM</footer>
 
     {/* GLOBAL DROPDOWN PORTALS for parcel selection (uprawy/nawozy/opryski) */}
     {(()=>{const renderGruntDropdown=(prefix,dropOpen,setDropOpen,dropQ,setDropQ,data,toggleFn,label)=>{
@@ -2652,7 +2507,7 @@ function App(){
       var nrs=getRecNrs(data[dropOpen]||{});
       return ReactDOM.createPortal(<div>
         <div onClick={()=>{setDropOpen(null);setDropQ("")}} style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9998}}/>
-        <div style={{position:"fixed",top:rect.bottom+4,left:Math.min(rect.left,window.innerWidth-Math.min(400,window.innerWidth-24)-16),zIndex:9999,background:"#fff",border:"2px solid #558b2f",borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,.25)",maxHeight:"70vh",width:Math.min(400,window.innerWidth-24),display:"flex",flexDirection:"column"}}>
+        <div style={{position:"fixed",top:rect.bottom+4,left:Math.min(rect.left,window.innerWidth-420),zIndex:9999,background:"#fff",border:"2px solid #558b2f",borderRadius:10,boxShadow:"0 8px 32px rgba(0,0,0,.25)",maxHeight:440,width:400,display:"flex",flexDirection:"column"}}>
           <div style={{padding:"8px 12px",borderBottom:"1px solid #e8e3db",fontSize:11,fontWeight:700,color:"#2e7d32"}}>{label}</div>
           <div style={{padding:"6px 10px",borderBottom:"1px solid #e8e3db"}}><input autoFocus value={dropQ} onChange={e=>setDropQ(e.target.value)} placeholder="Szukaj: nr, nazwa, obręb, właściciel..." style={{width:"100%",border:"1px solid #ddd6cc",borderRadius:6,padding:"5px 8px",fontSize:11,outline:"none",boxSizing:"border-box"}}/></div>
           <div style={{display:"flex",gap:8,padding:"4px 10px",borderBottom:"1px solid #f0ebe3",fontSize:8,color:"#8a7e72",textTransform:"uppercase",letterSpacing:0.5}}>
@@ -2692,14 +2547,4 @@ function App(){
 }
 
 ReactDOM.render(<App/>,document.getElementById("root"));
-</script>
-<script>
-// PWA Service Worker registration
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/sw.js').then(r=>{
-      console.log('SW registered:',r.scope);
-    }).catch(e=>console.log('SW failed:',e));
-  });
-}
 </script></body></html>
