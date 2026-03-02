@@ -153,6 +153,7 @@ table{border-spacing:0}
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <script type="text/babel">
 
@@ -806,6 +807,99 @@ function App(){
   const[auditLog,setAuditLog]=useState([]);
   const logAudit=(area,action)=>{const entry={ts:new Date().toISOString(),user:user?.name||"?",email:user?.email||"?",area,action};setAuditLog(p=>[entry,...p].slice(0,500))};
 
+
+  // ═══ BIOASEKURACJA ═══
+  const[bioasek,setBioasek]=useState([]);
+  const[bioNew,setBioNew]=useState({data:tS(),kategoria:"Dezynfekcja",opis:"",wykonawca:"",uwagi:""});
+  const BIOKAT=["Dezynfekcja","Kontrola odwiedzin","Deratyzacja","Kwarantanna","Szkolenie","Przegląd śluzy","Inne"];
+  const saveBioasek=async()=>{try{await api.put("/bioasekuracja",bioasek);setToast("Bioasekuracja zapisana ✓");setTimeout(()=>setToast(null),2500)}catch(e){setToast("Błąd: "+e.message);setTimeout(()=>setToast(null),4000)}};
+
+  // ═══ EXCEL IMPORT ═══
+  const[xlImporting,setXlImporting]=useState(false);
+  const[xlResult,setXlResult]=useState(null);
+  const[xlSheets,setXlSheets]=useState([]);
+  const[xlSelSheet,setXlSelSheet]=useState("");
+  const[xlRows,setXlRows]=useState([]);
+  const[xlHeaders,setXlHeaders]=useState([]);
+  const[xlTarget,setXlTarget]=useState("");
+  const[xlPreview,setXlPreview]=useState(false);
+
+  const xlTargets=dept==="tuczarnie"?[
+    {id:"stock",label:"Magazyn Leków",cols:["name","qty","unit","expiry","notes"]},
+  ]:[
+    {id:"ciagniki",label:"Maszyny/Pojazdy",cols:["name","nr_rej","type","rok","przebieg","uwagi"]},
+    {id:"grunty",label:"Grunty/Działki",cols:["nr","nazwa","obreb","gmina","teryt","pow_ha","klasa","uwagi"]},
+    {id:"uprawy",label:"Uprawy",cols:["data","roslina","odmiana","pow_ha","uwagi"]},
+    {id:"nawozy",label:"Nawozy",cols:["data","nawoz","typ","dawka","pow_ha","uwagi"]},
+    {id:"opryski",label:"Opryski",cols:["data","srodek","dawka","pow_ha","cel","faza","uwagi"]},
+    {id:"rdostawy",label:"Dostawy",cols:["data","dostawca","produkt","ilosc","jm","cena","uwagi"]},
+    {id:"paliwa",label:"Paliwa",cols:["data","pojazd","litry","kwota","stacja","uwagi"]},
+    {id:"zakupy",label:"Zakupy różne",cols:["data","nazwa","ilosc","jm","kwota","dostawca","uwagi"]},
+  ];
+
+  const xlHandleFile=(e)=>{
+    const file=e.target.files?.[0];if(!file)return;
+    setXlImporting(true);setXlResult(null);setXlPreview(false);
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      try{
+        const wb=XLSX.read(ev.target.result,{type:"array",cellDates:true});
+        setXlSheets(wb.SheetNames);
+        setXlSelSheet(wb.SheetNames[0]);
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const json=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+        if(json.length>0){setXlHeaders(json[0].map(String));setXlRows(json.slice(1).filter(r=>r.some(c=>c!=="")));}
+        setXlPreview(true);
+        window._xlWB=wb;
+      }catch(err){setXlResult({ok:false,msg:"Błąd odczytu: "+err.message})}
+      setXlImporting(false);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const xlChangeSheet=(name)=>{
+    setXlSelSheet(name);
+    if(!window._xlWB)return;
+    const ws=window._xlWB.Sheets[name];
+    const json=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+    if(json.length>0){setXlHeaders(json[0].map(String));setXlRows(json.slice(1).filter(r=>r.some(c=>c!=="")));}
+  };
+
+  const xlDoImport=async()=>{
+    if(!xlTarget||xlRows.length===0)return;
+    setXlImporting(true);setXlResult(null);
+    const tgt=xlTargets.find(t=>t.id===xlTarget);if(!tgt)return;
+    let imported=0,errors=0;
+    try{
+      for(const row of xlRows){
+        const obj={};
+        tgt.cols.forEach((col,i)=>{
+          let v=i<row.length?row[i]:"";
+          if(v instanceof Date)v=v.toISOString().split("T")[0];
+          if(typeof v==="number")v=String(v);
+          obj[col]=v!=null?String(v):"";
+        });
+        if(!Object.values(obj).some(v=>v&&v.trim()))return;
+        try{
+          if(xlTarget==="ciagniki"){setCiagniki(p=>[...p,{id:Date.now()+imported,...obj}]);}
+          else if(xlTarget==="grunty"){setGrunty(p=>[...p,{id:Date.now()+imported,...obj}]);}
+          else if(xlTarget==="uprawy"){setUprawy(p=>[...p,{id:Date.now()+imported,grunty_nrs:"",...obj}]);}
+          else if(xlTarget==="nawozy"){setNawozy(p=>[...p,{id:Date.now()+imported,grunty_nrs:"",...obj}]);}
+          else if(xlTarget==="opryski"){setOpryski(p=>[...p,{id:Date.now()+imported,grunty_nrs:"",...obj}]);}
+          else if(xlTarget==="rdostawy"){setRDostawy(p=>[...p,{id:Date.now()+imported,...obj}]);}
+          else if(xlTarget==="paliwa"){setPaliwa(p=>[...p,{id:Date.now()+imported,...obj}]);}
+          else if(xlTarget==="zakupy"){setZakupy(p=>[...p,{id:Date.now()+imported,...obj}]);}
+          else if(xlTarget==="stock"){setStock(p=>[...p,{id:Date.now()+imported,...obj}]);}
+          imported++;
+        }catch(e){errors++;}
+      }
+      setXlResult({ok:true,msg:`✅ Zaimportowano ${imported} wierszy${errors?` (${errors} błędów)`:""}`});
+      setXlPreview(false);setXlRows([]);setXlHeaders([]);
+      logAudit(dept==="tuczarnie"?"tuczarnie":"roslinna",`Import Excel: ${imported} wierszy → ${tgt.label}`);
+      setToast(`Import: ${imported} wierszy → ${tgt.label} ✓`);setTimeout(()=>setToast(null),3000);
+    }catch(e){setXlResult({ok:false,msg:"Błąd importu: "+e.message})}
+    setXlImporting(false);
+  };
   // ═══ USER MANAGEMENT (admin only) ═══
   const[mUsers,setMUsers]=useState([]);
   const[showUsers,setShowUsers]=useState(false);
@@ -847,7 +941,7 @@ function App(){
   ].map(v=>({...v,overdue:v.due<tS(),daysLeft:dB(tS(),v.due)}))};
   const gbs=(cyc,m,y)=>{const s=toD(cyc.start),e=toD(cyc.endD);if(!s||!e)return null;const ms=new Date(y,m,1),me=new Date(y,m+1,0),d=me.getDate();if(e<ms||s>me)return null;const bs=s<ms?0:s.getDate()-1,be=e>me?d-1:e.getDate()-1;return{left:`${bs/d*100}%`,width:`${Math.max((be-bs+1)/d*100,3)}%`}};
   const clrs=["#1b6b28","#2e8b3e","#4cb050","#219ebc","#8ecae6","#c8a84e","#e0982a","#d4622a","#606c38","#283618"];
-  const navs=[{id:"panel",label:"Panel",icon:"◆",zoo:false},{id:"komory",label:"Komory",icon:"⌂",zoo:true},{id:"szczepienia",label:"Szczepienia",icon:"💉",zoo:true},{id:"pasza",label:"Pasza",icon:"🌾",zoo:true},{id:"paszarnia",label:"Paszarnia",icon:"⚙️",zoo:true},{id:"silosy",label:"Silosy",icon:"🏗",zoo:true},{id:"calendar",label:"Kalendarz",icon:"▦",zoo:false},{id:"historia",label:"Historia",icon:"◷",zoo:false},{id:"magazyn",label:"Magazyn Leków",icon:"🏪",zoo:false},{id:"analityka",label:"Analityka",icon:"▤",zoo:false},{id:"auditlog",label:"Zmiany",icon:"📋",zoo:false}].filter(n=>!user||user.role!=="zoo"||n.zoo);
+  const navs=[{id:"panel",label:"Panel",icon:"◆",zoo:false},{id:"komory",label:"Komory",icon:"⌂",zoo:true},{id:"szczepienia",label:"Szczepienia",icon:"💉",zoo:true},{id:"pasza",label:"Pasza",icon:"🌾",zoo:true},{id:"paszarnia",label:"Paszarnia",icon:"⚙️",zoo:true},{id:"silosy",label:"Silosy",icon:"🏗",zoo:true},{id:"calendar",label:"Kalendarz",icon:"▦",zoo:false},{id:"historia",label:"Historia",icon:"◷",zoo:false},{id:"magazyn",label:"Magazyn Leków",icon:"🏪",zoo:false},{id:"analityka",label:"Analityka",icon:"▤",zoo:false},{id:"bioasekuracja",label:"Bioasekuracja",icon:"🛡",zoo:false},{id:"auditlog",label:"Zmiany",icon:"📋",zoo:false}].concat(isAdmin?[{id:"xlimport",label:"Import Excel",icon:"📥",zoo:false}]:[]).filter(n=>!user||user.role!=="zoo"||n.zoo);
 
   // LOGIN SCREEN
   if(!user)return(<div className="login-bg"><div className="login-card">
@@ -911,7 +1005,7 @@ function App(){
           </div>
         </div>
       </div>
-      <nav className="tablet-nav-scroll" style={{display:"flex",gap:2,padding:"0 12px 6px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>{dept==="tuczarnie"?navs.map(n=><button key={n.id} className={`nav-btn${view===n.id?" active":""}`} onClick={()=>setView(n.id)}><span>{n.icon}</span>{n.label}</button>):[{id:"ciagniki",label:"Maszyny",icon:"🚜"},{id:"grunty",label:"Grunty",icon:"🗺"},{id:"uprawy",label:"Uprawy",icon:"🌱"},{id:"nawozy",label:"Nawozy",icon:"🧪"},{id:"opryski",label:"Opryski",icon:"🧴"},{id:"rdostawy",label:"Dostawy",icon:"📦"},{id:"paliwa",label:"Paliwa",icon:"⛽"},{id:"zakupy",label:"Zakupy różne",icon:"🛒"},{id:"biogaz",label:"Biogazownia",icon:"🔥"},{id:"dokumenty",label:"Dokumenty",icon:"📂"},{id:"rhistoria",label:"Historia",icon:"📋"}].concat(isAdmin?[{id:"uzytkownicy",label:"Użytkownicy",icon:"👥"},{id:"konfiguracja",label:"Konfiguracja",icon:"⚙️"}]:[]).map(n=><button key={n.id} className={`nav-btn${rView===n.id?" active":""}`} onClick={()=>{setRView(n.id);setRFilter("");if(n.id==="uzytkownicy")loadUsers()}}><span>{n.icon}</span>{n.label}</button>)}</nav>
+      <nav className="tablet-nav-scroll" style={{display:"flex",gap:2,padding:"0 12px 6px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>{dept==="tuczarnie"?navs.map(n=><button key={n.id} className={`nav-btn${view===n.id?" active":""}`} onClick={()=>setView(n.id)}><span>{n.icon}</span>{n.label}</button>):[{id:"ciagniki",label:"Maszyny",icon:"🚜"},{id:"grunty",label:"Grunty",icon:"🗺"},{id:"uprawy",label:"Uprawy",icon:"🌱"},{id:"nawozy",label:"Nawozy",icon:"🧪"},{id:"opryski",label:"Opryski",icon:"🧴"},{id:"rdostawy",label:"Dostawy",icon:"📦"},{id:"paliwa",label:"Paliwa",icon:"⛽"},{id:"zakupy",label:"Zakupy różne",icon:"🛒"},{id:"biogaz",label:"Biogazownia",icon:"🔥"},{id:"dokumenty",label:"Dokumenty",icon:"📂"},{id:"rhistoria",label:"Zmiany",icon:"📋"}].concat(isAdmin?[{id:"xlimport",label:"Import Excel",icon:"📥"},{id:"uzytkownicy",label:"Użytkownicy",icon:"👥"},{id:"konfiguracja",label:"Konfiguracja",icon:"⚙️"}]:[]).map(n=><button key={n.id} className={`nav-btn${rView===n.id?" active":""}`} onClick={()=>{setRView(n.id);setRFilter("");if(n.id==="uzytkownicy")loadUsers()}}><span>{n.icon}</span>{n.label}</button>)}</nav>
     </header>
 
     {dept==="tuczarnie"&&<div style={{maxWidth:1440,margin:"0 auto",padding:"16px 12px"}}>
@@ -1687,6 +1781,50 @@ function App(){
         </div>
       </div>}
 
+      {/* BIOASEKURACJA */}
+      {view==="bioasekuracja"&&<div>
+        <div className="card">
+          <div style={{padding:"16px 24px",borderBottom:"2px solid #f0ebe3",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              <span style={{fontSize:22}}>🛡</span><div><div style={{fontSize:15,fontWeight:700}}>Bioasekuracja</div><div style={{fontSize:10,color:"#8a7e72"}}>Rejestr dezynfekcji, kontroli, kwarantanny</div></div>
+            </div>
+            <button className="btn btn-sm" onClick={saveBioasek}>💾 Zapisz</button>
+          </div>
+          <div style={{padding:16}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:20}}>
+              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1a3328"}}>{bioasek.length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Wpisów</div></div>
+              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#2e7d32"}}>{bioasek.filter(b=>b.kategoria==="Dezynfekcja").length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Dezynfekcji</div></div>
+              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#e65100"}}>{bioasek.filter(b=>b.kategoria==="Kwarantanna").length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Kwarantann</div></div>
+              <div className="kpi-card"><div style={{fontSize:24,fontWeight:800,color:"#1565c0"}}>{bioasek.filter(b=>b.kategoria==="Kontrola odwiedzin").length}</div><div style={{fontSize:9,color:"#8a7e72",textTransform:"uppercase",letterSpacing:1}}>Kontroli</div></div>
+            </div>
+            {isAdmin&&<div style={{background:"#f8f5f0",borderRadius:12,padding:16,marginBottom:16}}>
+              <div style={{fontSize:12,fontWeight:700,marginBottom:10}}>➕ Nowy wpis bioasekuracji</div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"end"}}>
+                <div><label style={{fontSize:10,color:"#8a7e72"}}>Data</label><input type="date" value={bioNew.data} onChange={e=>setBioNew(p=>({...p,data:e.target.value}))} className="inp" style={{width:130}}/></div>
+                <div><label style={{fontSize:10,color:"#8a7e72"}}>Kategoria</label><select value={bioNew.kategoria} onChange={e=>setBioNew(p=>({...p,kategoria:e.target.value}))} className="inp">{BIOKAT.map(k=><option key={k}>{k}</option>)}</select></div>
+                <div style={{flex:1,minWidth:150}}><label style={{fontSize:10,color:"#8a7e72"}}>Opis</label><input value={bioNew.opis} onChange={e=>setBioNew(p=>({...p,opis:e.target.value}))} className="inp" placeholder="Opis czynności..."/></div>
+                <div><label style={{fontSize:10,color:"#8a7e72"}}>Wykonawca</label><input value={bioNew.wykonawca} onChange={e=>setBioNew(p=>({...p,wykonawca:e.target.value}))} className="inp" placeholder="Kto?" style={{width:120}}/></div>
+                <div style={{flex:1,minWidth:100}}><label style={{fontSize:10,color:"#8a7e72"}}>Uwagi</label><input value={bioNew.uwagi} onChange={e=>setBioNew(p=>({...p,uwagi:e.target.value}))} className="inp" placeholder="Uwagi..."/></div>
+                <button className="btn btn-sm" style={{background:"#2e7d32",color:"#fff"}} onClick={()=>{if(!bioNew.opis.trim())return;const entry={...bioNew,id:Date.now(),ts:new Date().toISOString(),user:user?.name||"?"};setBioasek(p=>[entry,...p]);setBioNew({data:tS(),kategoria:"Dezynfekcja",opis:"",wykonawca:"",uwagi:""});logAudit("tuczarnie","Bioasekuracja: "+bioNew.kategoria+" — "+bioNew.opis)}}>➕ Dodaj</button>
+              </div>
+            </div>}
+            {bioasek.length===0?<div style={{textAlign:"center",padding:40,color:"#8a7e72"}}>Brak wpisów bioasekuracji.</div>:
+            <div style={{maxHeight:"70vh",overflowY:"auto"}}><table className="tbl">
+              <thead><tr>{["#","Data","Kategoria","Opis","Wykonawca","Uwagi","Dodał"].map((h,i)=><th key={i}>{h}</th>)}{isAdmin&&<th>✕</th>}</tr></thead>
+              <tbody>{bioasek.map((b,i)=>(<tr key={b.id||i} style={{background:b.kategoria==="Kwarantanna"?"#fff3e008":""}}>
+                <td style={{color:"#8a7e72",fontSize:10}}>{i+1}</td>
+                <td style={{fontSize:11,whiteSpace:"nowrap"}}>{b.data}</td>
+                <td><span style={{padding:"2px 8px",borderRadius:4,fontSize:10,fontWeight:700,background:b.kategoria==="Dezynfekcja"?"#e8f5e9":b.kategoria==="Kwarantanna"?"#fff3e0":b.kategoria==="Kontrola odwiedzin"?"#e3f2fd":"#f3e5f5",color:b.kategoria==="Dezynfekcja"?"#2e7d32":b.kategoria==="Kwarantanna"?"#e65100":b.kategoria==="Kontrola odwiedzin"?"#1565c0":"#6a1b9a"}}>{b.kategoria}</span></td>
+                <td style={{fontSize:11}}>{b.opis}</td>
+                <td style={{fontSize:11}}>{b.wykonawca}</td>
+                <td style={{fontSize:10,color:"#8a7e72"}}>{b.uwagi}</td>
+                <td style={{fontSize:10,color:"#8a7e72"}}>{b.user}</td>
+                {isAdmin&&<td><button className="btn-x" onClick={()=>{setBioasek(p=>p.filter(x=>x.id!==b.id))}}>✕</button></td>}
+              </tr>))}</tbody>
+            </table></div>}
+          </div>
+        </div>
+      </div>}
       {/* AUDIT LOG — TUCZARNIE */}
       {view==="auditlog"&&<div>
         <div className="card">
