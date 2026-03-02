@@ -265,3 +265,145 @@ class AuditLog(Base):
     email = Column(String(255), default="")
     area = Column(String(100), default="")
     action = Column(Text, default="")
+
+
+# ══════════════════════════════════════════════════════════════════
+#  BIOASEKURACJA — 8 rejestrow
+# ══════════════════════════════════════════════════════════════════
+
+class Dezynfekcja(Base):
+    __tablename__ = "bio_dezynfekcja"
+    id = Column(Integer, primary_key=True, index=True)
+    d = Column(String(20), default="")
+    budynek = Column(String(255), default="")
+    srodek = Column(String(255), default="")
+    stezenie = Column(String(100), default="")
+    metoda = Column(String(100), default="oprysk")
+    powierzchnia = Column(String(100), default="")
+    czas_karencji = Column(String(100), default="")
+    wykonawca = Column(String(255), default="")
+    uwagi = Column(Text, default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class SrodekBiobojczy(Base):
+    __tablename__ = "bio_srodki_biobojcze"
+    id = Column(Integer, primary_key=True, index=True)
+    d = Column(String(20), default="")
+    nazwa_srodka = Column(String(255), default="")
+    nr_pozwolenia = Column(String(100), default="")
+    substancja_czynna = Column(String(255), default="")
+    rodzaj = Column(String(100), default="")
+    dawka = Column(String(100), default="")
+    miejsce = Column(String(255), default="")
+    powierzchnia = Column(String(100), default="")
+    wykonawca = Column(String(255), default="")
+    uwagi = Column(Text, default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class Mata(Base):
+    __tablename__ = "bio_maty"
+    id = Column(Integer, primary_key=True, index=True)
+    d = Column(String(20), default="")
+    lokalizacja = Column(String(255), default="")
+    typ_maty = Column(String(100), default="")
+    srodek = Column(String(255), default="")
+    stezenie = Column(String(100), default="")
+    akcja = Column(String(100), default="wymiana")
+    stan = Column(String(100), default="ok")
+    wykonawca = Column(String(255), default="")
+    uwagi = Column(Text, default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class PrzegladBudynku(Base):
+    __tablename__ = "bio_przeglad_budynkow"
+    id = Column(Integer, primary_key=True, index=True)
+    d = Column(String(20), default="")
+    budynek = Column(String(255), default="")
+    siatki_okna = Column(String(50), default="ok")
+    siatki_wloty = Column(String(50), default="ok")
+    drzwi = Column(String(50), default="ok")
+    sciany = Column(String(50), default="ok")
+    dach = Column(String(50), default="ok")
+    ogrodzenie = Column(String(50), default="ok")
+    rynny_odplyw = Column(String(50), default="ok")
+    inne_uwagi = Column(Text, default="")
+    wykonawca = Column(String(255), default="")
+    nastepny_przeglad = Column(String(20), default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class KontrolaInsekty(Base):
+    __tablename__ = "bio_kontrola_insekty"
+    id = Column(Integer, primary_key=True, index=True)
+    d = Column(String(20), default="")
+    nr_stacji = Column(String(100), default="")
+    lokalizacja = Column(String(255), default="")
+    typ_stacji = Column(String(100), default="")
+    stan = Column(String(100), default="ok")
+    ilosc_owadow = Column(String(100), default="")
+    akcja = Column(String(100), default="kontrola")
+    srodek = Column(String(255), default="")
+    wykonawca = Column(String(255), default="")
+    uwagi = Column(Text, default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class TransportBio(Base):
+    __tablename__ = "bio_transport"
+    id = Column(Integer, primary_key=True, index=True)
+    d = Column(String(20), default="")
+    nr_rej = Column(String(100), default="")
+    kierowca = Column(String(255), default="")
+    firma = Column(String(255), default="")
+    cel_wizyty = Column(String(255), default="")
+    dezynfekcja_przed = Column(Boolean, default=False)
+    dezynfekcja_po = Column(Boolean, default=False)
+    srodek_dezyn = Column(String(255), default="")
+    godz_wjazdu = Column(String(10), default="")
+    godz_wyjazdu = Column(String(10), default="")
+    uwagi = Column(Text, default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class DeratyzacjaBiogaz(Base):
+    __tablename__ = "bio_deratyzacja_biogaz"
+    id = Column(Integer, primary_key=True, index=True)
+    d = Column(String(20), default="")
+    nr_stacji = Column(String(100), default="")
+    lokalizacja = Column(String(255), default="biogazownia")
+    preparat = Column(String(255), default="")
+    dawka = Column(String(100), default="")
+    zuzycie = Column(String(100), default="")
+    aktywnosc = Column(String(100), default="brak")
+    stan_stacji = Column(String(100), default="ok")
+    wykonawca = Column(String(255), default="")
+    uwagi = Column(Text, default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class Deratyzacja(Base):
+    __tablename__ = "bio_deratyzacja"
+    id = Column(Integer, primary_key=True, index=True)
+    d = Column(String(20), default="")
+    nr_stacji = Column(String(100), default="")
+    lokalizacja = Column(String(255), default="")
+    budynek = Column(String(255), default="")
+    preparat = Column(String(255), default="")
+    dawka = Column(String(100), default="")
+    zuzycie = Column(String(100), default="")
+    aktywnosc = Column(String(100), default="brak")
+    stan_stacji = Column(String(100), default="ok")
+    wykonawca = Column(String(255), default="")
+    uwagi = Column(Text, default="")
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
