@@ -18,6 +18,6 @@ def get_db():
     finally:
         db.close()
 
-def init_db():
+def init_db(app=None):
     from models import Base as ModelsBase
     ModelsBase.metadata.create_all(bind=engine)
